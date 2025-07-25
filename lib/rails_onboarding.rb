@@ -1,6 +1,7 @@
 require "rails_onboarding/version"
 require "rails_onboarding/engine"
 require "rails_onboarding/configuration"
+require "rails_onboarding/controller_helpers"
 
 module RailsOnboarding
   class Error < StandardError; end
