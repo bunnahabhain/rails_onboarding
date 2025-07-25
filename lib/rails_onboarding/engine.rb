@@ -27,11 +27,8 @@ module RailsOnboarding
     end
 
     # Include concerns in host app models
-    initializer "rails_onboarding.include_concerns" do
-      ActiveSupport.on_load(:active_record) do
-        include RailsOnboarding::Onboardable if defined?(RailsOnboarding::Onboardable)
-      end
-    end
+    # Note: The Onboardable concern should be manually included in your User model
+    # to avoid initialization issues
 
     # Add engine's controller methods to ApplicationController
     initializer "rails_onboarding.controller_helpers" do

@@ -1,0 +1,18 @@
+/* Custom onboarding styles for your application */
+/*
+ * This file is for customizing the onboarding appearance
+ * to match your application's design system.
+ */
+
+/* Example customizations: */
+.onboarding-container {
+  /* Override default styles here */
+}
+
+.onboarding-progress {
+  /* Customize progress bar appearance */
+}
+
+.onboarding-step {
+  /* Customize step appearance */
+}
