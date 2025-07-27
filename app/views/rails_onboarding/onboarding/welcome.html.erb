@@ -1,0 +1,49 @@
+<article class="welcome-step">
+  <div class="welcome-message">
+    <p class="welcome-intro">
+      We're excited to have you here! Let's take a few moments to get you set up
+      and familiar with everything you need to know.
+    </p>
+
+    <div class="welcome-features">
+      <h2>What you'll learn:</h2>
+      <ul class="feature-list" role="list">
+        <li class="feature-item">
+          <span class="feature-icon">👤</span>
+          <span class="feature-text">Set up your profile</span>
+        </li>
+        <li class="feature-item">
+          <span class="feature-icon">🚀</span>
+          <span class="feature-text">Take your first action</span>
+        </li>
+        <li class="feature-item">
+          <span class="feature-icon">🔍</span>
+          <span class="feature-text">Explore key features</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="time-estimate">
+      <p class="estimate-text">
+        <strong>Estimated time:</strong> About 3-5 minutes
+      </p>
+    </div>
+  </div>
+
+  <div class="welcome-actions">
+    <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, class: "onboarding-form" do |form| %>
+      <div class="action-buttons">
+        <button type="submit" class="primary-action">
+          Let's Get Started! 🎉
+        </button>
+
+        <% if @current_step[:skippable] %>
+          <%= link_to "Skip for now", rails_onboarding.skip_onboarding_path,
+                      method: :post,
+                      class: "secondary-action",
+                      data: { confirm: "Are you sure you want to skip the onboarding? You can always come back later." } %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</article>

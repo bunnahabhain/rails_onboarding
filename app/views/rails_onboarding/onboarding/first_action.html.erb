@@ -1,0 +1,54 @@
+<article class="first-action-step">
+  <div class="step-description">
+    <p class="step-intro">
+      Great! Now let's take your first action. This will help you get familiar
+      with the main features you'll be using.
+    </p>
+  </div>
+
+  <div class="action-options">
+    <h2>Choose your first action:</h2>
+
+    <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, class: "onboarding-form" do |form| %>
+      <div class="action-choices">
+        <label class="action-choice">
+          <%= radio_button_tag "step_data[first_action]", "create_list", false, { class: "action-radio" } %>
+          <div class="choice-content">
+            <div class="choice-icon">📝</div>
+            <h3 class="choice-title">Create Your First List</h3>
+            <p class="choice-description">Start with a simple todo list to organize your tasks</p>
+          </div>
+        </label>
+
+        <label class="action-choice">
+          <%= radio_button_tag "step_data[first_action]", "invite_friend", false, { class: "action-radio" } %>
+          <div class="choice-content">
+            <div class="choice-icon">👥</div>
+            <h3 class="choice-title">Invite a Friend</h3>
+            <p class="choice-description">Share lists and collaborate with others</p>
+          </div>
+        </label>
+
+        <label class="action-choice">
+          <%= radio_button_tag "step_data[first_action]", "explore_templates", false, { class: "action-radio" } %>
+          <div class="choice-content">
+            <div class="choice-icon">🎯</div>
+            <h3 class="choice-title">Browse Templates</h3>
+            <p class="choice-description">Start with pre-made lists for common scenarios</p>
+          </div>
+        </label>
+      </div>
+
+      <div class="action-buttons">
+        <button type="submit" class="primary-action" disabled data-action="click->onboarding#enableSubmit">
+          Take This Action
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="helpful-tip">
+    <h3>💡 Helpful Tip</h3>
+    <p>Don't worry about making the perfect choice - you can always explore other features later!</p>
+  </div>
+</article>

@@ -1,0 +1,47 @@
+<article class="generic-step">
+  <div class="step-description">
+    <p class="step-intro">
+      <% if @current_step %>
+        Welcome to the <%= @current_step[:title].downcase %> step of your onboarding journey.
+      <% else %>
+        Welcome to this step of your onboarding journey.
+      <% end %>
+    </p>
+  </div>
+
+  <div class="step-content">
+    <% if @current_step %>
+      <div class="step-placeholder">
+        <h2>Step: <%= @current_step[:title] %></h2>
+        <p>This step is not yet fully configured. Please contact support if you see this message.</p>
+
+        <div class="step-debug" style="background: #f5f5f5; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.875rem;">
+          <strong>Debug Info:</strong><br>
+          Step Name: <%= @current_step[:name] %><br>
+          Step Title: <%= @current_step[:title] %><br>
+          Skippable: <%= @current_step[:skippable] %><br>
+          Progress: <%= @progress %>/<%= @total_steps %>
+        </div>
+      </div>
+    <% else %>
+      <div class="step-error">
+        <h2>Configuration Error</h2>
+        <p>No step information is available. Please check your onboarding configuration.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, class: "onboarding-form" do |form| %>
+    <div class="action-buttons">
+      <button type="submit" class="primary-action">
+        Continue
+      </button>
+
+      <% if @current_step && @current_step[:skippable] %>
+        <%= link_to "Skip this step", rails_onboarding.skip_onboarding_path,
+                    method: :post,
+                    class: "secondary-action" %>
+      <% end %>
+    </div>
+  <% end %>
+</article>

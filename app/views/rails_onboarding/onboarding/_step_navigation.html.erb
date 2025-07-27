@@ -1,0 +1,57 @@
+<nav class="step-navigation" data-controller="navigation">
+  <div class="navigation-buttons">
+    <% if @current_step && RailsOnboarding.configuration.step_index(@current_step[:name]) > 0 %>
+      <!-- Previous button would go here if we implement step back functionality -->
+      <button type="button" class="secondary-action navigation-previous" disabled>
+        ← Previous
+      </button>
+    <% else %>
+      <div class="navigation-spacer"></div>
+    <% end %>
+
+    <div class="navigation-center">
+      <% if @current_step && @current_step[:skippable] %>
+        <%= link_to rails_onboarding.skip_onboarding_path,
+                    method: :post,
+                    class: "skip-action",
+                    data: {
+                      confirm: "Are you sure you want to skip this step?",
+                      action: "click->navigation#confirmSkip"
+                    } do %>
+          Skip this step
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="navigation-help">
+      <button type="button" class="help-action" data-action="click->navigation#showHelp">
+        <span class="help-icon">?</span>
+        <span class="help-text">Help</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Help tooltip (hidden by default) -->
+  <div class="help-tooltip" data-navigation-target="helpTooltip" hidden>
+    <div class="tooltip-content">
+      <h4>Need assistance?</h4>
+      <p>
+        <% case @current_step[:name] %>
+        <% when :welcome %>
+          This onboarding will help you get familiar with the key features. You can skip any step that's not mandatory.
+        <% when :profile %>
+          Setting up your profile helps personalize your experience. All settings can be changed later.
+        <% when :first_action %>
+          Choose any action that interests you most - you can explore all features after onboarding.
+        <% when :explore %>
+          This overview shows you what's available. Don't worry about remembering everything!
+        <% else %>
+          Take your time with each step. You can always access help from the main menu later.
+        <% end %>
+      </p>
+      <button type="button" class="close-help" data-action="click->navigation#hideHelp">
+        Got it
+      </button>
+    </div>
+  </div>
+</nav>

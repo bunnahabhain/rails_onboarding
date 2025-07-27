@@ -25,11 +25,15 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.2.5"
 
   spec.add_dependency "rails", ">= 8.0.0"
+
   # For Stimulus integration
   spec.add_dependency "stimulus-rails", ">= 1.0.0"
+
+  # For Turbo integration
+  spec.add_dependency "turbo-rails", ">= 1.0.0"
 
   spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "minitest-rails", "~> 7.0"
   spec.add_development_dependency "factory_bot_rails", "~> 6.0"
-  spec.add_development_dependency "sqlite3", "~> 1.4"
+  spec.add_development_dependency "sqlite3", "~> 2.0"
 end
