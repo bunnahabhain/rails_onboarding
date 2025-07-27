@@ -39,21 +39,6 @@ module RailsOnboarding
       end
     end
 
-    # Setup Stimulus integration for Rails 7+
-    initializer "rails_onboarding.stimulus" do |app|
-      if defined?(Stimulus)
-        # Register Stimulus controllers from the engine
-        app.config.stimulus.paths << root.join("app", "assets", "javascripts", "rails_onboarding")
-      end
-    end
-
-    # Setup importmap entries if using importmaps
-    initializer "rails_onboarding.importmap", before: "importmap" do |app|
-      if defined?(Importmap)
-        app.config.importmap.paths << root.join("config", "importmap.rb")
-      end
-    end
-
     # Add view paths for the engine
     initializer "rails_onboarding.view_paths" do |app|
       ActiveSupport.on_load(:action_controller_base) do
@@ -65,6 +50,47 @@ module RailsOnboarding
     config.after_initialize do
       if defined?(ActionView)
         ActionView::Base.prepend_view_path(root.join("app", "views"))
+      end
+    end
+
+    # Optional: Setup Stimulus integration if available
+    config.after_initialize do |app|
+      setup_stimulus_integration(app) if stimulus_available?(app)
+      setup_importmap_integration(app) if importmap_available?(app)
+    end
+
+    private
+
+    def self.stimulus_available?(app)
+      defined?(StimulusRails) &&
+        app.config.respond_to?(:stimulus) &&
+        app.config.stimulus.respond_to?(:paths)
+    end
+
+    def self.setup_stimulus_integration(app)
+      begin
+        app.config.stimulus.paths << root.join("app", "assets", "javascripts", "rails_onboarding")
+        Rails.logger.info "RailsOnboarding: Stimulus integration enabled"
+      rescue => e
+        Rails.logger.warn "RailsOnboarding: Could not setup Stimulus integration: #{e.message}"
+      end
+    end
+
+    def self.importmap_available?(app)
+      defined?(Importmap) &&
+        defined?(Importmap::Map) &&
+        app.config.respond_to?(:importmap)
+    end
+
+    def self.setup_importmap_integration(app)
+      begin
+        importmap_path = root.join("config", "importmap.rb")
+        if File.exist?(importmap_path)
+          app.config.importmap.paths << importmap_path
+          Rails.logger.info "RailsOnboarding: Importmap integration enabled"
+        end
+      rescue => e
+        Rails.logger.warn "RailsOnboarding: Could not setup importmap integration: #{e.message}"
       end
     end
   end
