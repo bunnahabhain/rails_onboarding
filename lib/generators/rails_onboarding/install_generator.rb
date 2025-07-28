@@ -13,7 +13,7 @@ module RailsOnboarding
       end
 
       def copy_migration
-        migration_template "add_onboarding_to_users.rb",
+        migration_template "add_onboarding_users.rb",
                            "db/migrate/add_onboarding_to_users.rb"
       end
 
