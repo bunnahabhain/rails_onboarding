@@ -1,0 +1,42 @@
+===============================================================================
+
+Rails Onboarding has been installed!
+
+Next steps:
+
+1. Run the migration:
+   rails db:migrate
+
+2. Add the Onboardable concern to your User model:
+
+   # app/models/user.rb
+   class User < ApplicationRecord
+     include RailsOnboarding::Onboardable
+
+     # your existing code...
+   end
+
+3. Configure onboarding in config/initializers/rails_onboarding.rb
+
+4. Set up JavaScript controllers (see ESBUILD_SETUP.md for details):
+   - Copy JavaScript files to app/javascript/controllers/rails_onboarding/
+   - Register controllers in app/javascript/controllers/index.js
+
+5. Include CSS in your application:
+   Add to app/assets/stylesheets/application.css:
+   /*
+    *= require rails_onboarding/application
+    */
+
+6. Add onboarding check to your ApplicationController (optional):
+
+   class ApplicationController < ActionController::Base
+     # Enable automatic onboarding redirect
+     enable_onboarding_check except: [:show, :edit] # customize as needed
+   end
+
+7. Visit /onboarding to test your setup!
+
+For more details, check the Rails Onboarding documentation.
+
+===============================================================================
