@@ -46,13 +46,6 @@ module RailsOnboarding
       end
     end
 
-    # Configure ActionView to find our templates
-    config.after_initialize do
-      if defined?(ActionView)
-        ActionView::Base.prepend_view_path(root.join("app", "views"))
-      end
-    end
-
     # Optional: Setup Stimulus integration if available
     config.after_initialize do |app|
       setup_stimulus_integration(app) if stimulus_available?(app)

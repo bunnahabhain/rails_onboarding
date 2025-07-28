@@ -20,10 +20,16 @@ Or manually create these files in `app/javascript/controllers/rails_onboarding/`
 
 ## 2. Register Controllers in Application
 
-Add to your `app/javascript/controllers/application.js`:
+Add to your `app/javascript/controllers/index.js`:
 
 ```javascript
-import { application } from "./application"
+// Import and register all your controllers from the importmap under controllers/*
+
+import { application } from "controllers/application"
+
+// Eager load all controllers defined in the import map under controllers/**/*_controller
+import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
+eagerLoadControllersFrom("controllers", application)
 
 // Import Rails Onboarding controllers
 import OnboardingController from "./rails_onboarding/onboarding_controller"
@@ -36,6 +42,30 @@ application.register("onboarding", OnboardingController)
 application.register("progress", ProgressController)
 application.register("navigation", NavigationController)
 application.register("tooltip", TooltipController)
+```
+
+**Alternative approach** - Create a separate file `app/javascript/controllers/rails_onboarding.js`:
+
+```javascript
+import { application } from "controllers/application"
+
+// Import Rails Onboarding controllers
+import OnboardingController from "./rails_onboarding/onboarding_controller"
+import ProgressController from "./rails_onboarding/progress_controller"
+import NavigationController from "./rails_onboarding/navigation_controller"
+import TooltipController from "./rails_onboarding/tooltip_controller"
+
+// Register Rails Onboarding controllers
+application.register("onboarding", OnboardingController)
+application.register("progress", ProgressController)
+application.register("navigation", NavigationController)
+application.register("tooltip", TooltipController)
+```
+
+Then import this in your `app/javascript/controllers/index.js`:
+
+```javascript
+import "./rails_onboarding"
 ```
 
 ## 3. Include CSS Styles
@@ -56,22 +86,59 @@ If you prefer to use the asset pipeline for the JavaScript files, add this to yo
 <%= javascript_include_tag "rails_onboarding/application", defer: true %>
 ```
 
-## 5. Initialize Onboarding
+## 5. Initialize Onboarding (Optional)
 
-Add this to your application layout or where you want onboarding to be available:
+This step is **optional** and mainly useful for debugging or adding custom initialization logic.
+
+### What this does:
+- Runs JavaScript code after the page loads
+- Checks if the Rails Onboarding JavaScript has loaded properly
+- Provides a place to add custom onboarding initialization
+
+### When you might need this:
+- **Debugging**: To verify that the JavaScript controllers loaded correctly
+- **Custom initialization**: If you want to auto-show tooltips or trigger onboarding on certain pages
+- **Analytics setup**: To initialize tracking when onboarding becomes available
+
+### Where to add it:
+You can add this to your main layout file (`app/views/layouts/application.html.erb`) or to specific pages where onboarding is used:
 
 ```erb
 <%= content_for :head do %>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize any global onboarding features
+      // Check if Rails Onboarding JavaScript loaded properly
       if (typeof RailsOnboarding !== 'undefined') {
-        console.log('Rails Onboarding initialized');
+        console.log('Rails Onboarding initialized successfully');
+        
+        // Optional: Add custom initialization here
+        // Example: Auto-show tooltips for new users
+        // if (currentUser.isNew) {
+        //   RailsOnboarding.showTooltip(document.querySelector('#getting-started'), 'Welcome! Click here to begin.');
+        // }
+      } else {
+        console.warn('Rails Onboarding JavaScript not loaded');
       }
     });
   </script>
 <% end %>
 ```
+
+### Alternative: Add to your JavaScript files
+Instead of inline script tags, you could add this initialization to your `app/javascript/application.js`:
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof RailsOnboarding !== 'undefined') {
+    console.log('Rails Onboarding ready');
+    
+    // Your custom initialization code here
+  }
+});
+```
+
+### For most users:
+**You can skip this step entirely** - the onboarding will work without it. The Stimulus controllers will automatically initialize when the page loads and finds elements with the appropriate `data-controller` attributes.
 
 ## 6. Mount the Engine
 

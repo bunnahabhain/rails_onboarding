@@ -1,9 +1,9 @@
 
 import { Application } from "@hotwired/stimulus"
-import OnboardingController from "./onboarding_controller"
-import ProgressController from "./progress_controller"
-import NavigationController from "./navigation_controller"
-import TooltipController from "./tooltip_controller"
+import OnboardingController from "../onboarding_controller"
+import ProgressController from "../progress_controller"
+import NavigationController from "../navigation_controller"
+import TooltipController from "../tooltip_controller"
 
 // Start Stimulus application
 const application = Application.start()
