@@ -11,7 +11,10 @@ module RailsOnboarding
       # - onboarding_skipped: boolean
       # - feature_tooltips_shown: jsonb/text (serialized)
 
-      serialize :feature_tooltips_shown, JSON if columns_hash["feature_tooltips_shown"]&.type == :text
+      # Fix for Rails 8: Use the new serialize syntax
+      if columns_hash["feature_tooltips_shown"]&.type == :text
+        serialize :feature_tooltips_shown, coder: JSON
+      end
     end
 
     def needs_onboarding?
