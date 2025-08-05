@@ -1,42 +1,59 @@
+# lib/rails_onboarding/controller_helpers.rb
 module RailsOnboarding
   module ControllerHelpers
     extend ActiveSupport::Concern
 
     included do
-      helper_method :onboarding_enabled?, :current_user_needs_onboarding?
+      helper_method :needs_onboarding?, :onboarding_path
     end
 
-    protected
+    # Configuration at the controller level
+    class_methods do
+      def skip_onboarding_check(options = {})
+        @skip_onboarding_options = options
+      end
 
-    def check_onboarding_redirect
-      return unless onboarding_enabled?
-      return unless current_user_needs_onboarding?
-      return if onboarding_controller?
-      return if request.xhr?
+      def skip_onboarding_for_action?(action)
+        return false unless @skip_onboarding_options
 
-      redirect_to rails_onboarding.onboarding_path
-    end
-
-    def onboarding_enabled?
-      defined?(current_user) && current_user.present?
-    end
-
-    def current_user_needs_onboarding?
-      current_user.respond_to?(:needs_onboarding?) && current_user.needs_onboarding?
-    end
-
-    def onboarding_controller?
-      controller_path.start_with?('rails_onboarding/')
-    end
-
-    # Optional: Add this to ApplicationController
-    def self.included(base)
-      base.class_eval do
-        # Add after_action callback if needed
-        def self.enable_onboarding_check(options = {})
-          after_action :check_onboarding_redirect, options
+        if @skip_onboarding_options[:only]
+          Array(@skip_onboarding_options[:only]).include?(action.to_sym)
+        elsif @skip_onboarding_options[:except]
+          !Array(@skip_onboarding_options[:except]).include?(action.to_sym)
+        else
+          true
         end
       end
+    end
+
+    def needs_onboarding?
+      return false unless user_signed_in?
+      return false if on_onboarding_page?
+      return false if skip_onboarding_request?
+      return false if self.class.skip_onboarding_for_action?(action_name)
+
+      current_user.needs_onboarding?
+    end
+
+    def on_onboarding_page?
+      request.path.start_with?(rails_onboarding.onboarding_path)
+    end
+
+    def skip_onboarding_request?
+      request.xhr? ||
+        request.format.json? ||
+        request.path.start_with?('/api')
+    end
+
+    def onboarding_path
+      rails_onboarding.onboarding_path
+    end
+
+    private
+
+    def user_signed_in?
+      # Override this or use the host app's method
+      defined?(current_user) && current_user.present?
     end
   end
 end
