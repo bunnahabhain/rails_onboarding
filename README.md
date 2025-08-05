@@ -21,6 +21,19 @@ Or install it yourself as:
 $ gem install rails_onboarding
 ```
 
+## Requirements
+
+This gem requires that your application has:
+1. An `ApplicationController` class
+2. A `current_user` method available in your controllers
+3. Authentication in place (Devise, Authlogic, or custom)
+
+## How it Works
+
+The onboarding controllers inherit from your app's `ApplicationController`,
+which means they have access to all your authentication methods and helpers.
+
+
 ## Contributing
 Contribution directions go here.
 
