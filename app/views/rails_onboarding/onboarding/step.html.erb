@@ -38,9 +38,13 @@
       </button>
 
       <% if @current_step && @current_step[:skippable] %>
-        <%= link_to "Skip this step", rails_onboarding.skip_onboarding_path,
-                    method: :post,
-                    class: "secondary-action" %>
+        <%= button_to "Skip this step", rails_onboarding.skip_onboarding_path,
+                      method: :post,
+                      class: "secondary-action",
+                      data: {
+                        confirm: "Are you sure you want to skip this step?",
+                        turbo: false
+                      } %>
       <% end %>
     </div>
   <% end %>

@@ -75,9 +75,10 @@
         </button>
 
         <% if @current_step[:skippable] %>
-          <%= link_to "Skip to Dashboard", rails_onboarding.skip_onboarding_path,
-                      method: :post,
-                      class: "secondary-action" %>
+          <%= button_to "Skip to Dashboard", rails_onboarding.skip_onboarding_path,
+                        method: :post,
+                        class: "secondary-action",
+                        data: { turbo: false } %>
         <% end %>
       </div>
     <% end %>
