@@ -65,10 +65,14 @@ module RailsOnboarding
     end
 
     def step_by_name(name)
+      return nil if name.nil?
+
       steps.find { |s| s[:name].to_sym == name.to_sym }
     end
 
     def step_index(name)
+      return nil if name.nil?
+
       steps.find_index { |s| s[:name].to_sym == name.to_sym }
     end
   end

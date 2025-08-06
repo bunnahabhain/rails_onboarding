@@ -5,6 +5,12 @@ module RailsOnboarding
     before_action :set_step
 
     def show
+      unless @current_step
+        # Reset onboarding to first step
+        current_user.update!(onboarding_current_step: RailsOnboarding.configuration.steps.first[:name])
+        redirect_to onboarding_path and return
+      end
+
       # Dynamic action based on current step
       step_template = @current_step[:name]
 
@@ -16,6 +22,10 @@ module RailsOnboarding
     end
 
     def next
+      unless @current_step
+        redirect_to onboarding_path and return
+      end
+
       if params[:step_data].present?
         # Process any step-specific data
         process_step_data(@current_step[:name], params[:step_data])
@@ -66,6 +76,9 @@ module RailsOnboarding
       @next_step = current_user.next_onboarding_step
       @progress = current_user.onboarding_progress
       @total_steps = RailsOnboarding.configuration.total_steps
+
+      @progress ||= 0
+      @total_steps ||= 4
     end
 
     def redirect_to_after_completion

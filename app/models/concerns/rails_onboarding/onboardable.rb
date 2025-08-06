@@ -36,7 +36,9 @@ module RailsOnboarding
       return 100 if onboarding_completed?
       return 0 unless onboarding_current_step
 
-      current_index = RailsOnboarding.configuration.step_index(onboarding_current_step) || 0
+      current_index = RailsOnboarding.configuration.step_index(onboarding_current_step)
+      return 0 if current_index.nil?
+
       total_steps = RailsOnboarding.configuration.total_steps
 
       ((current_index + 1).to_f / total_steps * 100).round
@@ -46,7 +48,9 @@ module RailsOnboarding
       return nil if onboarding_completed?
 
       step_name = onboarding_current_step || RailsOnboarding.configuration.steps.first[:name]
-      RailsOnboarding.configuration.step_by_name(step_name)
+      step = RailsOnboarding.configuration.step_by_name(step_name)
+
+      step || RailsOnboarding.configuration.steps.first
     end
 
     def next_onboarding_step
@@ -61,7 +65,14 @@ module RailsOnboarding
 
     def complete_onboarding_step!(step_name)
       current_index = RailsOnboarding.configuration.step_index(step_name)
-      next_step = RailsOnboarding.configuration.steps[current_index + 1] if current_index
+
+      if current_index.nil?
+        # If step not found, complete onboarding
+        complete_onboarding!
+        return
+      end
+
+      next_step = RailsOnboarding.configuration.steps[current_index + 1]
 
       if next_step
         update!(onboarding_current_step: next_step[:name])

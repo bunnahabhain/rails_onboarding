@@ -9,7 +9,7 @@ class AddOnboardingToUsers < ActiveRecord::Migration[Rails::VERSION::MAJOR.Rails
     if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
       add_column :users, :feature_tooltips_shown, :jsonb, default: {}
     else
-      add_column :users, :feature_tooltips_shown, :text
+      add_column :users, :feature_tooltips_shown, :json
     end
 
     add_index :users, :onboarding_completed
