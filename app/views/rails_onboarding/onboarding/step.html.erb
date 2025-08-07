@@ -31,7 +31,7 @@
     <% end %>
   </div>
 
-  <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, class: "onboarding-form" do |form| %>
+  <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
     <div class="action-buttons">
       <button type="submit" class="primary-action">
         Continue
@@ -42,7 +42,7 @@
                       method: :post,
                       class: "secondary-action",
                       data: {
-                        confirm: "Are you sure you want to skip this step?",
+                        turb_confirm: "Are you sure you want to skip this step?",
                         turbo: false
                       } %>
       <% end %>

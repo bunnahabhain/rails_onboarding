@@ -9,40 +9,47 @@
   <div class="action-options">
     <h2>Choose your first action:</h2>
 
-    <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, class: "onboarding-form" do |form| %>
-      <div class="action-choices">
-        <label class="action-choice">
-          <%= radio_button_tag "step_data[first_action]", "create_list", false, { class: "action-radio" } %>
-          <div class="choice-content">
-            <div class="choice-icon">📝</div>
-            <h3 class="choice-title">Create Your First List</h3>
-            <p class="choice-description">Start with a simple todo list to organize your tasks</p>
-          </div>
-        </label>
+    <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
+      <fieldset class="profile-settings">
+        <legend>Profile Settings</legend>
 
-        <label class="action-choice">
-          <%= radio_button_tag "step_data[first_action]", "invite_friend", false, { class: "action-radio" } %>
-          <div class="choice-content">
-            <div class="choice-icon">👥</div>
-            <h3 class="choice-title">Invite a Friend</h3>
-            <p class="choice-description">Share lists and collaborate with others</p>
-          </div>
-        </label>
+        <div class="form-group">
+          <%= label_tag "step_data[timezone]", "Time Zone" %>
+          <%= select_tag "step_data[timezone]",
+                         options_for_select([
+                                              ["Eastern Time", "America/New_York"],
+                                              ["Central Time", "America/Chicago"],
+                                              ["Mountain Time", "America/Denver"],
+                                              ["Pacific Time", "America/Los_Angeles"],
+                                              ["UTC", "UTC"]
+                                            ], current_user.try(:time_zone) || "UTC"),
+                         { class: "timezone-select" } %>
+          <span class="help-text">This helps us show you times in your local timezone</span>
+        </div>
 
-        <label class="action-choice">
-          <%= radio_button_tag "step_data[first_action]", "explore_templates", false, { class: "action-radio" } %>
-          <div class="choice-content">
-            <div class="choice-icon">🎯</div>
-            <h3 class="choice-title">Browse Templates</h3>
-            <p class="choice-description">Start with pre-made lists for common scenarios</p>
-          </div>
-        </label>
-      </div>
+        <div class="form-group">
+          <%= label_tag "step_data[notifications_enabled]" do %>
+            <%= check_box_tag "step_data[notifications_enabled]", "1", true %>
+            <span class="checkbox-label">Enable notifications</span>
+          <% end %>
+          <span class="help-text">Get updates about important activities (you can change this later)</span>
+        </div>
+
+        <div class="form-group">
+          <%= label_tag "step_data[experience_level]", "Experience Level" %>
+          <%= select_tag "step_data[experience_level]",
+                         options_for_select([
+                                              ["I'm new to this", "beginner"],
+                                              ["I have some experience", "intermediate"],
+                                              ["I'm experienced", "advanced"]
+                                            ]),
+                         { class: "experience-select" } %>
+          <span class="help-text">This helps us show you the right level of detail</span>
+        </div>
+      </fieldset>
 
       <div class="action-buttons">
-        <button type="submit" class="primary-action" disabled data-action="click->onboarding#enableSubmit">
-          Take This Action
-        </button>
+        <%= form.submit "Continue", class: "primary-action" %>
       </div>
     <% end %>
   </div>

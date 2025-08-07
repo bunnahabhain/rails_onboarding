@@ -6,7 +6,7 @@
     </p>
   </div>
 
-  <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, class: "onboarding-form" do |form| %>
+  <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
     <fieldset class="profile-settings">
       <legend>Profile Settings</legend>
 
@@ -46,9 +46,7 @@
     </fieldset>
 
     <div class="action-buttons">
-      <button type="submit" class="primary-action">
-        Continue
-      </button>
+      <%= form.submit "Continue", class: "primary-action" %>
     </div>
   <% end %>
 </article>
