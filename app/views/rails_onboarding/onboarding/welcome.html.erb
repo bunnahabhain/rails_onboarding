@@ -31,17 +31,20 @@
   </div>
 
   <div class="welcome-actions">
-    <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
-      <div class="action-buttons">
+    <div class="action-buttons">
+      <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
         <%= form.submit "Let's Get Started! 🎉", class: "primary-action" %>
+      <% end %>
 
-        <% if @current_step[:skippable] %>
+      <% if @current_step[:skippable] %>
+        <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
           <%= form.submit "Skip for now", class: "secondary-action",
-                          formaction: rails_onboarding.skip_onboarding_path,
-                          onclick: "return confirm('Are you sure you want to skip the onboarding? You can always come back later.')" %>
+                          data: {
+                            confirm: "Are you sure you want to skip the onboarding? You can always come back later.",
+                            turbo: false
+                          } %>
         <% end %>
-      </div>
-    <% end %>
+      <% end %>
+    </div>
   </div>
 </article>
-  

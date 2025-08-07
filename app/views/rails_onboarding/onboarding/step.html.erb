@@ -34,12 +34,18 @@
   <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
     <div class="action-buttons">
       <%= form.submit "Continue", class: "primary-action" %>
-
-      <% if @current_step && @current_step[:skippable] %>
-        <%= form.submit "Skip this step", class: "secondary-action",
-                        formaction: rails_onboarding.skip_onboarding_path,
-                        onclick: "return confirm('Are you sure you want to skip this step?')" %>
-      <% end %>
     </div>
+  <% end %>
+
+  <% if @current_step && @current_step[:skippable] %>
+    <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
+      <div class="action-buttons">
+        <%= form.submit "Skip this step", class: "secondary-action",
+                        data: {
+                          confirm: "Are you sure you want to skip this step?",
+                          turbo: false
+                        } %>
+      </div>
+    <% end %>
   <% end %>
 </article>
