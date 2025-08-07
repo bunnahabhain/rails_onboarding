@@ -68,17 +68,14 @@
       You're all set! You can always revisit these features from the help menu.
     </p>
 
-    <%= form_with url: rails_onboarding.complete_onboarding_path, method: :post, class: "onboarding-form" do |form| %>
+    <%= form_with url: rails_onboarding.complete_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
       <div class="action-buttons">
-        <button type="submit" class="primary-action">
-          Complete Onboarding 🎉
-        </button>
+        <%= form.submit "Complete Onboarding 🎉", class: "primary-action" %>
 
         <% if @current_step[:skippable] %>
-          <%= button_to "Skip to Dashboard", rails_onboarding.skip_onboarding_path,
-                        method: :post,
-                        class: "secondary-action",
-                        data: { turbo: false } %>
+          <%= form.submit "Skip to Dashboard", class: "secondary-action",
+                          formaction: rails_onboarding.skip_onboarding_path,
+                          onclick: "return confirm('Are you sure you want to skip to the dashboard?')" %>
         <% end %>
       </div>
     <% end %>

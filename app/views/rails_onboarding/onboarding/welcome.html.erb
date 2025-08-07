@@ -33,20 +33,15 @@
   <div class="welcome-actions">
     <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
       <div class="action-buttons">
-        <button type="submit" class="primary-action">
-          Let's Get Started! 🎉
-        </button>
+        <%= form.submit "Let's Get Started! 🎉", class: "primary-action" %>
 
         <% if @current_step[:skippable] %>
-          <%= button_to "Skip for now", rails_onboarding.skip_onboarding_path,
-                        method: :post,
-                        class: "secondary-action",
-                        data: {
-                          turbo_confirm: "Are you sure you want to skip the onboarding? You can always come back later.",
-                          turbo: false
-                        } %>
+          <%= form.submit "Skip for now", class: "secondary-action",
+                          formaction: rails_onboarding.skip_onboarding_path,
+                          onclick: "return confirm('Are you sure you want to skip the onboarding? You can always come back later.')" %>
         <% end %>
       </div>
     <% end %>
   </div>
 </article>
+  
