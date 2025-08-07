@@ -23,15 +23,9 @@ RailsOnboarding.configure do |config|
       skippable: true
     },
     {
-      name: :create_first_todo,
-      title: 'Create Your First Todo',
-      icon: '📝',
-      skippable: false
-    },
-    {
-      name: :explore_lists,
-      title: 'Explore List Types',
-      icon: '📚',
+      name: :explore,
+      title: 'Explore Features',
+      icon: '🔍',
       skippable: true
     }
   ]
@@ -43,20 +37,10 @@ RailsOnboarding.configure do |config|
       delay: 2000,
       position: 'bottom'
     },
-    'navigation' => {
-      text: 'Use this navigation to move between different sections',
-      delay: 1000,
-      position: 'bottom'
-    },
     'quick_actions' => {
       text: 'Quick shortcuts to your most-used features',
       delay: 1500,
       position: 'top'
-    },
-    'todo_priority' => {
-      text: 'Pro tip: Use priorities to organize tasks by importance!',
-      delay: 2000,
-      position: 'bottom'
     },
     'bulk_actions' => {
       text: 'Select multiple todos to perform bulk operations',
