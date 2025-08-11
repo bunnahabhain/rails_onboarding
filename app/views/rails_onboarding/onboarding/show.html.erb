@@ -15,7 +15,6 @@
   </header>
 
   <section class="onboarding-content">
-    <% binding.b %>
     <div class="step-content" data-controller="onboarding" data-onboarding-current-step-value="<%= @current_step[:name] if @current_step %>">
       <% if @current_step %>
         <div class="step-icon">
