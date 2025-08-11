@@ -12,24 +12,34 @@
 <main class="onboarding-container">
   <header class="onboarding-header">
     <%= render 'progress_indicator' %>
-    <div class="step-navigation">
-      <span class="step-counter">Step <%= @progress %> of <%= @total_steps %></span>
-    </div>
   </header>
 
   <section class="onboarding-content">
-    <div class="step-content">
-      <div class="step-icon">
-        <%= @current_step[:icon] if @current_step %>
-      </div>
+    <% binding.b %>
+    <div class="step-content" data-controller="onboarding" data-onboarding-current-step-value="<%= @current_step[:name] if @current_step %>">
+      <% if @current_step %>
+        <div class="step-icon">
+          <%= @current_step[:icon] %>
+        </div>
 
-      <h1 class="step-title">
-        <%= @current_step[:title] if @current_step %>
-      </h1>
+        <h1 class="step-title">
+          <%= @current_step[:title] %>
+        </h1>
 
-      <div class="step-body">
-        <%= render @current_step[:name] if @current_step %>
-      </div>
+        <div class="step-body">
+          <!-- Render the step-specific template -->
+          <% if @current_step[:name] %>
+            <%= render @current_step[:name].to_s %>
+          <% else %>
+            <%= render 'step' %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="step-error">
+          <h1>Configuration Error</h1>
+          <p>No onboarding step is configured. Please check your onboarding setup.</p>
+        </div>
+      <% end %>
     </div>
   </section>
 
@@ -37,5 +47,7 @@
     <%= render 'step_navigation' %>
   </footer>
 </main>
+
+<%= javascript_include_tag "rails_onboarding/application", defer: true %>
 </body>
 </html>

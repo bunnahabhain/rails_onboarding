@@ -4,21 +4,25 @@
   </div>
 
   <div class="progress-steps">
+    <%
+      # Calculate current step index (1-based)
+      current_step_index = @current_step ? RailsOnboarding.configuration.step_index(@current_step[:name]) + 1 : 1
+    %>
+
     <% RailsOnboarding.configuration.steps.each_with_index do |step, index| %>
       <% step_number = index + 1 %>
-      <% current_step_index = RailsOnboarding.configuration.step_index(@current_step[:name]) + 1 if @current_step %>
       <%
         step_class = "progress-step"
-        step_class += " completed" if current_step_index && step_number < current_step_index
-        step_class += " current" if current_step_index && step_number == current_step_index
-        step_class += " upcoming" if current_step_index && step_number > current_step_index
+        step_class += " completed" if step_number < current_step_index
+        step_class += " current" if step_number == current_step_index
+        step_class += " upcoming" if step_number > current_step_index
       %>
 
       <div class="<%= step_class %>" data-step="<%= step_number %>">
         <div class="step-marker">
-          <% if current_step_index && step_number < current_step_index %>
+          <% if step_number < current_step_index %>
             <span class="step-check">✓</span>
-          <% elsif current_step_index && step_number == current_step_index %>
+          <% elsif step_number == current_step_index %>
             <span class="step-number"><%= step_number %></span>
           <% else %>
             <span class="step-number"><%= step_number %></span>
@@ -33,7 +37,7 @@
   </div>
 
   <div class="progress-text">
-    <span class="current-progress">Step <%= current_step_index || 1 %></span>
+    <span class="current-progress">Step <%= current_step_index %></span>
     <span class="total-steps">of <%= @total_steps %></span>
   </div>
 </div>
