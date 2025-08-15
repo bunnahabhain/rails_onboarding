@@ -1,12 +1,12 @@
-require 'rails/generators/base'
-require 'rails/generators/migration'
+require "rails/generators/base"
+require "rails/generators/migration"
 
 module RailsOnboarding
   module Generators
     class InstallGenerator < Rails::Generators::Base
       include Rails::Generators::Migration
 
-      source_root File.expand_path('templates', __dir__)
+      source_root File.expand_path("templates", __dir__)
 
       def self.next_migration_number(path)
         Time.now.utc.strftime("%Y%m%d%H%M%S")

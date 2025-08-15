@@ -1,0 +1,59 @@
+<div class="milestones-dashboard" data-controller="milestone-dashboard">
+  <div class="milestone-header">
+    <h1 class="milestone-title">🏆 Your Achievements</h1>
+    <div class="milestone-stats">
+      <div class="total-points">
+        <span class="points-value"><%= @total_points %></span>
+        <span class="points-label">Total Points</span>
+      </div>
+      <div class="achievement-count">
+        <span class="count-value"><%= @achieved_milestones.length %></span>
+        <span class="count-label">Milestones</span>
+      </div>
+    </div>
+  </div>
+
+  <% if @achieved_milestones.any? %>
+    <section class="achieved-milestones">
+      <h2 class="section-title">🎉 Achieved Milestones</h2>
+      <div class="milestone-grid">
+        <% @achieved_milestones.each do |milestone| %>
+          <div class="milestone-card milestone-achieved">
+            <div class="milestone-icon"><%= milestone[:icon] %></div>
+            <div class="milestone-content">
+              <h3 class="milestone-name"><%= milestone[:title] %></h3>
+              <p class="milestone-description"><%= milestone[:description] %></p>
+              <div class="milestone-points">+<%= milestone[:points] %> points</div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <% if @available_milestones.any? %>
+    <section class="available-milestones">
+      <h2 class="section-title">🎯 Available Milestones</h2>
+      <div class="milestone-grid">
+        <% @available_milestones.each do |milestone| %>
+          <div class="milestone-card milestone-available">
+            <div class="milestone-icon milestone-locked"><%= milestone[:icon] %></div>
+            <div class="milestone-content">
+              <h3 class="milestone-name"><%= milestone[:title] %></h3>
+              <p class="milestone-description"><%= milestone[:description] %></p>
+              <div class="milestone-points">+<%= milestone[:points] %> points</div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <% if @achieved_milestones.empty? && @available_milestones.empty? %>
+    <div class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <h2>No milestones available</h2>
+      <p>Complete onboarding steps to start earning achievements!</p>
+    </div>
+  <% end %>
+</div>

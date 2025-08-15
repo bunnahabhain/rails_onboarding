@@ -1,6 +1,6 @@
 RailsOnboarding.configure do |config|
   # User model configuration
-  config.user_class_name = 'User'
+  config.user_class_name = "User"
 
   # Redirects
   config.redirect_after_completion = :dashboard_path
@@ -18,34 +18,34 @@ RailsOnboarding.configure do |config|
   config.steps = [
     {
       name: :welcome,
-      title: 'Welcome to LOLOL',
-      icon: '🎉',
+      title: "Welcome to LOLOL",
+      icon: "🎉",
       skippable: true
     },
     {
       name: :explore,
-      title: 'Explore Features',
-      icon: '🔍',
+      title: "Explore Features",
+      icon: "🔍",
       skippable: true
     }
   ]
 
   # Feature tooltips
   config.feature_tooltips = {
-    'getting_started' => {
-      text: 'Click here to get started with LOLOL!',
+    "getting_started" => {
+      text: "Click here to get started with LOLOL!",
       delay: 2000,
-      position: 'bottom'
+      position: "bottom"
     },
-    'quick_actions' => {
-      text: 'Quick shortcuts to your most-used features',
+    "quick_actions" => {
+      text: "Quick shortcuts to your most-used features",
       delay: 1500,
-      position: 'top'
+      position: "top"
     },
-    'bulk_actions' => {
-      text: 'Select multiple todos to perform bulk operations',
+    "bulk_actions" => {
+      text: "Select multiple todos to perform bulk operations",
       delay: 2000,
-      position: 'top'
+      position: "top"
     }
   }
 end

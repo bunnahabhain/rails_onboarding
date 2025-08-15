@@ -1,0 +1,42 @@
+<div class="milestone-celebration-overlay" 
+     data-controller="milestone-celebration" 
+     data-milestone-celebration-milestone-value="<%= milestone.to_json %>"
+     style="display: none;">
+  
+  <div class="celebration-backdrop" data-action="click->milestone-celebration#dismiss"></div>
+  
+  <div class="celebration-modal">
+    <div class="celebration-content">
+      <!-- Confetti animation container -->
+      <div class="confetti-container" data-milestone-celebration-target="confetti"></div>
+      
+      <!-- Achievement announcement -->
+      <div class="achievement-announcement">
+        <div class="achievement-icon-container">
+          <div class="achievement-icon-glow"></div>
+          <div class="achievement-icon"><%= milestone[:icon] %></div>
+        </div>
+        
+        <h2 class="achievement-title">Milestone Achieved!</h2>
+        <h3 class="milestone-name"><%= milestone[:title] %></h3>
+        <p class="milestone-description"><%= milestone[:description] %></p>
+        
+        <div class="points-earned">
+          <span class="points-label">You earned</span>
+          <span class="points-value">+<%= milestone[:points] %></span>
+          <span class="points-label">points!</span>
+        </div>
+      </div>
+      
+      <!-- Action buttons -->
+      <div class="celebration-actions">
+        <button class="btn btn-primary" data-action="click->milestone-celebration#dismiss">
+          Continue
+        </button>
+        <button class="btn btn-secondary" data-action="click->milestone-celebration#viewAllMilestones">
+          View All Achievements
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

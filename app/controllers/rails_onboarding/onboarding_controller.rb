@@ -1,7 +1,7 @@
 module RailsOnboarding
   class OnboardingController < ApplicationController
     before_action :authenticate_user!
-    before_action :check_onboarding_status, except: [:complete, :skip]
+    before_action :check_onboarding_status, except: [ :complete, :skip ]
     before_action :set_step
 
     def show
@@ -31,18 +31,29 @@ module RailsOnboarding
         process_step_data(@current_step[:name], params[:step_data])
       end
 
+      # Award milestones for completing this step
+      awarded_milestones = RailsOnboarding::MilestoneService.check_onboarding_step_milestones(
+        current_user,
+        @current_step[:name]
+      )
+
       current_user.complete_onboarding_step!(@current_step[:name])
 
       if current_user.onboarding_completed?
-        redirect_to_after_completion
+        # Award completion milestones
+        completion_milestones = RailsOnboarding::MilestoneService.check_onboarding_completion_milestones(current_user)
+        awarded_milestones.concat(completion_milestones)
+
+        redirect_to_after_completion(awarded_milestones)
       else
-        redirect_to onboarding_path
+        redirect_to onboarding_path(awarded_milestones: awarded_milestones.map { |m| m[:key] })
       end
     end
 
     def complete
+      completion_milestones = RailsOnboarding::MilestoneService.check_onboarding_completion_milestones(current_user)
       current_user.complete_onboarding!
-      redirect_to_after_completion
+      redirect_to_after_completion(completion_milestones)
     end
 
     def skip
@@ -81,9 +92,16 @@ module RailsOnboarding
       @total_steps ||= 4
     end
 
-    def redirect_to_after_completion
+    def redirect_to_after_completion(awarded_milestones = [])
       path = RailsOnboarding.configuration.redirect_after_completion
-      redirect_to main_app.send(path), notice: "Welcome! You've completed the onboarding."
+      notice = "Welcome! You've completed the onboarding."
+
+      if awarded_milestones.any?
+        milestone_text = awarded_milestones.map { |m| "#{m[:icon]} #{m[:title]}" }.join(", ")
+        notice += " Milestones achieved: #{milestone_text}"
+      end
+
+      redirect_to main_app.send(path), notice: notice
     end
 
     def redirect_to_after_skip
@@ -101,7 +119,7 @@ module RailsOnboarding
     end
 
     def template_exists?(name)
-      lookup_context.exists?(name, ['rails_onboarding/onboarding'], false)
+      lookup_context.exists?(name, [ "rails_onboarding/onboarding" ], false)
     end
   end
 end

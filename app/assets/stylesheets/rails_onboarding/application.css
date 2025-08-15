@@ -15,6 +15,7 @@
  *= require rails_onboarding/tooltips
  *= require rails_onboarding/utilities
  *= require rails_onboarding/accessibility
+ *= require rails_onboarding/milestones
  */
 
 /* Rails Onboarding Styles - Semantic CSS */
@@ -202,6 +203,34 @@
 .progress-text {
   text-align: center;
   font-size: var(--onboarding-text-sm);
+  color: var(--onboarding-text-muted);
+}
+
+.milestone-progress {
+  margin-top: var(--onboarding-space-sm);
+  padding-top: var(--onboarding-space-sm);
+  border-top: 1px solid var(--onboarding-border);
+  display: flex;
+  justify-content: center;
+  gap: var(--onboarding-space-md);
+  flex-wrap: wrap;
+}
+
+.milestone-points {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: white;
+  padding: var(--onboarding-space-xs) var(--onboarding-space-sm);
+  border-radius: 12px;
+  font-size: var(--onboarding-text-xs);
+  font-weight: 600;
+}
+
+.recent-milestone {
+  background: var(--onboarding-surface);
+  border: 1px solid var(--onboarding-border);
+  padding: var(--onboarding-space-xs) var(--onboarding-space-sm);
+  border-radius: 12px;
+  font-size: var(--onboarding-text-xs);
   color: var(--onboarding-text-muted);
 }
 

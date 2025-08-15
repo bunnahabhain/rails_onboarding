@@ -39,5 +39,16 @@
   <div class="progress-text">
     <span class="current-progress">Step <%= current_step_index %></span>
     <span class="total-steps">of <%= @total_steps %></span>
+    
+    <% if RailsOnboarding.configuration.enable_milestones && defined?(current_user) && current_user %>
+      <div class="milestone-progress">
+        <span class="milestone-points">🏆 <%= current_user.total_milestone_points %> points</span>
+        <% if current_user.recent_milestones(limit: 1).any? %>
+          <span class="recent-milestone">
+            Latest: <%= current_user.recent_milestones(limit: 1).first[:icon] %> <%= current_user.recent_milestones(limit: 1).first[:title] %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 </div>

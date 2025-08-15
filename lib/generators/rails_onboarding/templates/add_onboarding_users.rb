@@ -6,7 +6,7 @@ class AddOnboardingToUsers < ActiveRecord::Migration[Rails::VERSION::MAJOR.Rails
     add_column :users, :onboarding_skipped, :boolean, default: false
 
     # Use jsonb for PostgreSQL, text for other databases
-    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+    if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
       add_column :users, :feature_tooltips_shown, :jsonb, default: {}
     else
       add_column :users, :feature_tooltips_shown, :json

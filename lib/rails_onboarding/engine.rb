@@ -22,14 +22,14 @@ module RailsOnboarding
       app.config.assets.paths << root.join("app", "assets", "javascripts")
 
       # Precompile assets
-      app.config.assets.precompile += %w(
+      app.config.assets.precompile += %w[
         rails_onboarding/application.css
         rails_onboarding/application.js
         rails_onboarding/onboarding_controller.js
         rails_onboarding/progress_controller.js
         rails_onboarding/navigation_controller.js
         rails_onboarding/tooltip_controller.js
-      )
+      ]
     end
 
     # Add engine's controller methods to ApplicationController

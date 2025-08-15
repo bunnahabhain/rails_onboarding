@@ -10,10 +10,17 @@ module RailsOnboarding
       # - onboarding_current_step: string
       # - onboarding_skipped: boolean
       # - feature_tooltips_shown: jsonb/text (serialized)
+      # - milestones_achieved: text (serialized JSON array)
+      # - milestone_points: integer
+      # - last_milestone_at: datetime
 
       # Fix for Rails 8: Use the new serialize syntax
       if columns_hash["feature_tooltips_shown"]&.type == :text
         serialize :feature_tooltips_shown, coder: JSON
+      end
+
+      if columns_hash["milestones_achieved"]&.type == :text
+        serialize :milestones_achieved, coder: JSON
       end
     end
 
@@ -124,12 +131,45 @@ module RailsOnboarding
     end
 
     # Milestones
-    def reached_milestone?(milestone)
-      return false unless RailsOnboarding.configuration.enable_milestones
+    def achieved_milestones
+      (milestones_achieved || []).map(&:to_s)
+    end
 
-      # This should be overridden in the host app
-      milestone_method = "reached_#{milestone}_milestone?"
-      respond_to?(milestone_method) ? send(milestone_method) : false
+    def milestone_achieved?(milestone_key)
+      achieved_milestones.include?(milestone_key.to_s)
+    end
+
+    def achieve_milestone!(milestone_key)
+      return false unless RailsOnboarding.configuration.enable_milestones
+      return false if milestone_achieved?(milestone_key)
+
+      milestone_config = RailsOnboarding.configuration.milestone_by_key(milestone_key)
+      return false unless milestone_config
+
+      self.milestones_achieved ||= []
+      self.milestones_achieved << milestone_key.to_s
+      self.milestone_points = (milestone_points || 0) + (milestone_config[:points] || 0)
+      self.last_milestone_at = Time.current
+
+      save!
+      milestone_config
+    end
+
+    def total_milestone_points
+      milestone_points || 0
+    end
+
+    def milestones_available
+      return [] unless RailsOnboarding.configuration.enable_milestones
+      RailsOnboarding.configuration.milestones.reject { |m| milestone_achieved?(m[:key]) }
+    end
+
+    def recent_milestones(limit: 5)
+      return [] unless RailsOnboarding.configuration.enable_milestones
+
+      achieved_milestones.last(limit).map do |key|
+        RailsOnboarding.configuration.milestone_by_key(key)
+      end.compact
     end
   end
 end

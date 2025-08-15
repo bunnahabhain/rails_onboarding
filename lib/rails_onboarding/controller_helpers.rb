@@ -42,7 +42,7 @@ module RailsOnboarding
     def skip_onboarding_request?
       request.xhr? ||
         request.format.json? ||
-        request.path.start_with?('/api')
+        request.path.start_with?("/api")
     end
 
     def onboarding_path

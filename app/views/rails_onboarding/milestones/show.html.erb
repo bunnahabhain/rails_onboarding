@@ -1,0 +1,57 @@
+<div class="milestone-detail" data-controller="milestone-detail">
+  <div class="milestone-hero <%= 'achieved' if @achieved %>">
+    <div class="milestone-icon-large">
+      <%= @milestone[:icon] %>
+    </div>
+    <h1 class="milestone-title"><%= @milestone[:title] %></h1>
+    <p class="milestone-description"><%= @milestone[:description] %></p>
+    
+    <div class="milestone-meta">
+      <div class="milestone-points">
+        <span class="points-value"><%= @milestone[:points] %></span>
+        <span class="points-label">points</span>
+      </div>
+      
+      <% if @achieved %>
+        <div class="achievement-status achieved">
+          <span class="status-icon">✅</span>
+          <span class="status-text">Achieved</span>
+        </div>
+      <% else %>
+        <div class="achievement-status pending">
+          <span class="status-icon">⏳</span>
+          <span class="status-text">Not Yet Achieved</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="milestone-info">
+    <h3>How to achieve this milestone:</h3>
+    <div class="achievement-requirements">
+      <% if @milestone[:trigger] == :onboarding_step_completed %>
+        <p>Complete the <strong><%= @milestone[:conditions][:step].to_s.humanize %></strong> step in onboarding.</p>
+      <% elsif @milestone[:trigger] == :onboarding_completed %>
+        <p>Complete the entire onboarding flow.</p>
+      <% elsif @milestone[:trigger] == :custom %>
+        <% if @milestone[:key] == :early_adopter %>
+          <p>Join within the first hour of account creation.</p>
+        <% else %>
+          <p>This milestone has custom requirements.</p>
+        <% end %>
+      <% else %>
+        <p>Complete specific actions to unlock this achievement.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="milestone-actions">
+    <%= link_to "← Back to Achievements", milestones_path, class: "btn btn-secondary" %>
+    
+    <% unless @achieved %>
+      <% if current_user.needs_onboarding? %>
+        <%= link_to "Continue Onboarding", onboarding_path, class: "btn btn-primary" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
