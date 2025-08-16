@@ -3,6 +3,13 @@ require "test_helper"
 class MilestoneTest < ActiveSupport::TestCase
   def setup
     @user = create_test_user
+    # Disable analytics for milestone tests to avoid Rails 8 polymorphic association issues
+    @original_analytics_setting = RailsOnboarding.configuration.enable_analytics
+    RailsOnboarding.configuration.enable_analytics = false
+  end
+
+  def teardown
+    RailsOnboarding.configuration.enable_analytics = @original_analytics_setting
   end
 
   test "user starts with no milestones" do

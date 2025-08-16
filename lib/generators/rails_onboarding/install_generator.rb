@@ -17,6 +17,11 @@ module RailsOnboarding
                            "db/migrate/add_onboarding_to_users.rb"
       end
 
+      def copy_analytics_migration
+        migration_template "add_analytics_to_rails_onboarding.rb",
+                           "db/migrate/add_analytics_to_rails_onboarding.rb"
+      end
+
       def copy_initializer
         template "rails_onboarding.rb", "config/initializers/rails_onboarding.rb"
       end

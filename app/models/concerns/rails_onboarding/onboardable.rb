@@ -70,25 +70,50 @@ module RailsOnboarding
       next_step
     end
 
-    def complete_onboarding_step!(step_name)
+    def complete_onboarding_step!(step_name, session_id: nil, time_spent: nil)
       current_index = RailsOnboarding.configuration.step_index(step_name)
 
       if current_index.nil?
         # If step not found, complete onboarding
-        complete_onboarding!
+        complete_onboarding!(session_id: session_id)
         return
       end
+
+      # Track step completion
+      AnalyticsEvent.track_step_completed(
+        user: self,
+        step_name: step_name,
+        step_index: current_index,
+        time_spent: time_spent,
+        session_id: session_id
+      )
+
+      # Check for milestone achievements
+      check_and_achieve_step_milestones(step_name, session_id: session_id)
 
       next_step = RailsOnboarding.configuration.steps[current_index + 1]
 
       if next_step
         update!(onboarding_current_step: next_step[:name])
       else
-        complete_onboarding!
+        complete_onboarding!(session_id: session_id)
       end
     end
 
-    def complete_onboarding!
+    def complete_onboarding!(session_id: nil, completion_time: nil)
+      was_skipped = false
+      
+      # Track completion
+      AnalyticsEvent.track_onboarding_completed(
+        user: self,
+        completion_time: completion_time,
+        was_skipped: was_skipped,
+        session_id: session_id
+      )
+
+      # Check for completion milestone
+      check_and_achieve_completion_milestones(session_id: session_id)
+      
       update!(
         onboarding_completed: true,
         onboarding_completed_at: Time.current,
@@ -96,7 +121,17 @@ module RailsOnboarding
       )
     end
 
-    def skip_onboarding!
+    def skip_onboarding!(session_id: nil)
+      was_skipped = true
+      
+      # Track skipping
+      AnalyticsEvent.track_onboarding_completed(
+        user: self,
+        completion_time: nil,
+        was_skipped: was_skipped,
+        session_id: session_id
+      )
+      
       update!(
         onboarding_completed: true,
         onboarding_completed_at: Time.current,
@@ -124,10 +159,27 @@ module RailsOnboarding
       !shown_tooltips[feature.to_s]
     end
 
-    def mark_tooltip_shown!(feature)
+    def mark_tooltip_shown!(feature, session_id: nil)
+      # Track tooltip shown
+      AnalyticsEvent.track_tooltip_interaction(
+        user: self,
+        tooltip_feature: feature,
+        action: 'shown',
+        session_id: session_id
+      )
+      
       self.feature_tooltips_shown ||= {}
       self.feature_tooltips_shown[feature.to_s] = Time.current.iso8601
       save!
+    end
+
+    def track_tooltip_interaction!(feature, action, session_id: nil)
+      AnalyticsEvent.track_tooltip_interaction(
+        user: self,
+        tooltip_feature: feature,
+        action: action,
+        session_id: session_id
+      )
     end
 
     # Milestones
@@ -139,16 +191,26 @@ module RailsOnboarding
       achieved_milestones.include?(milestone_key.to_s)
     end
 
-    def achieve_milestone!(milestone_key)
+    def achieve_milestone!(milestone_key, session_id: nil)
       return false unless RailsOnboarding.configuration.enable_milestones
       return false if milestone_achieved?(milestone_key)
 
       milestone_config = RailsOnboarding.configuration.milestone_by_key(milestone_key)
       return false unless milestone_config
 
+      points_earned = milestone_config[:points] || 0
+
+      # Track milestone achievement
+      AnalyticsEvent.track_milestone_achieved(
+        user: self,
+        milestone_key: milestone_key,
+        points_earned: points_earned,
+        session_id: session_id
+      )
+
       self.milestones_achieved ||= []
       self.milestones_achieved << milestone_key.to_s
-      self.milestone_points = (milestone_points || 0) + (milestone_config[:points] || 0)
+      self.milestone_points = (milestone_points || 0) + points_earned
       self.last_milestone_at = Time.current
 
       save!
@@ -170,6 +232,69 @@ module RailsOnboarding
       achieved_milestones.last(limit).map do |key|
         RailsOnboarding.configuration.milestone_by_key(key)
       end.compact
+    end
+
+    def start_onboarding!(session_id: nil)
+      return if onboarding_completed?
+
+      # Track onboarding start
+      AnalyticsEvent.track_onboarding_started(
+        user: self,
+        session_id: session_id
+      )
+
+      # Set initial step if not already set
+      if onboarding_current_step.nil? && RailsOnboarding.configuration.steps.any?
+        update!(onboarding_current_step: RailsOnboarding.configuration.steps.first[:name])
+      end
+    end
+
+    def skip_onboarding_step!(step_name, session_id: nil)
+      current_index = RailsOnboarding.configuration.step_index(step_name)
+      return unless current_index
+
+      # Track step skip
+      AnalyticsEvent.track_step_skipped(
+        user: self,
+        step_name: step_name,
+        step_index: current_index,
+        session_id: session_id
+      )
+
+      next_step = RailsOnboarding.configuration.steps[current_index + 1]
+
+      if next_step
+        update!(onboarding_current_step: next_step[:name])
+      else
+        complete_onboarding!(session_id: session_id)
+      end
+    end
+
+    private
+
+    def check_and_achieve_step_milestones(step_name, session_id: nil)
+      return unless RailsOnboarding.configuration.enable_milestones
+
+      matching_milestones = RailsOnboarding.configuration.milestones_for_trigger(
+        :onboarding_step_completed,
+        { step: step_name }
+      )
+
+      matching_milestones.each do |milestone|
+        achieve_milestone!(milestone[:key], session_id: session_id)
+      end
+    end
+
+    def check_and_achieve_completion_milestones(session_id: nil)
+      return unless RailsOnboarding.configuration.enable_milestones
+
+      matching_milestones = RailsOnboarding.configuration.milestones_for_trigger(
+        :onboarding_completed
+      )
+
+      matching_milestones.each do |milestone|
+        achieve_milestone!(milestone[:key], session_id: session_id)
+      end
     end
   end
 end

@@ -4,7 +4,7 @@ Rails Onboarding has been installed!
 
 Next steps:
 
-1. Run the migration:
+1. Run the migrations:
    rails db:migrate
 
 2. Add the Onboardable concern to your User model:

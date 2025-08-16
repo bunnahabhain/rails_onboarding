@@ -9,6 +9,11 @@ RailsOnboarding.configure do |config|
   # Features
   config.enable_tooltips = true
   config.enable_milestones = true
+  config.enable_analytics = true
+
+  # Analytics configuration
+  config.analytics_data_retention_days = 365 # Keep analytics data for 1 year
+  config.analytics_session_timeout_minutes = 30 # Session timeout
 
   # Who needs onboarding?
   # Options: :new_users, :all_users, or a Proc
