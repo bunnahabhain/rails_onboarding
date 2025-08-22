@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= Rails.application.class.module_parent.name %> Onboarding</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= yield :head %>
+
+  <%= stylesheet_link_tag "rails_onboarding/application", media: "all" %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+</head>
+<body>
+
+<%= yield %>
+
+</body>
+</html>

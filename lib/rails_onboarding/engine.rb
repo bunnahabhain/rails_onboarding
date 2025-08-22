@@ -23,6 +23,7 @@ module RailsOnboarding
 
       # Precompile JavaScript assets only (CSS should be included via host app's application.css)
       app.config.assets.precompile += %w[
+        rails_onboarding/application.css
         rails_onboarding/application.js
         rails_onboarding/onboarding_controller.js
         rails_onboarding/progress_controller.js
