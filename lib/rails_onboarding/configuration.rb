@@ -1,6 +1,7 @@
 module RailsOnboarding
   class Configuration
     attr_accessor :user_class_name,
+                  :include_host_styles,
                   :redirect_after_completion,
                   :redirect_after_skip,
                   :steps,
@@ -17,6 +18,7 @@ module RailsOnboarding
 
     def initialize
       @user_class_name = "User"
+      @include_host_styles = true  # Default to including host app css
       @redirect_after_completion = :root_path
       @redirect_after_skip = :root_path
       @enable_tooltips = true
@@ -145,7 +147,7 @@ module RailsOnboarding
         # If no conditions are provided, match all milestones with this trigger
         next true if conditions.empty?
 
-        # If milestone has no conditions but we're providing conditions, don't match
+        # If milestone has no conditions, but we're providing conditions, don't match
         next false if milestone[:conditions].nil?
 
         # Both have conditions, check if they match

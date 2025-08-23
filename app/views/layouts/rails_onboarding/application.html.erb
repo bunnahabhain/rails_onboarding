@@ -7,8 +7,11 @@
 
   <%= yield :head %>
 
-  <%= stylesheet_link_tag "rails_onboarding/application", media: "all" %>
-  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "rails_onboarding/application", media: "screen" %>
+
+  <% if RailsOnboarding.configuration.include_host_styles %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload", media: "screen" %>
+  <% end %>
 </head>
 <body>
 
