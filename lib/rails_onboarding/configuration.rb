@@ -14,7 +14,9 @@ module RailsOnboarding
                   :custom_js_path,
                   :enable_analytics,
                   :analytics_data_retention_days,
-                  :analytics_session_timeout_minutes
+                  :analytics_session_timeout_minutes,
+                  :welcome_heading,
+                  :welcome_subheading
 
     def initialize
       @user_class_name = "User"
@@ -27,6 +29,8 @@ module RailsOnboarding
       @analytics_data_retention_days = 365 # Keep analytics data for 1 year
       @analytics_session_timeout_minutes = 30 # Consider session ended after 30 minutes of inactivity
       @onboarding_required_for = :new_users # :new_users, :all_users, or a Proc
+      @welcome_heading = "We're excited to have you here!"
+      @welcome_subheading = "Now, let's take a few moments to get you set up and familiar with a few things you need to know to get started."
 
       # Default steps - can be customized
       @steps = [
