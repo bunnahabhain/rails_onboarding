@@ -11,18 +11,14 @@
   <div class="welcome-features">
     <h2>What you'll learn:</h2>
     <ul class="feature-list" role="list">
-      <li class="feature-item">
-        <span class="feature-icon">👤</span>
-        <span class="feature-text">Set up your profile</span>
-      </li>
-      <li class="feature-item">
-        <span class="feature-icon">📝</span>
-        <span class="feature-text">Create your first todo</span>
-      </li>
-      <li class="feature-item">
-        <span class="feature-icon">🔍</span>
-        <span class="feature-text">Explore key features</span>
-      </li>
+      <% RailsOnboarding.configuration.welcome_features.each do |feature| %>
+        <li class="feature-item">
+          <span class="feature-icon"><%= feature[:icon] %></span>
+          <span class="feature-icon"><%= feature[:icon] %></span>
+          <span class="feature-icon"><%= feature[:icon] %></span>
+          <span class="feature-text"><%= feature[:text] %></span>
+        </li>
+      <% end %>
     </ul>
   </div>
 

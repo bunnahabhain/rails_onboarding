@@ -16,7 +16,8 @@ module RailsOnboarding
                   :analytics_data_retention_days,
                   :analytics_session_timeout_minutes,
                   :welcome_heading,
-                  :welcome_subheading
+                  :welcome_subheading,
+                  :welcome_features
 
     def initialize
       @user_class_name = "User"
@@ -31,6 +32,11 @@ module RailsOnboarding
       @onboarding_required_for = :new_users # :new_users, :all_users, or a Proc
       @welcome_heading = "We're excited to have you here!"
       @welcome_subheading = "Now, let's take a few moments to get you set up and familiar with a few things you need to know to get started."
+      @welcome_features = [
+        { icon: "👤", text: "Set up your profile" },
+        { icon: "📝", text: "Create your first todo" },
+        { icon: "🔍", text: "Explore key features" }
+      ]
 
       # Default steps - can be customized
       @steps = [
