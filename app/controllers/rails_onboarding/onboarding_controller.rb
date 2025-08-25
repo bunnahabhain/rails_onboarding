@@ -58,12 +58,8 @@ module RailsOnboarding
 
     def skip
       if @current_step && @current_step[:skippable]
-        current_user.skip_onboarding_step!(@current_step[:name])
-        if current_user.onboarding_completed?
-          redirect_to_after_completion
-        else
-          redirect_to onboarding_path
-        end
+        current_user.skip_onboarding!  # Skip ALL remaining steps
+        redirect_to_after_skip
       else
         current_user.skip_onboarding!
         redirect_to_after_skip
