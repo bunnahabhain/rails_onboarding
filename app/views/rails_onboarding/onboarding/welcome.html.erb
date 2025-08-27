@@ -34,11 +34,7 @@
 
     <% if @current_step && @current_step[:skippable] %>
       <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
-        <%= form.submit "Skip for now", class: "secondary-action",
-                        data: {
-                          turbo_confirm: "Are you sure you want to skip the onboarding? You can always come back later.",
-                          turbo: true
-                        } %>
+        <%= form.submit "Skip for now", class: "secondary-action" %>
       <% end %>
     <% end %>
   </div>
