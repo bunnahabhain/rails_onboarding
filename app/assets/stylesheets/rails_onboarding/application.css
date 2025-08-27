@@ -651,19 +651,36 @@ input[type="checkbox"] {
   transform: translateY(-1px);
 }
 
+.skip-options {
+    display: flex;
+    gap: var(--onboarding-space-md);
+    align-items: center;
+}
+
 .skip-action {
-  background: none;
-  border: none;
-  color: var(--onboarding-text-muted);
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: var(--onboarding-text-sm);
-  padding: var(--onboarding-space-sm);
-  transition: var(--onboarding-transition);
+    background: transparent;
+    color: var(--onboarding-text-muted);
+    border: 1px solid var(--onboarding-border);
+    padding: var(--onboarding-space-sm) var(--onboarding-space-md);
+    font-size: var(--onboarding-text-sm);
+}
+
+.skip-all-action {
+    background: none;
+    border: none;
+    color: var(--onboarding-text-light);
+    text-decoration: underline;
+    font-size: var(--onboarding-text-xs);
+    padding: var(--onboarding-space-xs);
 }
 
 .skip-action:hover {
-  color: var(--onboarding-text);
+    background: var(--onboarding-surface);
+    color: var(--onboarding-text);
+}
+
+.skip-all-action:hover {
+    color: var(--onboarding-danger);
 }
 
 /* ======================

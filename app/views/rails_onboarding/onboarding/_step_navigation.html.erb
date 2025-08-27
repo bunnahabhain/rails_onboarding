@@ -11,13 +11,19 @@
 
     <div class="navigation-center">
       <% if @current_step && @current_step[:skippable] %>
-        <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
-          <%= form.submit "Skip this step", class: "skip-action",
-                          data: {
-                            confirm: "Are you sure you want to skip this step?",
-                            turbo: false
-                          } %>
-        <% end %>
+        <div class="skip-options">
+          <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-skip-form" do |form| %>
+            <%= form.submit "Skip this step →", class: "skip-action secondary-action" %>
+          <% end %>
+
+          <%= form_with url: rails_onboarding.skip_onboarding_path(skip_all: true), method: :post, local: true, class: "onboarding-skip-all-form" do |form| %>
+            <%= form.submit "Exit onboarding", class: "skip-all-action text-button",
+                            data: {
+                              confirm: "Skip the entire onboarding? You can restart it from your dashboard.",
+                              turbo: false
+                            } %>
+          <% end %>
+        </div>
       <% end %>
     </div>
 
