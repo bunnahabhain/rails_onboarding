@@ -34,7 +34,7 @@ module RailsOnboarding
       @welcome_subheading = "Now, let's take a few moments to get you set up and familiar with a few things you need to know to get started."
       @welcome_features = [
         { icon: "👤", text: "Set up your profile" },
-        { icon: "📝", text: "Create your first todo" },
+        { icon: "📝", text: "Create your first item" },
         { icon: "🔍", text: "Explore key features" }
       ]
 
@@ -44,24 +44,6 @@ module RailsOnboarding
           name: :welcome,
           title: "Welcome",
           icon: "🎉",
-          skippable: true
-        },
-        {
-          name: :profile,
-          title: "Setup Profile",
-          icon: "👤",
-          skippable: false
-        },
-        {
-          name: :first_action,
-          title: "First Action",
-          icon: "🚀",
-          skippable: false
-        },
-        {
-          name: :explore,
-          title: "Explore Features",
-          icon: "🔍",
           skippable: true
         }
       ]
@@ -84,24 +66,6 @@ module RailsOnboarding
           points: 10,
           trigger: :onboarding_step_completed,
           conditions: { step: :welcome }
-        },
-        {
-          key: :profile_completed,
-          title: "Profile Master",
-          description: "You set up your profile",
-          icon: "👤",
-          points: 25,
-          trigger: :onboarding_step_completed,
-          conditions: { step: :profile }
-        },
-        {
-          key: :first_action_completed,
-          title: "Action Hero",
-          description: "You took your first action",
-          icon: "🚀",
-          points: 30,
-          trigger: :onboarding_step_completed,
-          conditions: { step: :first_action }
         },
         {
           key: :onboarding_completed,
