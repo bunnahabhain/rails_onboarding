@@ -1,41 +1,20 @@
 <nav class="step-navigation" data-controller="navigation">
   <div class="navigation-buttons">
-    <% if @current_step && RailsOnboarding.configuration.step_index(@current_step[:name]) && RailsOnboarding.configuration.step_index(@current_step[:name]) > 0 %>
-      <!-- Previous button would go here if we implement step back functionality -->
-      <button type="button" class="secondary-action navigation-previous" disabled>
-        ← Previous
-      </button>
-    <% else %>
-      <div class="navigation-spacer"></div>
-    <% end %>
-
     <div class="navigation-center">
       <% if @current_step && @current_step[:skippable] %>
         <div class="skip-options">
-          <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-skip-form" do |form| %>
-            <%= form.submit "Skip this step →", class: "skip-action secondary-action" %>
+          <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
+            <%= form.submit "Skip this step", class: "secondary-action" %>
           <% end %>
 
-          <%= form_with url: rails_onboarding.skip_onboarding_path(skip_all: true), method: :post, local: true, class: "onboarding-skip-all-form" do |form| %>
-            <%= form.submit "Exit onboarding", class: "skip-all-action text-button",
-                            data: {
-                              confirm: "Skip the entire onboarding? You can restart it from your dashboard.",
-                              turbo: false
-                            } %>
+          <%= form_with url: rails_onboarding.skip_onboarding_path(skip_all: true), method: :post, local: true, class: "onboarding-form" do |form| %>
+            <%= form.submit "Exit onboarding", class: "secondary-action" %>
           <% end %>
         </div>
       <% end %>
     </div>
-
-    <div class="navigation-help">
-      <button type="button" class="help-action" data-action="click->navigation#showHelp">
-        <span class="help-icon">?</span>
-        <span class="help-text">Help</span>
-      </button>
-    </div>
   </div>
 
-  <!-- Help tooltip (hidden by default) -->
   <div class="help-tooltip" data-navigation-target="helpTooltip" hidden>
     <div class="tooltip-content">
       <h4>Need assistance?</h4>

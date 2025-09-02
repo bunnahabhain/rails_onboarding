@@ -1,4 +1,4 @@
-<article class="generic-step">
+<div class="generic-step">
   <div class="step-description">
     <p class="step-intro">
       <% if @current_step %>
@@ -31,17 +31,8 @@
     <% end %>
   </div>
 
-  <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
-    <div class="action-buttons">
-      <%= form.submit "Continue", class: "primary-action" %>
-    </div>
-  <% end %>
-
-  <% if @current_step && @current_step[:skippable] %>
-    <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
-      <div class="action-buttons">
-        <%= form.submit "Skip this step", class: "secondary-action" %>
-      </div>
-    <% end %>
-  <% end %>
-</article>
+  <div class="onboarding-actions">
+    <%= render 'step_navigation' %>
+  </div>
+</div>
+<%= render 'custom_footer' %>

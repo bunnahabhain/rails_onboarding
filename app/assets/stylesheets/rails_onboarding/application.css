@@ -88,15 +88,6 @@
   line-height: 1.6;
 }
 
-.onboarding-header {
-  background: var(--onboarding-surface-elevated);
-  border-bottom: 1px solid var(--onboarding-border);
-  padding: var(--onboarding-space-lg);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
 .onboarding-content {
   flex: 1;
   display: flex;
@@ -105,9 +96,13 @@
   padding: var(--onboarding-space-2xl) var(--onboarding-space-lg);
 }
 
+.onboarding-custom-footer {
+  text-align: center;
+}
+
 .onboarding-footer {
+  display: flex;
   background: var(--onboarding-surface-elevated);
-  border-top: 1px solid var(--onboarding-border);
   padding: var(--onboarding-space-lg);
 }
 
@@ -267,8 +262,9 @@
    Welcome Step
    ====================== */
 .welcome-step {
-  display: grid;
-  gap: var(--onboarding-space-xl);
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .welcome-features {
@@ -802,6 +798,9 @@ input[type="checkbox"] {
    ====================== */
 .generic-step,
 .step-placeholder {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
   text-align: center;
 }
 

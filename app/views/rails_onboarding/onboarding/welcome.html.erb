@@ -7,7 +7,7 @@
   </h2>
 
   <div class="welcome-features">
-    <h2>What you'll learn:</h2>
+    <h3>What you'll learn:</h3>
     <ul class="feature-list" role="list">
       <% RailsOnboarding.configuration.welcome_features.each do |feature| %>
         <li class="feature-item">
@@ -26,16 +26,14 @@
     </p>
   </div>
 
-  <!-- Action buttons - this is the key part! -->
-  <div class="action-buttons">
+  <div class="onboarding-actions">
     <%= form_with url: rails_onboarding.next_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
       <%= form.submit "Let's Get Started! 🎉", class: "primary-action" %>
     <% end %>
+  </div>
 
-    <% if @current_step && @current_step[:skippable] %>
-      <%= form_with url: rails_onboarding.skip_onboarding_path, method: :post, local: true, class: "onboarding-form" do |form| %>
-        <%= form.submit "Skip for now", class: "secondary-action" %>
-      <% end %>
-    <% end %>
+  <div class="onboarding-actions">
+    <%= render 'step_navigation' %>
   </div>
 </div>
+<%= render 'custom_footer' %>
