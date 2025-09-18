@@ -50,40 +50,39 @@ class MilestoneTest < ActiveSupport::TestCase
     available = @user.milestones_available
 
     # All milestones should be available initially
-    assert_equal 5, available.length
+    assert_equal 3, available.length
     assert available.any? { |m| m[:key] == :welcome_completed }
 
     # After achieving one, it should no longer be available
     @user.achieve_milestone!(:welcome_completed)
     available_after = @user.milestones_available
 
-    assert_equal 4, available_after.length
+    assert_equal 2, available_after.length
     refute available_after.any? { |m| m[:key] == :welcome_completed }
   end
 
   test "recent_milestones returns recently achieved milestones" do
-    # Achieve multiple milestones
+    # Achieve multiple milestones from the default configuration
     @user.achieve_milestone!(:welcome_completed)
-    @user.achieve_milestone!(:profile_completed)
-    @user.achieve_milestone!(:first_action_completed)
+    @user.achieve_milestone!(:onboarding_completed)
 
     recent = @user.recent_milestones(limit: 2)
 
     assert_equal 2, recent.length
-    assert_equal :first_action_completed, recent.last[:key]
-    assert_equal :profile_completed, recent.first[:key]
+    assert_equal :onboarding_completed, recent.last[:key]
+    assert_equal :welcome_completed, recent.first[:key]
   end
 
   test "milestone serialization handles JSON properly" do
     @user.achieve_milestone!(:welcome_completed)
-    @user.achieve_milestone!(:profile_completed)
+    @user.achieve_milestone!(:onboarding_completed)
 
     @user.reload
 
     assert_equal 2, @user.achieved_milestones.length
     assert_includes @user.achieved_milestones, "welcome_completed"
-    assert_includes @user.achieved_milestones, "profile_completed"
-    assert_equal 35, @user.total_milestone_points # 10 + 25
+    assert_includes @user.achieved_milestones, "onboarding_completed"
+    assert_equal 60, @user.total_milestone_points # 10 + 50
   end
 
   private

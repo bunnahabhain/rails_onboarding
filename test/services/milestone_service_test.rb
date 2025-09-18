@@ -57,12 +57,12 @@ class MilestoneServiceTest < ActiveSupport::TestCase
     awarded = RailsOnboarding::MilestoneService.check_and_award_milestones(
       @user,
       :onboarding_step_completed,
-      { step: :profile }
+      { step: :welcome }
     )
 
     assert_equal 1, awarded.length
-    assert_equal :profile_completed, awarded.first[:key]
-    assert_equal 25, @user.total_milestone_points
+    assert_equal :welcome_completed, awarded.first[:key]
+    assert_equal 10, @user.total_milestone_points
   end
 
   test "does not award milestone if conditions don't match" do

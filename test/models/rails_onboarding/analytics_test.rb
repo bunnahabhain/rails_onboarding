@@ -131,14 +131,8 @@ module RailsOnboarding
         properties: { step_name: "welcome" },
         occurred_at: @today
       )
-      AnalyticsEvent.create!(
-        user: @user1,
-        event_type: AnalyticsEvent::ONBOARDING_STEP_COMPLETED,
-        properties: { step_name: "profile" },
-        occurred_at: @today
-      )
       AnalyticsEvent.create!(user: @user1, event_type: AnalyticsEvent::ONBOARDING_COMPLETED, occurred_at: @today)
-      
+
       # User 2: Partial onboarding
       AnalyticsEvent.create!(user: @user2, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: @yesterday)
       AnalyticsEvent.create!(
@@ -149,15 +143,13 @@ module RailsOnboarding
       )
 
       funnel = Analytics.funnel_analysis(date_range: @date_range)
-      
+
       assert_equal 2, funnel[:total_started]
       assert_equal 50.0, funnel[:overall_completion_rate] # 1 completed out of 2 started
-      
+
       welcome_step = funnel[:steps].find { |s| s[:step_name].to_s == "welcome" }
+      assert_not_nil welcome_step, "Should find welcome step in funnel results"
       assert_equal 100.0, welcome_step[:retention_rate] # 2 out of 2
-      
-      profile_step = funnel[:steps].find { |s| s[:step_name].to_s == "profile" }
-      assert_equal 50.0, profile_step[:retention_rate] # 1 out of 2
     end
 
     test "daily_summary provides correct counts" do

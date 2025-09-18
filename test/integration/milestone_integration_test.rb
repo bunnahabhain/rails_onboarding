@@ -26,7 +26,7 @@ class MilestoneIntegrationTest < ActionDispatch::IntegrationTest
 
     # First verify we have milestones at all
     assert config.milestones.any?, "Configuration should have milestones"
-    assert_equal 5, config.milestones.length, "Should have 5 total milestones"
+    assert_equal 3, config.milestones.length, "Should have 3 default milestones"
 
     # Test milestone_by_key
     welcome_milestone = config.milestone_by_key(:welcome_completed)
@@ -40,7 +40,7 @@ class MilestoneIntegrationTest < ActionDispatch::IntegrationTest
 
     # Test milestones_for_trigger - for onboarding step completion (without conditions)
     step_milestones = config.milestones_for_trigger(:onboarding_step_completed)
-    assert_equal 3, step_milestones.length, "Should have exactly 3 step completion milestones, got #{step_milestones.length}"
+    assert_equal 1, step_milestones.length, "Should have exactly 1 step completion milestone, got #{step_milestones.length}"
     assert step_milestones.any? { |m| m[:key] == :welcome_completed }, "Should include welcome milestone"
 
     # Test milestones_for_trigger with conditions
