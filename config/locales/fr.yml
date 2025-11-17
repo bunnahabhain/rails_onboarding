@@ -1,0 +1,62 @@
+fr:
+  rails_onboarding:
+    # Navigation
+    navigation:
+      next: "Suivant"
+      back: "Retour"
+      skip: "Passer"
+      skip_all: "Tout Passer"
+      finish: "Terminer"
+      restart: "Recommencer"
+
+    # Actions
+    actions:
+      complete: "Compléter"
+      continue: "Continuer"
+      get_started: "Commencer"
+
+    # Messages
+    messages:
+      welcome: "Bienvenue!"
+      completed: "Félicitations! Vous avez terminé l'intégration."
+      skipped: "Vous pouvez explorer les fonctionnalités à votre rythme."
+      restarted: "L'intégration a été redémarrée."
+      cannot_go_back: "Impossible de revenir en arrière depuis la première étape."
+      cannot_skip: "Cette étape ne peut pas être ignorée."
+      error: "Une erreur s'est produite. Veuillez réessayer."
+      validation_error: "Impossible d'enregistrer les modifications: %{errors}"
+
+    # Progress
+    progress:
+      step_of: "Étape %{current} sur %{total}"
+      percent_complete: "%{percent}% terminé"
+
+    # Tooltips
+    tooltips:
+      dismiss: "Compris"
+      next_tip: "Conseil suivant"
+      close: "Fermer"
+
+    # Milestones
+    milestones:
+      achievement_unlocked: "Succès Débloqué!"
+      points_earned: "%{points} points gagnés"
+      view_all: "Voir tous les succès"
+
+    # Errors
+    errors:
+      failed_to_save: "Échec de l'enregistrement de votre progression"
+      step_not_found: "Étape non trouvée"
+      invalid_action: "Action invalide"
+      session_expired: "Votre session a expiré. Veuillez actualiser la page."
+      network_error: "Erreur réseau. Veuillez vérifier votre connexion."
+
+    # Common
+    common:
+      loading: "Chargement..."
+      saving: "Enregistrement..."
+      please_wait: "Veuillez patienter..."
+      cancel: "Annuler"
+      confirm: "Confirmer"
+      yes: "Oui"
+      no: "Non"

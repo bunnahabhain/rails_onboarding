@@ -224,6 +224,51 @@ module RailsOnboarding
       end
     end
 
+    def back
+      begin
+        unless current_user.can_go_back?
+          respond_to do |format|
+            format.html { redirect_to onboarding_path, alert: "Cannot go back from the first step." }
+            format.turbo_stream do
+              render turbo_stream: turbo_stream.replace(
+                "flash-messages",
+                partial: "rails_onboarding/shared/flash",
+                locals: { alert: "Cannot go back from the first step." }
+              ), status: :unprocessable_entity
+            end
+          end
+          return
+        end
+
+        session_id = RailsOnboarding::SessionManager.session_id(current_user, session)
+        current_user.go_back!(session_id: session_id)
+
+        respond_to do |format|
+          format.html { redirect_to onboarding_path }
+          format.turbo_stream { render :back }
+        end
+      rescue => e
+        handle_standard_error(e)
+      end
+    end
+
+    def restart
+      begin
+        session_id = RailsOnboarding::SessionManager.session_id(current_user, session)
+        current_user.restart_onboarding!(session_id: session_id)
+        RailsOnboarding::SessionManager.clear_session(current_user, session)
+
+        respond_to do |format|
+          format.html { redirect_to onboarding_path, notice: "Onboarding has been restarted." }
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.action(:redirect, onboarding_path)
+          end
+        end
+      rescue => e
+        handle_standard_error(e)
+      end
+    end
+
     private
 
     def authenticate_user!
