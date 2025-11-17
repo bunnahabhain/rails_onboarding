@@ -3,6 +3,8 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in rails_onboarding.gemspec.
 gemspec
 
+gem "rails", "~> 8.0.2"
+
 gem "puma"
 
 gem "sqlite3"
