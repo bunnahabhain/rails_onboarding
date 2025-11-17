@@ -1,0 +1,830 @@
+/* ======================
+   Advanced Mobile Responsive Design
+   ====================== */
+
+/* Mobile-First CSS Variables */
+:root {
+  /* Mobile-specific spacing (smaller on mobile) */
+  --mobile-space-xs: 0.25rem;
+  --mobile-space-sm: 0.375rem;
+  --mobile-space-md: 0.75rem;
+  --mobile-space-lg: 1rem;
+  --mobile-space-xl: 1.5rem;
+
+  /* Mobile-specific typography (optimized for smaller screens) */
+  --mobile-text-xs: 0.6875rem;   /* 11px */
+  --mobile-text-sm: 0.8125rem;   /* 13px */
+  --mobile-text-base: 0.9375rem; /* 15px */
+  --mobile-text-lg: 1.0625rem;   /* 17px */
+  --mobile-text-xl: 1.1875rem;   /* 19px */
+  --mobile-text-2xl: 1.375rem;   /* 22px */
+  --mobile-text-3xl: 1.625rem;   /* 26px */
+
+  /* Safe area insets for modern devices (notches, home indicator) */
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-right: env(safe-area-inset-right);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+  --safe-area-inset-left: env(safe-area-inset-left);
+}
+
+/* ======================
+   Enhanced Breakpoints
+   ====================== */
+
+/* Extra Small: 320px - 479px (Small phones portrait) */
+@media screen and (max-width: 29.9375em) {
+  .onboarding-container {
+    font-size: var(--mobile-text-base);
+  }
+
+  .onboarding-content {
+    padding: var(--mobile-space-md);
+    padding-top: max(var(--mobile-space-md), var(--safe-area-inset-top));
+    padding-bottom: max(var(--mobile-space-md), var(--safe-area-inset-bottom));
+    padding-left: max(var(--mobile-space-md), var(--safe-area-inset-left));
+    padding-right: max(var(--mobile-space-md), var(--safe-area-inset-right));
+  }
+
+  .step-title {
+    font-size: var(--mobile-text-2xl);
+    line-height: 1.2;
+    margin-bottom: var(--mobile-space-md);
+  }
+
+  .step-intro {
+    font-size: var(--mobile-text-base);
+    margin-bottom: var(--mobile-space-lg);
+  }
+
+  .step-icon {
+    font-size: 2rem;
+    margin-bottom: var(--mobile-space-md);
+  }
+}
+
+/* Small: 480px - 767px (Large phones, small tablets portrait) */
+@media screen and (min-width: 30em) and (max-width: 47.9375em) {
+  .onboarding-content {
+    padding: var(--mobile-space-lg) var(--mobile-space-md);
+  }
+
+  .step-title {
+    font-size: var(--mobile-text-3xl);
+  }
+}
+
+/* Medium: 768px - 1023px (Tablets portrait, small laptops) */
+@media screen and (min-width: 48em) and (max-width: 63.9375em) {
+  .onboarding-content {
+    padding: var(--onboarding-space-xl) var(--onboarding-space-lg);
+  }
+}
+
+/* ======================
+   Landscape Orientation
+   ====================== */
+
+/* Small phones landscape */
+@media screen and (max-width: 47.9375em) and (orientation: landscape) and (max-height: 30em) {
+  .onboarding-container {
+    min-height: auto;
+  }
+
+  .onboarding-content {
+    padding: var(--mobile-space-sm) var(--mobile-space-md);
+    align-items: flex-start;
+  }
+
+  .step-content {
+    padding: var(--mobile-space-md) 0;
+  }
+
+  .step-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--mobile-space-sm);
+  }
+
+  .step-title {
+    font-size: var(--mobile-text-xl);
+    margin-bottom: var(--mobile-space-sm);
+  }
+
+  .step-intro {
+    font-size: var(--mobile-text-sm);
+    margin-bottom: var(--mobile-space-md);
+  }
+
+  /* Reduce progress indicator size in landscape */
+  .step-marker {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.625rem;
+  }
+
+  .step-label {
+    font-size: 0.5625rem;
+  }
+
+  /* Make action buttons horizontal in landscape */
+  .action-buttons {
+    flex-direction: row;
+    gap: var(--mobile-space-sm);
+  }
+
+  .primary-action,
+  .secondary-action {
+    padding: var(--mobile-space-sm) var(--mobile-space-md);
+    min-width: auto;
+    font-size: var(--mobile-text-sm);
+  }
+}
+
+/* ======================
+   Touch-Friendly Enhancements
+   ====================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch target sizes */
+  button,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  a.primary-action,
+  a.secondary-action,
+  .skip-action,
+  .feature-button,
+  .tooltip-action,
+  .tour-btn {
+    min-height: 3rem; /* 48px minimum for better touch */
+    min-width: 3rem;
+    padding: var(--mobile-space-md) var(--mobile-space-lg);
+  }
+
+  /* Increase spacing between interactive elements */
+  .action-buttons {
+    gap: var(--mobile-space-lg);
+  }
+
+  .navigation-buttons {
+    gap: var(--mobile-space-lg);
+  }
+
+  /* Larger checkbox and radio inputs */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 1.5rem;
+    height: 1.5rem;
+    min-width: 1.5rem;
+    min-height: 1.5rem;
+  }
+
+  /* Better spacing for form fields */
+  .form-group {
+    margin-bottom: var(--mobile-space-xl);
+  }
+
+  input[type="text"],
+  input[type="email"],
+  select,
+  textarea {
+    padding: var(--mobile-space-md) var(--mobile-space-lg);
+    font-size: var(--mobile-text-base);
+    min-height: 3rem;
+  }
+
+  /* Increase touch targets for action choices */
+  .action-choice {
+    padding: var(--mobile-space-xl);
+    margin-bottom: var(--mobile-space-md);
+  }
+
+  .action-radio {
+    width: 1.5rem;
+    height: 1.5rem;
+    top: var(--mobile-space-xl);
+    right: var(--mobile-space-xl);
+  }
+
+  /* Better touch targets for feature cards */
+  .feature-card {
+    padding: var(--mobile-space-xl);
+    min-height: 12rem;
+  }
+
+  /* Remove hover effects on touch devices */
+  .action-choice:hover,
+  .feature-card:hover,
+  .feature-button:hover,
+  .primary-action:hover,
+  .secondary-action:hover {
+    transform: none;
+  }
+
+  /* Use active states instead */
+  .action-choice:active,
+  .feature-card:active,
+  .feature-button:active,
+  .primary-action:active:not(:disabled),
+  .secondary-action:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+/* ======================
+   Mobile Navigation Patterns
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  /* Stack navigation vertically on mobile */
+  .navigation-buttons {
+    flex-direction: column-reverse;
+    gap: var(--mobile-space-md);
+  }
+
+  .navigation-previous,
+  .navigation-center,
+  .navigation-help,
+  .navigation-spacer {
+    width: 100%;
+    min-width: auto;
+    text-align: center;
+  }
+
+  .navigation-center {
+    order: -1;
+  }
+
+  /* Full-width action buttons on mobile */
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .primary-action,
+  .secondary-action,
+  .skip-action {
+    width: 100%;
+    min-width: auto;
+    justify-content: center;
+  }
+
+  /* Mobile-optimized progress indicator */
+  .progress-steps {
+    gap: var(--mobile-space-xs);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .progress-steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .progress-step {
+    min-width: 3.5rem;
+    flex-shrink: 0;
+  }
+
+  .step-label {
+    font-size: 0.625rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 4rem;
+  }
+
+  /* Compact step markers */
+  .step-marker {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.625rem;
+  }
+}
+
+/* ======================
+   Responsive Typography
+   ====================== */
+
+/* Fluid typography for better scaling */
+@media screen and (max-width: 47.9375em) {
+  .step-title {
+    font-size: clamp(1.375rem, 5vw, 1.875rem);
+  }
+
+  .step-intro {
+    font-size: clamp(0.9375rem, 3.5vw, 1.125rem);
+  }
+
+  .feature-card .feature-title {
+    font-size: clamp(1rem, 4vw, 1.125rem);
+  }
+
+  .choice-title {
+    font-size: clamp(1.0625rem, 4vw, 1.25rem);
+  }
+
+  .welcome-features h2,
+  .next-steps h2 {
+    font-size: clamp(1.125rem, 4.5vw, 1.5rem);
+  }
+}
+
+/* ======================
+   Mobile Layout Optimizations
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  /* Single column layout for forms */
+  .profile-settings {
+    padding: var(--mobile-space-lg);
+  }
+
+  /* Stack feature grid on mobile */
+  .feature-grid {
+    grid-template-columns: 1fr;
+    gap: var(--mobile-space-md);
+  }
+
+  /* Mobile-optimized feature list */
+  .feature-list {
+    gap: var(--mobile-space-sm);
+  }
+
+  .feature-item {
+    padding: var(--mobile-space-md);
+    gap: var(--mobile-space-sm);
+  }
+
+  .feature-icon {
+    font-size: var(--mobile-text-lg);
+  }
+
+  .feature-text {
+    font-size: var(--mobile-text-sm);
+  }
+
+  /* Optimize action choices for mobile */
+  .action-choices {
+    gap: var(--mobile-space-md);
+  }
+
+  .choice-content {
+    gap: var(--mobile-space-sm);
+  }
+
+  .choice-icon {
+    font-size: 2rem;
+  }
+
+  .choice-description {
+    font-size: var(--mobile-text-sm);
+  }
+
+  /* Mobile-friendly help tooltip */
+  .help-tooltip {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    max-width: calc(100vw - 2rem);
+    width: calc(100vw - 2rem);
+    margin: 0;
+    z-index: 10002;
+  }
+
+  .help-tooltip::after {
+    display: none;
+  }
+
+  /* Add backdrop for mobile tooltips */
+  .help-tooltip::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+}
+
+/* ======================
+   Safe Area Support
+   ====================== */
+
+@supports (padding: max(0px)) {
+  @media screen and (max-width: 47.9375em) {
+    .onboarding-container {
+      padding-top: max(0px, var(--safe-area-inset-top));
+      padding-bottom: max(0px, var(--safe-area-inset-bottom));
+      padding-left: max(0px, var(--safe-area-inset-left));
+      padding-right: max(0px, var(--safe-area-inset-right));
+    }
+
+    .onboarding-content {
+      padding-left: max(var(--mobile-space-md), var(--safe-area-inset-left));
+      padding-right: max(var(--mobile-space-md), var(--safe-area-inset-right));
+      padding-bottom: max(var(--mobile-space-lg), var(--safe-area-inset-bottom));
+    }
+
+    .onboarding-footer {
+      padding-bottom: max(var(--onboarding-space-lg), var(--safe-area-inset-bottom));
+    }
+
+    /* Modal/Tour safe areas */
+    .tour-popup {
+      bottom: max(1rem, var(--safe-area-inset-bottom));
+      left: max(1rem, var(--safe-area-inset-left));
+      right: max(1rem, var(--safe-area-inset-right));
+    }
+  }
+}
+
+/* ======================
+   Performance Optimizations
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  /* Reduce animation complexity on mobile */
+  .onboarding-container[data-step-changed] .step-content {
+    animation: mobileFadeIn 0.2s ease-out;
+  }
+
+  @keyframes mobileFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Simplify gradient animations */
+  .progress-fill,
+  .time-estimate,
+  .milestone-points {
+    background: var(--onboarding-primary);
+  }
+
+  /* Disable hover animations on mobile */
+  @media (hover: none) {
+    .feature-card:hover,
+    .action-choice:hover {
+      box-shadow: var(--onboarding-shadow-md);
+      transform: none;
+    }
+  }
+}
+
+/* ======================
+   Swipe Gesture Support
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  /* Enable smooth scrolling for swipeable content */
+  .progress-steps,
+  .feature-grid,
+  .action-choices {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Add visual cue for scrollable content */
+  .progress-steps::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(to left, var(--onboarding-background), transparent);
+    pointer-events: none;
+  }
+}
+
+/* ======================
+   Mobile-Specific Utilities
+   ====================== */
+
+/* Hide on mobile */
+@media screen and (max-width: 47.9375em) {
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  .mobile-visible {
+    display: block !important;
+  }
+
+  /* Stack vertically on mobile */
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+
+  /* Full width on mobile */
+  .mobile-full {
+    width: 100% !important;
+  }
+
+  /* Center on mobile */
+  .mobile-center {
+    text-align: center !important;
+  }
+
+  /* Compact padding on mobile */
+  .mobile-compact {
+    padding: var(--mobile-space-sm) !important;
+  }
+}
+
+/* Show only on mobile */
+.mobile-only {
+  display: none;
+}
+
+@media screen and (max-width: 47.9375em) {
+  .mobile-only {
+    display: block;
+  }
+}
+
+/* ======================
+   Tablet-Specific Styles
+   ====================== */
+
+@media screen and (min-width: 48em) and (max-width: 63.9375em) {
+  /* 2-column layout for tablets */
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Tablet-optimized typography */
+  .step-title {
+    font-size: var(--onboarding-text-3xl);
+  }
+
+  /* Compact action buttons for tablets */
+  .action-buttons {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .primary-action,
+  .secondary-action {
+    min-width: 10rem;
+  }
+}
+
+/* Tablet landscape */
+@media screen and (min-width: 48em) and (max-width: 63.9375em) and (orientation: landscape) {
+  .onboarding-content {
+    padding: var(--onboarding-space-lg) var(--onboarding-space-xl);
+  }
+
+  /* Optimize for wider viewport */
+  .feature-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ======================
+   Mobile Dark Mode
+   ====================== */
+
+@media screen and (max-width: 47.9375em) and (prefers-color-scheme: dark) {
+  .onboarding-container {
+    background: #000000;
+  }
+
+  /* Increase contrast for mobile dark mode */
+  .step-title {
+    color: #ffffff;
+  }
+
+  .step-intro {
+    color: #d1d5db;
+  }
+
+  /* Better visibility for cards in dark mode */
+  .feature-card,
+  .action-choice,
+  .profile-settings {
+    border-color: #374151;
+    background: #1f2937;
+  }
+}
+
+/* ======================
+   Print Optimization for Mobile
+   ====================== */
+
+@media print {
+  @page {
+    margin: 1cm;
+    size: A4 portrait;
+  }
+
+  .onboarding-container {
+    min-height: auto;
+  }
+
+  .step-content {
+    page-break-inside: avoid;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons,
+  .navigation-buttons {
+    display: none;
+  }
+}
+
+/* ======================
+   Mobile Accessibility
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  /* Larger focus indicators for mobile */
+  .onboarding-container *:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+
+  /* Better contrast for mobile screens in bright light */
+  @media (prefers-contrast: high) {
+    .step-title,
+    .feature-title,
+    .choice-title {
+      font-weight: 700;
+      color: #000000;
+    }
+
+    .primary-action,
+    .secondary-action {
+      border-width: 3px;
+      font-weight: 700;
+    }
+  }
+}
+
+/* ======================
+   Mobile Loading States
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  .onboarding-loading::after {
+    width: 2rem;
+    height: 2rem;
+    margin: -1rem 0 0 -1rem;
+    border-width: 3px;
+  }
+
+  /* Mobile-friendly skeleton screens */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--onboarding-surface) 0%,
+      var(--onboarding-border) 50%,
+      var(--onboarding-surface) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton 1.5s ease-in-out infinite;
+  }
+
+  @keyframes skeleton {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}
+
+/* ======================
+   Mobile Input Enhancements
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  /* Prevent zoom on input focus (iOS) */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+
+  /* Better mobile keyboard handling */
+  .onboarding-container:has(input:focus),
+  .onboarding-container:has(textarea:focus),
+  .onboarding-container:has(select:focus) {
+    /* Account for keyboard overlay */
+    min-height: 100vh;
+  }
+
+  /* Larger select dropdowns on mobile */
+  select {
+    background-size: 1.5rem;
+    padding-right: 2.5rem;
+  }
+
+  /* Better textarea sizing */
+  textarea {
+    min-height: 8rem;
+    resize: vertical;
+  }
+}
+
+/* ======================
+   Mobile Error States
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  .error-message {
+    padding: var(--mobile-space-md);
+    font-size: var(--mobile-text-sm);
+    margin-top: var(--mobile-space-sm);
+  }
+
+  .step-error {
+    padding: var(--mobile-space-lg);
+    font-size: var(--mobile-text-sm);
+  }
+
+  /* Mobile-friendly validation messages */
+  input:invalid,
+  select:invalid,
+  textarea:invalid {
+    border-width: 2px;
+  }
+}
+
+/* ======================
+   Foldable Device Support
+   ====================== */
+
+@media (horizontal-viewport-segments: 2) {
+  /* Dual-screen / foldable device support */
+  .onboarding-content {
+    display: grid;
+    grid-template-columns: env(viewport-segment-width 0 0) env(viewport-segment-width 1 0);
+    gap: env(viewport-segment-right 0 0);
+  }
+}
+
+/* ======================
+   Mobile Milestone Display
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  .milestone-progress {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--mobile-space-sm);
+  }
+
+  .milestone-points,
+  .recent-milestone {
+    font-size: var(--mobile-text-xs);
+    padding: var(--mobile-space-xs) var(--mobile-space-md);
+  }
+}
+
+/* ======================
+   Mobile Tour/Modal Adjustments
+   ====================== */
+
+@media screen and (max-width: 47.9375em) {
+  .tour-popup {
+    max-width: calc(100vw - 2rem);
+    width: calc(100vw - 2rem);
+    margin: 1rem;
+  }
+
+  .tour-popup-content {
+    padding: var(--mobile-space-lg);
+  }
+
+  .tour-popup-title {
+    font-size: var(--mobile-text-xl);
+  }
+
+  .tour-popup-body {
+    font-size: var(--mobile-text-sm);
+  }
+
+  .tour-btn {
+    padding: var(--mobile-space-md) var(--mobile-space-lg);
+    font-size: var(--mobile-text-base);
+  }
+}
