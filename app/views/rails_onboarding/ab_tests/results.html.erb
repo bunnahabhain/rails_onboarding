@@ -1,0 +1,253 @@
+<div class="ab-test-results">
+  <div class="header">
+    <h1><%= @test_name.to_s.titleize %> - Results</h1>
+    <%= link_to '← Back to A/B Tests', ab_tests_path, class: 'back-link' %>
+  </div>
+
+  <div class="results-summary">
+    <h2>Performance by Variant</h2>
+
+    <div class="variants-comparison">
+      <% @results.each do |variant, metrics| %>
+        <div class="variant-card">
+          <h3><%= variant.to_s.titleize %></h3>
+
+          <div class="metrics">
+            <div class="metric">
+              <span class="metric-label">Participants</span>
+              <span class="metric-value"><%= metrics[:participants] %></span>
+            </div>
+
+            <div class="metric">
+              <span class="metric-label">Completions</span>
+              <span class="metric-value"><%= metrics[:completions] %></span>
+            </div>
+
+            <div class="metric highlight">
+              <span class="metric-label">Conversion Rate</span>
+              <span class="metric-value"><%= metrics[:conversion_rate] %>%</span>
+            </div>
+
+            <div class="metric">
+              <span class="metric-label">Avg. Time (seconds)</span>
+              <span class="metric-value"><%= metrics[:average_time] %></span>
+            </div>
+
+            <div class="metric">
+              <span class="metric-label">Skip Rate</span>
+              <span class="metric-value"><%= metrics[:skip_rate] %>%</span>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @funnel.present? %>
+    <div class="funnel-analysis">
+      <h2>Funnel Analysis by Variant</h2>
+
+      <div class="funnel-container">
+        <% @funnel.each do |variant, steps| %>
+          <div class="funnel-variant">
+            <h3><%= variant.to_s.titleize %></h3>
+
+            <div class="funnel-steps">
+              <% steps.each do |step_name, count| %>
+                <% step = RailsOnboarding.configuration.step_by_name(step_name) %>
+                <div class="funnel-step">
+                  <div class="step-info">
+                    <span class="step-icon"><%= step[:icon] if step %></span>
+                    <span class="step-name"><%= step_name.to_s.titleize %></span>
+                  </div>
+                  <div class="step-count"><%= count %> users</div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="winner-recommendation">
+    <% winner = @results.max_by { |_, metrics| metrics[:conversion_rate] } %>
+    <% if winner %>
+      <h2>Recommendation</h2>
+      <div class="recommendation-card">
+        <p>
+          <strong><%= winner[0].to_s.titleize %></strong> variant shows the best performance
+          with a <%= winner[1][:conversion_rate] %>% conversion rate.
+        </p>
+        <% if winner[1][:participants] < 100 %>
+          <p class="warning">
+            ⚠️ Note: Sample size is relatively small (<%= winner[1][:participants] %> participants).
+            Consider gathering more data for statistical significance.
+          </p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .ab-test-results {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .header {
+    margin-bottom: 2rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .back-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.875rem;
+  }
+
+  .results-summary {
+    margin-bottom: 3rem;
+  }
+
+  .results-summary h2,
+  .funnel-analysis h2,
+  .winner-recommendation h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .variants-comparison {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .variant-card {
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .variant-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #007bff;
+  }
+
+  .metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+  }
+
+  .metric.highlight {
+    background: #d4edda;
+    font-weight: 600;
+  }
+
+  .metric-label {
+    font-size: 0.875rem;
+    color: #666;
+  }
+
+  .metric-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #000;
+  }
+
+  .funnel-analysis {
+    margin-bottom: 3rem;
+  }
+
+  .funnel-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+  }
+
+  .funnel-variant {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .funnel-variant h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .funnel-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .funnel-step {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(to right, #007bff 0%, #007bff calc(var(--progress, 0) * 1%), #f8f9fa calc(var(--progress, 0) * 1%));
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+
+  .step-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .step-icon {
+    font-size: 1.25rem;
+  }
+
+  .step-name {
+    font-weight: 500;
+  }
+
+  .step-count {
+    font-weight: 600;
+    color: #007bff;
+  }
+
+  .winner-recommendation {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .recommendation-card p {
+    margin: 0.5rem 0;
+  }
+
+  .warning {
+    color: #856404;
+    font-style: italic;
+  }
+</style>
