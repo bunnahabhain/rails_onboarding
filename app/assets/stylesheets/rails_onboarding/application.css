@@ -17,6 +17,7 @@
  *= require rails_onboarding/accessibility
  *= require rails_onboarding/milestones
  *= require rails_onboarding/tour
+ *= require rails_onboarding/mobile
  */
 
 /* Rails Onboarding Styles - Semantic CSS */

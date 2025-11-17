@@ -5,6 +5,7 @@ module RailsOnboarding
     # Make engine's helpers available to the main app
     config.to_prepare do
       ApplicationController.helper(RailsOnboarding::Engine.helpers)
+      ApplicationController.helper(RailsOnboarding::ResponsiveHelper)
     end
 
     # Load migrations
