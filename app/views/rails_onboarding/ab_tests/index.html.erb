@@ -1,0 +1,209 @@
+<div class="ab-tests-index">
+  <div class="header">
+    <h1>A/B Tests</h1>
+    <p class="subtitle">Manage and monitor your onboarding A/B tests</p>
+  </div>
+
+  <% if @ab_tests.empty? %>
+    <div class="empty-state">
+      <p>No A/B tests configured yet.</p>
+      <p class="help-text">Configure A/B tests in your Rails initializer:</p>
+      <pre><code>RailsOnboarding.configure do |config|
+  config.enable_ab_testing = true
+  config.ab_tests = {
+    onboarding_flow: {
+      variants: ['original', 'simplified'],
+      weights: [50, 50],
+      enabled: true
+    }
+  }
+end</code></pre>
+    </div>
+  <% else %>
+    <div class="ab-tests-list">
+      <% @ab_tests.each do |test_name, config| %>
+        <div class="ab-test-card">
+          <div class="ab-test-header">
+            <h2><%= test_name.to_s.titleize %></h2>
+            <span class="status-badge <%= config[:enabled] ? 'enabled' : 'disabled' %>">
+              <%= config[:enabled] ? 'Active' : 'Inactive' %>
+            </span>
+          </div>
+
+          <div class="ab-test-details">
+            <div class="variants">
+              <h3>Variants</h3>
+              <ul>
+                <% config[:variants].each_with_index do |variant, index| %>
+                  <li>
+                    <%= variant %>
+                    <% if config[:weights] && config[:weights][index] %>
+                      <span class="weight"><%= config[:weights][index] %>%</span>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+
+            <div class="actions">
+              <%= link_to 'View Results', results_ab_test_path(test_name), class: 'btn btn-primary' %>
+              <%= link_to 'Details', ab_test_path(test_name), class: 'btn btn-secondary' %>
+              <%= button_to config[:enabled] ? 'Disable' : 'Enable',
+                  toggle_ab_test_path(test_name),
+                  method: :post,
+                  class: 'btn btn-toggle' %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .ab-tests-index {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .header {
+    margin-bottom: 2rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: #666;
+    font-size: 1rem;
+  }
+
+  .empty-state {
+    background: #f5f5f5;
+    padding: 3rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .empty-state .help-text {
+    margin-top: 1rem;
+    color: #666;
+  }
+
+  .empty-state pre {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    text-align: left;
+    margin-top: 1rem;
+    overflow-x: auto;
+  }
+
+  .ab-tests-list {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .ab-test-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .ab-test-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .ab-test-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .status-badge.enabled {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .status-badge.disabled {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .ab-test-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .variants h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .variants ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .variants li {
+    padding: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .weight {
+    background: #e9ecef;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+
+  .btn-primary {
+    background: #007bff;
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-toggle {
+    background: #ffc107;
+    color: #000;
+  }
+</style>

@@ -1,0 +1,255 @@
+<div class="templates-index">
+  <div class="header">
+    <h1>Onboarding Templates</h1>
+    <p class="subtitle">Choose a pre-built onboarding flow to get started quickly</p>
+  </div>
+
+  <div class="templates-grid">
+    <% @templates.each do |template_key, template| %>
+      <div class="template-card" data-template-key="<%= template_key %>">
+        <div class="template-header">
+          <h2><%= template[:name] %></h2>
+          <span class="template-steps-count"><%= template[:steps]&.size || 0 %> steps</span>
+        </div>
+
+        <div class="template-description">
+          <p><%= template[:description] || "A #{template_key.to_s.titleize} onboarding flow" %></p>
+        </div>
+
+        <div class="template-steps-preview">
+          <h3>Steps included:</h3>
+          <ul>
+            <% (template[:steps] || []).each do |step| %>
+              <li>
+                <span class="step-icon"><%= step[:icon] %></span>
+                <span class="step-title"><%= step[:title] %></span>
+                <% if step[:skippable] %>
+                  <span class="step-badge optional">Optional</span>
+                <% else %>
+                  <span class="step-badge required">Required</span>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <div class="template-actions">
+          <%= link_to 'Preview', template_path(template_key), class: 'btn btn-secondary' %>
+          <%= button_to 'Use This Template', apply_template_path(template_key), method: :post, class: 'btn btn-primary' %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="custom-template-section">
+    <h2>Create Custom Template</h2>
+    <p>Already have an onboarding flow configured? Save it as a custom template for future use.</p>
+    <%= button_to 'Save Current Flow as Template', '#', class: 'btn btn-outline', onclick: 'return false;' %>
+  </div>
+</div>
+
+<style>
+  .templates-index {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .header {
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .header h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: #666;
+    font-size: 1.125rem;
+  }
+
+  .templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .template-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 2rem;
+    transition: all 0.3s;
+  }
+
+  .template-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .template-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .template-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .template-steps-count {
+    background: #e9ecef;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .template-description {
+    margin-bottom: 1.5rem;
+  }
+
+  .template-description p {
+    color: #666;
+    line-height: 1.6;
+  }
+
+  .template-steps-preview h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #333;
+  }
+
+  .template-steps-preview ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .template-steps-preview li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+  }
+
+  .step-icon {
+    font-size: 1.25rem;
+  }
+
+  .step-title {
+    flex: 1;
+    font-weight: 500;
+  }
+
+  .step-badge {
+    padding: 0.125rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .step-badge.required {
+    background: #ffeaa7;
+    color: #856404;
+  }
+
+  .step-badge.optional {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+
+  .template-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: #007bff;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #0056b3;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background: #545b62;
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: #007bff;
+    border: 2px solid #007bff;
+  }
+
+  .btn-outline:hover {
+    background: #007bff;
+    color: white;
+  }
+
+  .custom-template-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .custom-template-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .custom-template-section p {
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .templates-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .template-actions {
+      flex-direction: column;
+    }
+  }
+</style>

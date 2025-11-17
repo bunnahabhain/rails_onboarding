@@ -17,7 +17,15 @@ module RailsOnboarding
                   :analytics_session_timeout_minutes,
                   :welcome_heading,
                   :welcome_subheading,
-                  :welcome_features
+                  :welcome_features,
+                  :ab_tests,
+                  :enable_ab_testing,
+                  :personalization_enabled,
+                  :user_type_method,
+                  :personalized_flows,
+                  :progressive_disclosure_enabled,
+                  :progressive_features,
+                  :onboarding_templates
 
     def initialize
       @user_class_name = "User"
@@ -85,6 +93,73 @@ module RailsOnboarding
           conditions: { early_adopter: true }
         }
       ]
+
+      # A/B Testing configuration
+      @enable_ab_testing = false
+      @ab_tests = {}
+
+      # Personalization configuration
+      @personalization_enabled = false
+      @user_type_method = :user_type # Method to call on user to determine their type
+      @personalized_flows = {}
+
+      # Progressive disclosure configuration
+      @progressive_disclosure_enabled = false
+      @progressive_features = []
+
+      # Onboarding templates
+      @onboarding_templates = {
+        saas: {
+          name: "SaaS Application",
+          steps: [
+            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+            { name: :account_setup, title: "Account Setup", icon: "👤", skippable: false },
+            { name: :team_invite, title: "Invite Team", icon: "👥", skippable: true },
+            { name: :first_project, title: "Create Project", icon: "📁", skippable: false },
+            { name: :integration, title: "Connect Tools", icon: "🔌", skippable: true }
+          ]
+        },
+        ecommerce: {
+          name: "E-commerce Platform",
+          steps: [
+            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+            { name: :store_setup, title: "Setup Store", icon: "🏪", skippable: false },
+            { name: :first_product, title: "Add Product", icon: "📦", skippable: false },
+            { name: :payment_setup, title: "Payment Setup", icon: "💳", skippable: false },
+            { name: :launch, title: "Launch Store", icon: "🚀", skippable: false }
+          ]
+        },
+        marketplace: {
+          name: "Marketplace",
+          steps: [
+            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+            { name: :profile_setup, title: "Create Profile", icon: "👤", skippable: false },
+            { name: :verification, title: "Verify Account", icon: "✅", skippable: false },
+            { name: :first_listing, title: "Create Listing", icon: "📝", skippable: false },
+            { name: :explore, title: "Explore", icon: "🔍", skippable: true }
+          ]
+        },
+        community: {
+          name: "Community Platform",
+          steps: [
+            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+            { name: :profile, title: "Setup Profile", icon: "👤", skippable: false },
+            { name: :interests, title: "Choose Interests", icon: "❤️", skippable: true },
+            { name: :first_post, title: "Create Post", icon: "✍️", skippable: false },
+            { name: :connect, title: "Connect", icon: "🤝", skippable: true }
+          ]
+        },
+        education: {
+          name: "Educational Platform",
+          steps: [
+            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+            { name: :student_setup, title: "Student Info", icon: "🎓", skippable: false },
+            { name: :course_selection, title: "Choose Courses", icon: "📚", skippable: false },
+            { name: :first_lesson, title: "First Lesson", icon: "📖", skippable: false },
+            { name: :study_plan, title: "Study Plan", icon: "📅", skippable: true }
+          ]
+        }
+      }
     end
 
     def user_class
@@ -127,6 +202,70 @@ module RailsOnboarding
         # Both have conditions, check if they match
         conditions_match?(milestone[:conditions], conditions)
       end
+    end
+
+    # Get a specific A/B test configuration
+    #
+    # @param test_name [Symbol, String] The name of the test
+    # @return [Hash, nil] The test configuration or nil
+    def ab_test(test_name)
+      return nil unless enable_ab_testing
+      ab_tests[test_name.to_sym]
+    end
+
+    # Get a personalized flow for a user type
+    #
+    # @param user_type [Symbol, String] The user type
+    # @return [Array, nil] The personalized steps or nil
+    def personalized_flow(user_type)
+      return nil unless personalization_enabled
+      personalized_flows[user_type.to_sym]
+    end
+
+    # Get an onboarding template by key
+    #
+    # @param template_key [Symbol, String] The template key
+    # @return [Hash, nil] The template configuration or nil
+    def template(template_key)
+      onboarding_templates[template_key.to_sym]
+    end
+
+    # Apply a template to the current configuration
+    #
+    # @param template_key [Symbol, String] The template key to apply
+    # @return [Boolean] True if template was applied successfully
+    def apply_template(template_key)
+      template = onboarding_templates[template_key.to_sym]
+      return false unless template
+
+      @steps = template[:steps]
+      true
+    end
+
+    # Check if a feature should be shown based on progressive disclosure
+    #
+    # @param feature_key [Symbol, String] The feature key
+    # @param user [Object] The user object
+    # @return [Boolean] True if feature should be shown
+    def show_progressive_feature?(feature_key, user)
+      return true unless progressive_disclosure_enabled
+
+      feature = progressive_features.find { |f| f[:key] == feature_key.to_sym }
+      return true unless feature
+
+      # Check if feature meets its reveal conditions
+      case feature[:reveal_condition]
+      when :time_based
+        user.created_at + feature[:delay].seconds <= Time.current
+      when :action_based
+        user.send(feature[:check_method]) if user.respond_to?(feature[:check_method])
+      when :step_based
+        step_index(user.onboarding_current_step) >= step_index(feature[:after_step])
+      else
+        true
+      end
+    rescue StandardError
+      true # Default to showing feature if check fails
     end
 
     private
