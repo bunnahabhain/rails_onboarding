@@ -18,6 +18,7 @@
  *= require rails_onboarding/milestones
  *= require rails_onboarding/tour
  *= require rails_onboarding/mobile
+ *= require rails_onboarding/flash_messages
  */
 
 /* Rails Onboarding Styles - Semantic CSS */

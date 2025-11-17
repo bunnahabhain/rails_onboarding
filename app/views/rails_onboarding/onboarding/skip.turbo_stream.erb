@@ -1,0 +1,17 @@
+<%= turbo_stream.replace "onboarding-content" do %>
+  <%= render partial: "rails_onboarding/onboarding/step_content",
+             locals: { current_step: @current_step, progress: @progress, total_steps: @total_steps } %>
+<% end %>
+
+<%= turbo_stream.prepend "flash-messages" do %>
+  <div class="flash flash-notice" role="alert">
+    <span class="flash-icon">→</span>
+    <span class="flash-message">Step skipped. You can return to it later.</span>
+    <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
+  </div>
+<% end %>
+
+<%= turbo_stream.replace "progress-indicator" do %>
+  <%= render partial: "rails_onboarding/onboarding/progress_indicator",
+             locals: { progress: @progress, total_steps: @total_steps } %>
+<% end %>
