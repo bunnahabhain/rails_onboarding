@@ -270,6 +270,82 @@ module RailsOnboarding
       end
     end
 
+    # Rollback & Navigation Methods
+
+    def can_go_back?
+      return false unless onboarding_current_step
+      current_index = RailsOnboarding.configuration.step_index(onboarding_current_step)
+      current_index && current_index > 0
+    end
+
+    def previous_onboarding_step
+      return nil unless can_go_back?
+      current_index = RailsOnboarding.configuration.step_index(onboarding_current_step)
+      RailsOnboarding.configuration.steps[current_index - 1]
+    end
+
+    def go_back!(session_id: nil)
+      return false unless can_go_back?
+
+      prev_step = previous_onboarding_step
+      return false unless prev_step
+
+      # Track navigation
+      if defined?(AnalyticsEvent)
+        AnalyticsEvent.track_custom_event(
+          user: self,
+          event_name: 'onboarding_step_back',
+          event_data: {
+            from_step: onboarding_current_step,
+            to_step: prev_step[:name]
+          },
+          session_id: session_id
+        )
+      end
+
+      update!(onboarding_current_step: prev_step[:name])
+      true
+    end
+
+    def go_to_step!(step_name, session_id: nil)
+      step = RailsOnboarding.configuration.step_by_name(step_name)
+      return false unless step
+
+      # Track navigation
+      if defined?(AnalyticsEvent)
+        AnalyticsEvent.track_custom_event(
+          user: self,
+          event_name: 'onboarding_step_jump',
+          event_data: {
+            from_step: onboarding_current_step,
+            to_step: step_name
+          },
+          session_id: session_id
+        )
+      end
+
+      update!(onboarding_current_step: step_name)
+      true
+    end
+
+    def restart_onboarding!(session_id: nil)
+      # Track restart
+      if defined?(AnalyticsEvent)
+        AnalyticsEvent.track_custom_event(
+          user: self,
+          event_name: 'onboarding_restarted',
+          event_data: {
+            previous_step: onboarding_current_step,
+            was_completed: onboarding_completed
+          },
+          session_id: session_id
+        )
+      end
+
+      reset_onboarding!
+      start_onboarding!(session_id: session_id)
+    end
+
     private
 
     def check_and_achieve_step_milestones(step_name, session_id: nil)

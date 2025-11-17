@@ -1,0 +1,62 @@
+en:
+  rails_onboarding:
+    # Navigation
+    navigation:
+      next: "Next"
+      back: "Back"
+      skip: "Skip"
+      skip_all: "Skip All"
+      finish: "Finish"
+      restart: "Restart"
+
+    # Actions
+    actions:
+      complete: "Complete"
+      continue: "Continue"
+      get_started: "Get Started"
+
+    # Messages
+    messages:
+      welcome: "Welcome!"
+      completed: "Congratulations! You've completed the onboarding."
+      skipped: "You can explore features at your own pace."
+      restarted: "Onboarding has been restarted."
+      cannot_go_back: "Cannot go back from the first step."
+      cannot_skip: "This step cannot be skipped."
+      error: "An error occurred. Please try again."
+      validation_error: "Unable to save changes: %{errors}"
+
+    # Progress
+    progress:
+      step_of: "Step %{current} of %{total}"
+      percent_complete: "%{percent}% complete"
+
+    # Tooltips
+    tooltips:
+      dismiss: "Got it"
+      next_tip: "Next tip"
+      close: "Close"
+
+    # Milestones
+    milestones:
+      achievement_unlocked: "Achievement Unlocked!"
+      points_earned: "%{points} points earned"
+      view_all: "View all achievements"
+
+    # Errors
+    errors:
+      failed_to_save: "Failed to save your progress"
+      step_not_found: "Step not found"
+      invalid_action: "Invalid action"
+      session_expired: "Your session has expired. Please refresh the page."
+      network_error: "Network error. Please check your connection."
+
+    # Common
+    common:
+      loading: "Loading..."
+      saving: "Saving..."
+      please_wait: "Please wait..."
+      cancel: "Cancel"
+      confirm: "Confirm"
+      yes: "Yes"
+      no: "No"

@@ -1,0 +1,62 @@
+es:
+  rails_onboarding:
+    # Navigation
+    navigation:
+      next: "Siguiente"
+      back: "Atrás"
+      skip: "Omitir"
+      skip_all: "Omitir Todo"
+      finish: "Finalizar"
+      restart: "Reiniciar"
+
+    # Actions
+    actions:
+      complete: "Completar"
+      continue: "Continuar"
+      get_started: "Comenzar"
+
+    # Messages
+    messages:
+      welcome: "¡Bienvenido!"
+      completed: "¡Felicitaciones! Has completado la integración."
+      skipped: "Puedes explorar las funciones a tu propio ritmo."
+      restarted: "La integración ha sido reiniciada."
+      cannot_go_back: "No se puede retroceder desde el primer paso."
+      cannot_skip: "Este paso no se puede omitir."
+      error: "Ocurrió un error. Por favor, inténtalo de nuevo."
+      validation_error: "No se pudieron guardar los cambios: %{errors}"
+
+    # Progress
+    progress:
+      step_of: "Paso %{current} de %{total}"
+      percent_complete: "%{percent}% completado"
+
+    # Tooltips
+    tooltips:
+      dismiss: "Entendido"
+      next_tip: "Siguiente consejo"
+      close: "Cerrar"
+
+    # Milestones
+    milestones:
+      achievement_unlocked: "¡Logro Desbloqueado!"
+      points_earned: "%{points} puntos ganados"
+      view_all: "Ver todos los logros"
+
+    # Errors
+    errors:
+      failed_to_save: "No se pudo guardar tu progreso"
+      step_not_found: "Paso no encontrado"
+      invalid_action: "Acción inválida"
+      session_expired: "Tu sesión ha expirado. Por favor, actualiza la página."
+      network_error: "Error de red. Por favor, verifica tu conexión."
+
+    # Common
+    common:
+      loading: "Cargando..."
+      saving: "Guardando..."
+      please_wait: "Por favor, espera..."
+      cancel: "Cancelar"
+      confirm: "Confirmar"
+      yes: "Sí"
+      no: "No"

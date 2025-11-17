@@ -3,6 +3,8 @@ RailsOnboarding::Engine.routes.draw do
     post :next
     post :complete
     post :skip
+    post :back
+    post :restart
   end
 
   resources :tooltips, only: [] do
