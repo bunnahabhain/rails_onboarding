@@ -25,7 +25,20 @@ module RailsOnboarding
                   :personalized_flows,
                   :progressive_disclosure_enabled,
                   :progressive_features,
-                  :onboarding_templates
+                  :onboarding_templates,
+                  :devise_integration_enabled,
+                  :redirect_unconfirmed_to_onboarding,
+                  :turbo_streams_enabled,
+                  :turbo_morphing_enabled,
+                  :api_mode_enabled,
+                  :api_authentication_method,
+                  :background_jobs_enabled,
+                  :background_jobs_queue,
+                  :mailer_from,
+                  :webhooks_enabled,
+                  :webhook_endpoints,
+                  :webhook_secret_key,
+                  :webhook_async
 
     def initialize
       @user_class_name = "User"
@@ -106,6 +119,21 @@ module RailsOnboarding
       # Progressive disclosure configuration
       @progressive_disclosure_enabled = false
       @progressive_features = []
+
+      # Integration & Compatibility options
+      @devise_integration_enabled = true
+      @redirect_unconfirmed_to_onboarding = false
+      @turbo_streams_enabled = true
+      @turbo_morphing_enabled = false
+      @api_mode_enabled = false
+      @api_authentication_method = :token
+      @background_jobs_enabled = false
+      @background_jobs_queue = :default
+      @mailer_from = 'noreply@example.com'
+      @webhooks_enabled = false
+      @webhook_endpoints = []
+      @webhook_secret_key = nil
+      @webhook_async = true
 
       # Onboarding templates
       @onboarding_templates = {

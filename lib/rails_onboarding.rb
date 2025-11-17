@@ -7,6 +7,11 @@ require "rails_onboarding/error_recovery"
 require "rails_onboarding/session_manager"
 require "rails_onboarding/skip_logic"
 require "rails_onboarding/multi_tenant"
+require "rails_onboarding/devise_integration"
+require "rails_onboarding/turbo_compatibility"
+require "rails_onboarding/api_mode"
+require "rails_onboarding/background_jobs"
+require "rails_onboarding/webhooks"
 
 module RailsOnboarding
   class Error < StandardError; end
