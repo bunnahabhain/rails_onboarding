@@ -1,3 +1,5 @@
+require_relative 'configuration_validator'
+
 module RailsOnboarding
   class Configuration
     attr_accessor :user_class_name,
@@ -188,6 +190,30 @@ module RailsOnboarding
           ]
         }
       }
+    end
+
+    # Validate the current configuration
+    # @raise [ConfigurationError] if any validation fails
+    def validate!
+      validator.validate!
+    end
+
+    # Check if the configuration is valid without raising
+    # @return [Boolean] true if valid, false otherwise
+    def valid?
+      validator.valid?
+    end
+
+    # Get the validator instance for this configuration
+    # @return [ConfigurationValidator]
+    def validator
+      @validator ||= ConfigurationValidator.new(self)
+    end
+
+    # Get validation errors without raising
+    # @return [Array<StandardError>] array of validation errors
+    def validation_errors
+      validator.errors
     end
 
     def user_class
