@@ -27,6 +27,8 @@ module RailsOnboarding
     scope :by_user, ->(user) { where(user: user) }
     scope :by_date_range, ->(start_date, end_date) { where(occurred_at: start_date..end_date) }
     scope :recent, ->(limit = 100) { order(occurred_at: :desc).limit(limit) }
+    scope :with_user, -> { includes(:user) } # Eager load users to prevent N+1 queries
+    scope :ordered, -> { order(occurred_at: :asc) } # Consistent ordering for pagination
 
     # Event types
     ONBOARDING_STARTED = 'onboarding_started'.freeze

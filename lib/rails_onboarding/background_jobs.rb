@@ -6,6 +6,10 @@ module RailsOnboarding
   module BackgroundJobs
     extend ActiveSupport::Concern
 
+    # Throttling constants to prevent queue overflow
+    MAX_JOBS_PER_USER_PER_HOUR = 100
+    MAX_TOTAL_JOBS_PER_MINUTE = 1000
+
     module ClassMethods
       # Configure background job options
       def configure_background_jobs(options = {})
@@ -15,7 +19,10 @@ module RailsOnboarding
           enable_emails: options.fetch(:enable_emails, true),
           enable_notifications: options.fetch(:enable_notifications, true),
           retry_limit: options.fetch(:retry_limit, 3),
-          retry_delay: options.fetch(:retry_delay, 5.minutes)
+          retry_delay: options.fetch(:retry_delay, 5.minutes),
+          enable_throttling: options.fetch(:enable_throttling, true),
+          max_jobs_per_user_per_hour: options.fetch(:max_jobs_per_user_per_hour, MAX_JOBS_PER_USER_PER_HOUR),
+          max_total_jobs_per_minute: options.fetch(:max_total_jobs_per_minute, MAX_TOTAL_JOBS_PER_MINUTE)
         }.merge(options)
       end
 
@@ -27,18 +34,21 @@ module RailsOnboarding
     # Queue onboarding emails
     def queue_onboarding_welcome_email(user)
       return unless background_jobs_enabled?(:emails)
+      return unless can_queue_job_for_user?(user)
 
       OnboardingMailerJob.perform_later(user.id, :welcome)
     end
 
     def queue_onboarding_reminder_email(user)
       return unless background_jobs_enabled?(:emails)
+      return unless can_queue_job_for_user?(user)
 
       OnboardingMailerJob.set(wait: 1.day).perform_later(user.id, :reminder)
     end
 
     def queue_onboarding_completion_email(user)
       return unless background_jobs_enabled?(:emails)
+      return unless can_queue_job_for_user?(user)
 
       OnboardingMailerJob.perform_later(user.id, :completion)
     end
@@ -46,17 +56,22 @@ module RailsOnboarding
     # Queue notifications
     def queue_onboarding_notification(user, notification_type, data = {})
       return unless background_jobs_enabled?(:notifications)
+      return unless can_queue_job_for_user?(user)
 
       OnboardingNotificationJob.perform_later(user.id, notification_type, data)
     end
 
     # Queue analytics events
     def queue_analytics_event(event_name, user, data = {})
+      return unless can_queue_job_for_user?(user)
+
       OnboardingAnalyticsJob.perform_later(event_name, user.id, data)
     end
 
     # Queue milestone achievements
     def queue_milestone_achievement(user, milestone_id)
+      return unless can_queue_job_for_user?(user)
+
       MilestoneAchievementJob.perform_later(user.id, milestone_id)
     end
 
@@ -74,6 +89,58 @@ module RailsOnboarding
       else
         true
       end
+    end
+
+    # Check if we can queue a job for this user (throttling)
+    def can_queue_job_for_user?(user)
+      options = self.class.background_job_options
+      return true unless options[:enable_throttling]
+
+      # Check per-user rate limit
+      user_job_count = get_user_job_count(user.id)
+      if user_job_count >= options[:max_jobs_per_user_per_hour]
+        Rails.logger.warn "RailsOnboarding: Job throttled for user #{user.id} (#{user_job_count} jobs/hour)"
+        return false
+      end
+
+      # Check global rate limit
+      total_job_count = get_total_job_count
+      if total_job_count >= options[:max_total_jobs_per_minute]
+        Rails.logger.warn "RailsOnboarding: Job throttled globally (#{total_job_count} jobs/minute)"
+        return false
+      end
+
+      # Increment counters
+      increment_user_job_count(user.id)
+      increment_total_job_count
+
+      true
+    end
+
+    # Get job count for user in the last hour
+    def get_user_job_count(user_id)
+      cache_key = "rails_onboarding:job_count:user:#{user_id}"
+      Rails.cache.read(cache_key) || 0
+    end
+
+    # Increment job count for user
+    def increment_user_job_count(user_id)
+      cache_key = "rails_onboarding:job_count:user:#{user_id}"
+      count = Rails.cache.increment(cache_key, 1, expires_in: 1.hour)
+      count || Rails.cache.write(cache_key, 1, expires_in: 1.hour)
+    end
+
+    # Get total job count in the last minute
+    def get_total_job_count
+      cache_key = "rails_onboarding:job_count:total:#{Time.current.strftime('%Y%m%d%H%M')}"
+      Rails.cache.read(cache_key) || 0
+    end
+
+    # Increment total job count
+    def increment_total_job_count
+      cache_key = "rails_onboarding:job_count:total:#{Time.current.strftime('%Y%m%d%H%M')}"
+      count = Rails.cache.increment(cache_key, 1, expires_in: 1.minute)
+      count || Rails.cache.write(cache_key, 1, expires_in: 1.minute)
     end
   end
 

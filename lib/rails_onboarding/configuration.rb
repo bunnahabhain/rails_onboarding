@@ -225,33 +225,38 @@ module RailsOnboarding
     end
 
     def user_class
-      @user_class_name.constantize
+      @user_class ||= @user_class_name.constantize
     end
 
     def total_steps
-      steps.size
+      @total_steps ||= steps.size
     end
 
     def step_by_name(name)
       return nil if name.nil?
 
-      steps.find { |s| s[:name].to_sym == name.to_sym }
+      @step_by_name_cache ||= {}
+      @step_by_name_cache[name.to_sym] ||= steps.find { |s| s[:name].to_sym == name.to_sym }
     end
 
     def step_index(name)
       return nil if name.nil?
 
-      steps.find_index { |s| s[:name].to_sym == name.to_sym }
+      @step_index_cache ||= {}
+      @step_index_cache[name.to_sym] ||= steps.find_index { |s| s[:name].to_sym == name.to_sym }
     end
 
     def milestone_by_key(key)
       return nil if key.nil?
 
-      milestones.find { |m| m[:key].to_sym == key.to_sym }
+      @milestone_by_key_cache ||= {}
+      @milestone_by_key_cache[key.to_sym] ||= milestones.find { |m| m[:key].to_sym == key.to_sym }
     end
 
     def milestones_for_trigger(trigger, conditions = {})
-      milestones.select do |milestone|
+      cache_key = [trigger, conditions].hash
+      @milestones_for_trigger_cache ||= {}
+      @milestones_for_trigger_cache[cache_key] ||= milestones.select do |milestone|
         # Match on trigger
         next false unless milestone[:trigger] == trigger.to_sym
 
@@ -264,6 +269,28 @@ module RailsOnboarding
         # Both have conditions, check if they match
         conditions_match?(milestone[:conditions], conditions)
       end
+    end
+
+    # Override setters to clear cache when configuration changes
+    def steps=(value)
+      clear_cache!
+      @steps = value
+    end
+
+    def milestones=(value)
+      clear_cache!
+      @milestones = value
+    end
+
+    # Clear all cached lookups - call this when configuration changes
+    def clear_cache!
+      @user_class = nil
+      @total_steps = nil
+      @step_by_name_cache = nil
+      @step_index_cache = nil
+      @milestone_by_key_cache = nil
+      @milestones_for_trigger_cache = nil
+      @validator = nil
     end
 
     # Get a specific A/B test configuration
