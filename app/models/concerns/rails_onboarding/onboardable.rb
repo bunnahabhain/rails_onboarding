@@ -2,6 +2,11 @@ module RailsOnboarding
   module Onboardable
     extend ActiveSupport::Concern
 
+    # Maximum sizes for JSON fields to prevent memory issues
+    MAX_TOOLTIPS_SHOWN = 1000
+    MAX_MILESTONES_ACHIEVED = 500
+    MAX_JSON_SIZE_BYTES = 65_535 # ~64KB for TEXT columns
+
     included do
       # Add fields via migration or expect them in the host model
       # The host app should have these columns:
@@ -22,6 +27,10 @@ module RailsOnboarding
       if columns_hash["milestones_achieved"]&.type == :text
         serialize :milestones_achieved, coder: JSON
       end
+
+      # Validations for JSON field sizes
+      validate :validate_tooltips_size, if: :feature_tooltips_shown_changed?
+      validate :validate_milestones_size, if: :milestones_achieved_changed?
     end
 
     def needs_onboarding?
@@ -167,8 +176,14 @@ module RailsOnboarding
         action: 'shown',
         session_id: session_id
       )
-      
+
       self.feature_tooltips_shown ||= {}
+
+      # Trim old entries if approaching limit
+      if feature_tooltips_shown.size >= MAX_TOOLTIPS_SHOWN
+        trim_oldest_tooltips
+      end
+
       self.feature_tooltips_shown[feature.to_s] = Time.current.iso8601
       save!
     end
@@ -347,6 +362,48 @@ module RailsOnboarding
     end
 
     private
+
+    # Validation methods for JSON field sizes
+    def validate_tooltips_size
+      return unless feature_tooltips_shown.is_a?(Hash)
+
+      # Check number of entries
+      if feature_tooltips_shown.size > MAX_TOOLTIPS_SHOWN
+        errors.add(:feature_tooltips_shown, "cannot exceed #{MAX_TOOLTIPS_SHOWN} entries")
+      end
+
+      # Check serialized size
+      json_size = feature_tooltips_shown.to_json.bytesize
+      if json_size > MAX_JSON_SIZE_BYTES
+        errors.add(:feature_tooltips_shown, "size (#{json_size} bytes) exceeds maximum #{MAX_JSON_SIZE_BYTES} bytes")
+      end
+    end
+
+    def validate_milestones_size
+      return unless milestones_achieved.is_a?(Array)
+
+      # Check number of entries
+      if milestones_achieved.size > MAX_MILESTONES_ACHIEVED
+        errors.add(:milestones_achieved, "cannot exceed #{MAX_MILESTONES_ACHIEVED} entries")
+      end
+
+      # Check serialized size
+      json_size = milestones_achieved.to_json.bytesize
+      if json_size > MAX_JSON_SIZE_BYTES
+        errors.add(:milestones_achieved, "size (#{json_size} bytes) exceeds maximum #{MAX_JSON_SIZE_BYTES} bytes")
+      end
+    end
+
+    # Trim oldest tooltip entries to prevent exceeding limits
+    def trim_oldest_tooltips
+      return unless feature_tooltips_shown.is_a?(Hash)
+      return if feature_tooltips_shown.size < MAX_TOOLTIPS_SHOWN
+
+      # Sort by timestamp and keep only the most recent entries
+      keep_count = (MAX_TOOLTIPS_SHOWN * 0.8).to_i # Keep 80% to avoid frequent trimming
+      sorted_tooltips = feature_tooltips_shown.sort_by { |_, timestamp| timestamp }
+      self.feature_tooltips_shown = sorted_tooltips.last(keep_count).to_h
+    end
 
     def check_and_achieve_step_milestones(step_name, session_id: nil)
       return unless RailsOnboarding.configuration.enable_milestones
