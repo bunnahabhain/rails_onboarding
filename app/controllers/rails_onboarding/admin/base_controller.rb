@@ -6,7 +6,11 @@ module RailsOnboarding
     # Provides authentication and authorization for admin actions
     class BaseController < ApplicationController
       before_action :authenticate_admin!
+      before_action :verify_admin_authorization!
       layout 'rails_onboarding/admin'
+
+      # Custom exception for unauthorized access
+      class UnauthorizedError < StandardError; end
 
       private
 
@@ -19,15 +23,28 @@ module RailsOnboarding
         if defined?(authenticate_rails_onboarding_admin!)
           authenticate_rails_onboarding_admin!
         elsif respond_to?(:current_user, true)
-          unless current_user&.respond_to?(:admin?) && current_user.admin?
-            flash[:alert] = "You must be an administrator to access this page"
+          unless current_user.present?
+            flash[:alert] = "You must be logged in to access this page"
             redirect_to main_app.root_path
+            return
+          end
+
+          unless current_user.respond_to?(:admin?) && current_user.admin?
+            raise UnauthorizedError, "Unauthorized access to admin area"
           end
         else
           raise NotImplementedError,
             "Please define authenticate_rails_onboarding_admin! method in your ApplicationController " \
             "or ensure your User model has an admin? method"
         end
+      end
+
+      # Verify admin authorization for specific actions
+      def verify_admin_authorization!
+        return if admin_user?
+
+        logger.warn "Unauthorized admin access attempt by #{current_user&.id || 'anonymous'}"
+        raise UnauthorizedError, "You do not have permission to perform this action"
       end
 
       # Check if current user has admin access
@@ -38,12 +55,33 @@ module RailsOnboarding
       helper_method :admin_user?
 
       # Rescue from unauthorized access
+      rescue_from UnauthorizedError do |exception|
+        logger.warn "Unauthorized admin access: #{exception.message}"
+
+        respond_to do |format|
+          format.html do
+            flash[:alert] = "Access denied: #{exception.message}"
+            redirect_to main_app.root_path
+          end
+          format.json do
+            render json: { error: "Unauthorized access" }, status: :forbidden
+          end
+        end
+      end
+
       rescue_from StandardError do |exception|
         logger.error "Admin error: #{exception.message}"
         logger.error exception.backtrace.join("\n")
 
-        flash[:alert] = "An error occurred: #{exception.message}"
-        redirect_to admin_dashboard_path
+        respond_to do |format|
+          format.html do
+            flash[:alert] = "An error occurred: #{exception.message}"
+            redirect_to admin_dashboard_path
+          end
+          format.json do
+            render json: { error: exception.message }, status: :internal_server_error
+          end
+        end
       end
     end
   end

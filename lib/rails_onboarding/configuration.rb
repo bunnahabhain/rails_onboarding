@@ -40,7 +40,10 @@ module RailsOnboarding
                   :webhooks_enabled,
                   :webhook_endpoints,
                   :webhook_secret_key,
-                  :webhook_async
+                  :webhook_async,
+                  :rate_limiting_enabled,
+                  :rate_limit_per_period,
+                  :rate_limit_period
 
     def initialize
       @user_class_name = "User"
@@ -136,6 +139,11 @@ module RailsOnboarding
       @webhook_endpoints = []
       @webhook_secret_key = nil
       @webhook_async = true
+
+      # Rate limiting
+      @rate_limiting_enabled = true
+      @rate_limit_per_period = 60  # Number of requests allowed per period
+      @rate_limit_period = 60      # Period in seconds (60 seconds = 1 minute)
 
       # Onboarding templates
       @onboarding_templates = {

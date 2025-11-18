@@ -5,6 +5,7 @@ module RailsOnboarding
     module V1
       class OnboardingController < ApplicationController
         include RailsOnboarding::ApiMode
+        include RailsOnboarding::RateLimitable
 
         before_action :authenticate_api_request!
 
