@@ -1,0 +1,221 @@
+<% content_for :page_title, "Dashboard" %>
+
+<% content_for :header_actions do %>
+  <div class="admin-header-filters">
+    <%= form_with url: admin_dashboard_path, method: :get, class: "admin-filter-form" do |f| %>
+      <%= f.select :date_range,
+          options_for_select([
+            ['Last 7 days', '7'],
+            ['Last 30 days', '30'],
+            ['Last 90 days', '90'],
+            ['All time', 'all']
+          ], @date_range),
+          {},
+          class: "admin-select",
+          onchange: "this.form.submit()" %>
+    <% end %>
+  </div>
+<% end %>
+
+<!-- Overview Stats -->
+<div class="admin-stats-grid">
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon">👥</div>
+    <div class="admin-stat-content">
+      <div class="admin-stat-label">Total Users</div>
+      <div class="admin-stat-value"><%= number_with_delimiter(@total_users) %></div>
+    </div>
+  </div>
+
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon">🚀</div>
+    <div class="admin-stat-content">
+      <div class="admin-stat-label">Onboarding Started</div>
+      <div class="admin-stat-value"><%= number_with_delimiter(@onboarding_started) %></div>
+      <div class="admin-stat-change">
+        <%= (@total_users.zero? ? 0 : (@onboarding_started.to_f / @total_users * 100).round(1)) %>% of users
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon">✅</div>
+    <div class="admin-stat-content">
+      <div class="admin-stat-label">Completed</div>
+      <div class="admin-stat-value"><%= number_with_delimiter(@onboarding_completed) %></div>
+      <div class="admin-stat-change <%= @completion_rate >= 50 ? 'positive' : 'negative' %>">
+        <%= @completion_rate %>% completion rate
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon">⏱️</div>
+    <div class="admin-stat-content">
+      <div class="admin-stat-label">Avg. Time to Complete</div>
+      <div class="admin-stat-value"><%= @avg_completion_time %> hrs</div>
+      <div class="admin-stat-change">
+        <%= @recent_completions %> in selected period
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="admin-charts-grid">
+  <!-- Completion Trend -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h3 class="admin-card-title">Daily Completions (Last 7 Days)</h3>
+    </div>
+    <div class="admin-card-body">
+      <% if @daily_completions && @daily_completions.any? %>
+        <div class="admin-chart-container">
+          <div class="admin-bar-chart">
+            <% max_count = @daily_completions.map { |d| d[:count] }.max || 1 %>
+            <% @daily_completions.each do |day| %>
+              <div class="admin-bar-item">
+                <div class="admin-bar" style="height: <%= (day[:count].to_f / max_count * 100).round %>%">
+                  <span class="admin-bar-value"><%= day[:count] %></span>
+                </div>
+                <div class="admin-bar-label"><%= day[:date] %></div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <p class="admin-empty-state">No completion data available</p>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Step Funnel -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h3 class="admin-card-title">Onboarding Funnel</h3>
+    </div>
+    <div class="admin-card-body">
+      <% if @step_funnel && @step_funnel.any? %>
+        <div class="admin-funnel">
+          <% @step_funnel.each_with_index do |step, index| %>
+            <div class="admin-funnel-step">
+              <div class="admin-funnel-bar" style="width: <%= step[:percentage] %>%">
+                <div class="admin-funnel-label">
+                  <span class="admin-funnel-step-name"><%= step[:title] %></span>
+                  <span class="admin-funnel-stats">
+                    <%= number_with_delimiter(step[:users]) %> users (<%= step[:percentage] %>%)
+                  </span>
+                </div>
+              </div>
+              <% if index < @step_funnel.length - 1 %>
+                <div class="admin-funnel-arrow">↓</div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="admin-empty-state">No funnel data available</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Row -->
+<div class="admin-bottom-grid">
+  <!-- Milestone Stats -->
+  <% if defined?(RailsOnboarding::Milestone) %>
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">Top Milestones</h3>
+      </div>
+      <div class="admin-card-body">
+        <% if @top_milestones && @top_milestones.any? %>
+          <div class="admin-list">
+            <% @top_milestones.each do |milestone| %>
+              <div class="admin-list-item">
+                <div class="admin-list-content">
+                  <div class="admin-list-title"><%= milestone[:title] %></div>
+                  <div class="admin-list-meta"><%= milestone[:name] %></div>
+                </div>
+                <div class="admin-list-value">
+                  <span class="admin-badge"><%= number_with_delimiter(milestone[:count]) %> achieved</span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="admin-empty-state">No milestone data available</p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- A/B Tests Summary -->
+  <% if defined?(RailsOnboarding::AbTest) %>
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">A/B Tests</h3>
+        <%= link_to "View All", admin_ab_tests_path, class: "admin-card-action" %>
+      </div>
+      <div class="admin-card-body">
+        <div class="admin-ab-summary">
+          <div class="admin-ab-stat">
+            <div class="admin-ab-stat-value"><%= @active_tests || 0 %></div>
+            <div class="admin-ab-stat-label">Active Tests</div>
+          </div>
+          <div class="admin-ab-stat">
+            <div class="admin-ab-stat-value"><%= @total_tests || 0 %></div>
+            <div class="admin-ab-stat-label">Total Tests</div>
+          </div>
+        </div>
+        <%= link_to "Manage A/B Tests", admin_ab_tests_path, class: "admin-btn admin-btn-primary admin-btn-block" %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Recent Activity -->
+  <% if defined?(RailsOnboarding::AnalyticsEvent) %>
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">Recent Activity</h3>
+      </div>
+      <div class="admin-card-body">
+        <% if @recent_events && @recent_events.any? %>
+          <div class="admin-timeline">
+            <% @recent_events.first(5).each do |event| %>
+              <div class="admin-timeline-item">
+                <div class="admin-timeline-dot"></div>
+                <div class="admin-timeline-content">
+                  <div class="admin-timeline-title"><%= event.event_type.humanize %></div>
+                  <div class="admin-timeline-meta">
+                    User <%= event.user_id %> • <%= time_ago_in_words(event.created_at) %> ago
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="admin-empty-state">No recent activity</p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<% if @analytics_error %>
+  <div class="admin-alert admin-alert-warning">
+    <strong>Analytics Error:</strong> <%= @analytics_error %>
+  </div>
+<% end %>
+
+<% if @milestone_error %>
+  <div class="admin-alert admin-alert-warning">
+    <strong>Milestone Error:</strong> <%= @milestone_error %>
+  </div>
+<% end %>
+
+<% if @ab_test_error %>
+  <div class="admin-alert admin-alert-warning">
+    <strong>A/B Test Error:</strong> <%= @ab_test_error %>
+  </div>
+<% end %>

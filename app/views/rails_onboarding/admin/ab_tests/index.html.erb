@@ -1,0 +1,67 @@
+<% content_for :page_title, "A/B Tests" %>
+
+<% content_for :header_actions do %>
+  <%= link_to "New A/B Test", new_admin_ab_test_path, class: "admin-btn admin-btn-primary" %>
+<% end %>
+
+<!-- Stats -->
+<div class="admin-stats-grid admin-stats-compact">
+  <div class="admin-stat-card">
+    <div class="admin-stat-label">Active Tests</div>
+    <div class="admin-stat-value"><%= @active_tests.count %></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-label">Completed Tests</div>
+    <div class="admin-stat-value"><%= @completed_tests.count %></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-label">Total Tests</div>
+    <div class="admin-stat-value"><%= @ab_tests.count %></div>
+  </div>
+</div>
+
+<!-- Active Tests -->
+<% if @active_tests.any? %>
+  <div class="admin-section">
+    <h2 class="admin-section-title">Active Tests</h2>
+    <div class="admin-ab-tests-grid">
+      <% @active_tests.each do |test| %>
+        <%= render 'ab_test_card', test: test %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<!-- Completed Tests -->
+<% if @completed_tests.any? %>
+  <div class="admin-section">
+    <h2 class="admin-section-title">Completed Tests</h2>
+    <div class="admin-ab-tests-grid">
+      <% @completed_tests.each do |test| %>
+        <%= render 'ab_test_card', test: test %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<!-- Draft Tests -->
+<% draft_tests = @ab_tests.select { |t| t.status == 'draft' } %>
+<% if draft_tests.any? %>
+  <div class="admin-section">
+    <h2 class="admin-section-title">Draft Tests</h2>
+    <div class="admin-ab-tests-grid">
+      <% draft_tests.each do |test| %>
+        <%= render 'ab_test_card', test: test %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<% if @ab_tests.empty? %>
+  <div class="admin-empty-state-large">
+    <div class="admin-empty-icon">🧪</div>
+    <h3>No A/B Tests</h3>
+    <p>Create your first A/B test to optimize your onboarding flow.</p>
+    <%= link_to "Create A/B Test", new_admin_ab_test_path, class: "admin-btn admin-btn-primary" %>
+  </div>
+<% end %>

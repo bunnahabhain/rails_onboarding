@@ -1,0 +1,174 @@
+<% content_for :page_title, "User Management" %>
+
+<% content_for :header_actions do %>
+  <%= link_to "Export CSV", "#", class: "admin-btn admin-btn-secondary" %>
+<% end %>
+
+<!-- Stats Summary -->
+<div class="admin-stats-grid admin-stats-compact">
+  <div class="admin-stat-card">
+    <div class="admin-stat-label">Total Users</div>
+    <div class="admin-stat-value"><%= number_with_delimiter(@stats[:total]) %></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-label">Completed</div>
+    <div class="admin-stat-value"><%= number_with_delimiter(@stats[:completed]) %></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-label">In Progress</div>
+    <div class="admin-stat-value"><%= number_with_delimiter(@stats[:in_progress]) %></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-label">Not Started</div>
+    <div class="admin-stat-value"><%= number_with_delimiter(@stats[:not_started]) %></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-label">Skipped</div>
+    <div class="admin-stat-value"><%= number_with_delimiter(@stats[:skipped]) %></div>
+  </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="admin-filters">
+  <%= form_with url: admin_users_path, method: :get, class: "admin-filter-form" do |f| %>
+    <div class="admin-filter-group">
+      <%= f.text_field :search,
+          placeholder: "Search by email or ID...",
+          value: params[:search],
+          class: "admin-input" %>
+
+      <%= f.select :status,
+          options_for_select([
+            ['All Statuses', ''],
+            ['Completed', 'completed'],
+            ['In Progress', 'in_progress'],
+            ['Not Started', 'not_started'],
+            ['Skipped', 'skipped']
+          ], params[:status]),
+          {},
+          class: "admin-select" %>
+
+      <%= f.submit "Filter", class: "admin-btn admin-btn-primary" %>
+      <%= link_to "Reset", admin_users_path, class: "admin-btn admin-btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Users Table -->
+<div class="admin-card">
+  <div class="admin-card-body admin-card-no-padding">
+    <%= form_with url: bulk_action_admin_users_path, method: :post, id: "bulk-action-form" do %>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th class="admin-table-checkbox">
+              <input type="checkbox" id="select-all" class="admin-checkbox">
+            </th>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Current Step</th>
+            <th>Progress</th>
+            <th>Last Activity</th>
+            <th class="admin-table-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @users.any? %>
+            <% @users.each do |user| %>
+              <tr>
+                <td class="admin-table-checkbox">
+                  <%= check_box_tag "user_ids[]", user.id, false, class: "admin-checkbox user-checkbox" %>
+                </td>
+                <td><%= user.id %></td>
+                <td>
+                  <%= user.respond_to?(:email) ? user.email : 'N/A' %>
+                </td>
+                <td>
+                  <% if user.onboarding_completed %>
+                    <span class="admin-badge admin-badge-success">Completed</span>
+                  <% elsif user.onboarding_skipped %>
+                    <span class="admin-badge admin-badge-warning">Skipped</span>
+                  <% elsif user.onboarding_current_step %>
+                    <span class="admin-badge admin-badge-info">In Progress</span>
+                  <% else %>
+                    <span class="admin-badge admin-badge-secondary">Not Started</span>
+                  <% end %>
+                </td>
+                <td>
+                  <%= user.onboarding_current_step&.humanize || 'N/A' %>
+                </td>
+                <td>
+                  <% if user.respond_to?(:onboarding_progress_percentage) %>
+                    <div class="admin-progress-bar">
+                      <div class="admin-progress-fill" style="width: <%= user.onboarding_progress_percentage %>%"></div>
+                    </div>
+                    <span class="admin-progress-text"><%= user.onboarding_progress_percentage %>%</span>
+                  <% else %>
+                    N/A
+                  <% end %>
+                </td>
+                <td>
+                  <%= user.updated_at ? time_ago_in_words(user.updated_at) + ' ago' : 'N/A' %>
+                </td>
+                <td class="admin-table-actions">
+                  <%= link_to "View", admin_user_path(user), class: "admin-btn admin-btn-sm admin-btn-secondary" %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="8" class="admin-table-empty">
+                No users found matching your criteria
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <% if @users.any? %>
+        <div class="admin-bulk-actions">
+          <div class="admin-bulk-actions-bar">
+            <span class="admin-bulk-actions-count">
+              <span id="selected-count">0</span> users selected
+            </span>
+            <%= select_tag :bulk_action,
+                options_for_select([
+                  ['Select Action', ''],
+                  ['Reset Onboarding', 'reset_onboarding'],
+                  ['Complete Onboarding', 'complete_onboarding']
+                ]),
+                class: "admin-select" %>
+            <%= submit_tag "Apply", class: "admin-btn admin-btn-primary", data: { confirm: "Are you sure?" } %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<!-- Pagination -->
+<% if @users.respond_to?(:total_pages) && @users.total_pages > 1 %>
+  <div class="admin-pagination">
+    <%= paginate @users %>
+  </div>
+<% end %>
+
+<script>
+  // Select all checkbox functionality
+  document.getElementById('select-all')?.addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+    updateSelectedCount();
+  });
+
+  // Update selected count
+  document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', updateSelectedCount);
+  });
+
+  function updateSelectedCount() {
+    const count = document.querySelectorAll('.user-checkbox:checked').length;
+    document.getElementById('selected-count').textContent = count;
+  }
+</script>

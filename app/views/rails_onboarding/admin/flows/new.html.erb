@@ -1,0 +1,7 @@
+<% content_for :page_title, "Create New Flow" %>
+
+<% content_for :header_actions do %>
+  <%= link_to "← Back to Flows", admin_flows_path, class: "admin-btn admin-btn-secondary" %>
+<% end %>
+
+<%= render 'form' %>

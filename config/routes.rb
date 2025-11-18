@@ -21,6 +21,39 @@ RailsOnboarding::Engine.routes.draw do
     end
   end
 
+  # Admin interface
+  namespace :admin do
+    # Dashboard
+    get '/', to: 'dashboard#index', as: :dashboard
+
+    # User management
+    resources :users, only: [:index, :show] do
+      member do
+        post :reset_onboarding
+        post :complete_onboarding
+      end
+      collection do
+        post :bulk_action
+      end
+    end
+
+    # Flow editor
+    resources :flows do
+      member do
+        post :duplicate
+        post :activate
+        get :preview
+      end
+    end
+
+    # A/B test management
+    resources :ab_tests do
+      member do
+        post :start
+        post :stop
+        post :declare_winner
+        get :export
+      end
   # API routes (v1)
   namespace :api do
     namespace :v1 do
