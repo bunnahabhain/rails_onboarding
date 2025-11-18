@@ -71,13 +71,6 @@ module RailsOnboarding
 
         private
 
-        def current_user
-          @current_user ||= begin
-            token = extract_api_token
-            authenticate_with_token(token) if token.present?
-          end
-        end
-
         def find_user(user_id)
           user_class = RailsOnboarding.configuration.user_class_name.constantize
           user_class.find_by(id: user_id)

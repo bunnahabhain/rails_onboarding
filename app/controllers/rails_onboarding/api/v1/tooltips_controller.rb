@@ -18,15 +18,6 @@ module RailsOnboarding
         def dismiss
           api_dismiss_tooltip
         end
-
-        private
-
-        def current_user
-          @current_user ||= begin
-            token = extract_api_token
-            authenticate_with_token(token) if token.present?
-          end
-        end
       end
     end
   end

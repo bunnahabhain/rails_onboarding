@@ -179,6 +179,14 @@ module RailsOnboarding
       end
     end
 
+    # Current user accessor for API requests
+    def current_user
+      @current_user ||= begin
+        token = extract_api_token
+        authenticate_with_token(token) if token.present?
+      end
+    end
+
     private
 
     # Serialize data for API response
