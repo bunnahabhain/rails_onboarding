@@ -1,0 +1,17 @@
+<%= t('rails_onboarding.mailer.welcome.heading', default: 'Welcome!') %>
+
+<%= t('rails_onboarding.mailer.welcome.greeting', default: 'Hi there!', name: @user.respond_to?(:name) ? @user.name : 'there') %>
+
+<%= t('rails_onboarding.mailer.welcome.intro',
+  default: "We're excited to have you on board! We've prepared a quick onboarding process to help you get started and make the most of your experience.") %>
+
+<%= t('rails_onboarding.mailer.welcome.description',
+  default: "The onboarding process will guide you through the essential features and help you set up your account. It only takes a few minutes!") %>
+
+<%= t('rails_onboarding.mailer.welcome.cta', default: 'Get Started') %>: <%= @onboarding_url %>
+
+<%= t('rails_onboarding.mailer.welcome.help',
+  default: "If you have any questions or need assistance, don't hesitate to reach out. We're here to help!") %>
+
+---
+<%= t('rails_onboarding.mailer.welcome.footer', default: 'Thank you for joining us!') %>

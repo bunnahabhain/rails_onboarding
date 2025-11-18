@@ -1,0 +1,19 @@
+<%= t('rails_onboarding.mailer.step_completed.heading', default: 'Step Completed!') %>
+
+<%= t('rails_onboarding.mailer.step_completed.greeting', default: 'Hi there!', name: @user.respond_to?(:name) ? @user.name : 'there') %>
+
+<%= t('rails_onboarding.mailer.step_completed.intro', default: 'Great job completing another step in your onboarding journey!') %>
+
+<% if @step %>
+✓ <%= @step.to_s.titleize %>
+<% end %>
+
+<%= t('rails_onboarding.mailer.step_completed.progress', default: 'Your Progress') %>: <%= @progress %>%
+
+<%= t('rails_onboarding.mailer.step_completed.encouragement',
+  default: "Keep up the great work! Each step brings you closer to unlocking all features and getting the most out of your experience.") %>
+
+<%= t('rails_onboarding.mailer.step_completed.cta', default: 'Continue Onboarding') %>: <%= Rails.application.routes.url_helpers.rails_onboarding_onboarding_url rescue '#' %>
+
+---
+<%= t('rails_onboarding.mailer.step_completed.footer', default: 'Keep going!') %>

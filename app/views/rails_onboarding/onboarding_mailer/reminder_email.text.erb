@@ -1,0 +1,20 @@
+<%= t('rails_onboarding.mailer.reminder.heading', default: 'Complete Your Onboarding') %>
+
+<%= t('rails_onboarding.mailer.reminder.greeting', default: 'Hi there!', name: @user.respond_to?(:name) ? @user.name : 'there') %>
+
+<%= t('rails_onboarding.mailer.reminder.intro',
+  default: "We noticed you started your onboarding journey but haven't finished it yet. You're doing great so far!") %>
+
+<%= t('rails_onboarding.mailer.reminder.progress', default: 'Your Progress', progress: @progress) %>: <%= @progress %>%
+
+<% if @current_step %>
+<%= t('rails_onboarding.mailer.reminder.current_step', default: 'You left off at', step: @current_step.to_s.titleize) %>: <%= @current_step.to_s.titleize %>
+<% end %>
+
+<%= t('rails_onboarding.mailer.reminder.encouragement',
+  default: "You're almost there! Complete your onboarding to unlock all features and get the most out of your experience.") %>
+
+<%= t('rails_onboarding.mailer.reminder.cta', default: 'Continue Onboarding') %>: <%= @onboarding_url %>
+
+---
+<%= t('rails_onboarding.mailer.reminder.footer', default: 'See you soon!') %>

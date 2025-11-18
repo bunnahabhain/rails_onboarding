@@ -1,0 +1,24 @@
+<%= t('rails_onboarding.mailer.completion.heading', default: 'Congratulations!') %>
+
+<%= t('rails_onboarding.mailer.completion.greeting', default: 'Hi there!', name: @user.respond_to?(:name) ? @user.name : 'there') %>
+
+✓ <%= t('rails_onboarding.mailer.completion.badge_title', default: 'Onboarding Complete!') %>
+<%= t('rails_onboarding.mailer.completion.completed_at', default: 'Completed on', date: @completed_at&.strftime('%B %d, %Y') || Date.today.strftime('%B %d, %Y')) %>
+
+<%= t('rails_onboarding.mailer.completion.intro',
+  default: "You've successfully completed your onboarding! You now have access to all features and can explore everything we have to offer.") %>
+
+<%= t('rails_onboarding.mailer.completion.next_steps', default: "Here's what you can do next:") %>
+
+- <%= t('rails_onboarding.mailer.completion.step_1', default: 'Explore all available features') %>
+- <%= t('rails_onboarding.mailer.completion.step_2', default: 'Customize your settings and preferences') %>
+- <%= t('rails_onboarding.mailer.completion.step_3', default: 'Connect with other users') %>
+- <%= t('rails_onboarding.mailer.completion.step_4', default: 'Check out our help center for tips and tricks') %>
+
+<%= t('rails_onboarding.mailer.completion.encouragement',
+  default: "We're excited to have you as part of our community. If you need any help, our support team is always here for you!") %>
+
+<%= t('rails_onboarding.mailer.completion.cta', default: 'Start Exploring') %>: <%= Rails.application.routes.url_helpers.root_url rescue '#' %>
+
+---
+<%= t('rails_onboarding.mailer.completion.footer', default: 'Happy exploring!') %>
