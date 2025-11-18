@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        text-align: center;
+        padding: 20px 0;
+        border-bottom: 2px solid #f0f0f0;
+      }
+      .celebration {
+        text-align: center;
+        font-size: 48px;
+        margin: 20px 0;
+      }
+      .content {
+        padding: 30px 0;
+      }
+      .achievement-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 20px 0;
+      }
+      .cta-button {
+        display: inline-block;
+        padding: 12px 24px;
+        background-color: #10B981;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        margin: 20px 0;
+      }
+      .footer {
+        text-align: center;
+        padding: 20px 0;
+        border-top: 2px solid #f0f0f0;
+        color: #666;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🎊 <%= t('rails_onboarding.mailer.completion.heading', default: 'Congratulations!') %></h1>
+    </div>
+
+    <div class="celebration">
+      🎉 ✨ 🚀
+    </div>
+
+    <div class="content">
+      <p><%= t('rails_onboarding.mailer.completion.greeting', default: 'Hi there!', name: @user.respond_to?(:name) ? @user.name : 'there') %></p>
+
+      <div class="achievement-badge">
+        <h2 style="margin: 0; color: white;">
+          <%= t('rails_onboarding.mailer.completion.badge_title', default: '✓ Onboarding Complete!') %>
+        </h2>
+        <p style="margin: 10px 0 0 0; color: white; opacity: 0.9;">
+          <%= t('rails_onboarding.mailer.completion.completed_at',
+            default: 'Completed on',
+            date: @completed_at&.strftime('%B %d, %Y') || Date.today.strftime('%B %d, %Y')) %>
+        </p>
+      </div>
+
+      <p>
+        <%= t('rails_onboarding.mailer.completion.intro',
+          default: "You've successfully completed your onboarding! You now have access to all features and can explore everything we have to offer.") %>
+      </p>
+
+      <p>
+        <%= t('rails_onboarding.mailer.completion.next_steps',
+          default: "Here's what you can do next:") %>
+      </p>
+
+      <ul>
+        <li><%= t('rails_onboarding.mailer.completion.step_1', default: 'Explore all available features') %></li>
+        <li><%= t('rails_onboarding.mailer.completion.step_2', default: 'Customize your settings and preferences') %></li>
+        <li><%= t('rails_onboarding.mailer.completion.step_3', default: 'Connect with other users') %></li>
+        <li><%= t('rails_onboarding.mailer.completion.step_4', default: 'Check out our help center for tips and tricks') %></li>
+      </ul>
+
+      <p>
+        <%= t('rails_onboarding.mailer.completion.encouragement',
+          default: "We're excited to have you as part of our community. If you need any help, our support team is always here for you!") %>
+      </p>
+
+      <div style="text-align: center;">
+        <a href="<%= Rails.application.routes.url_helpers.root_url rescue '#' %>" class="cta-button">
+          <%= t('rails_onboarding.mailer.completion.cta', default: 'Start Exploring') %>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><%= t('rails_onboarding.mailer.completion.footer', default: 'Happy exploring!') %></p>
+    </div>
+  </body>
+</html>

@@ -60,6 +60,9 @@ module RailsOnboarding
       ((current_index + 1).to_f / total_steps * 100).round
     end
 
+    # Alias for API compatibility
+    alias_method :onboarding_progress_percentage, :onboarding_progress
+
     def current_onboarding_step
       return nil if onboarding_completed?
 
@@ -359,6 +362,65 @@ module RailsOnboarding
 
       reset_onboarding!
       start_onboarding!(session_id: session_id)
+    end
+
+    # API-friendly aliases and helper methods
+    alias_method :complete_step, :complete_onboarding_step!
+    alias_method :skip_step, :skip_onboarding_step!
+    alias_method :next_step, :next_onboarding_step
+    alias_method :previous_step, :previous_onboarding_step
+
+    # Check if a specific step has been completed
+    def step_completed?(step_name)
+      return false unless step_name
+
+      step_index = RailsOnboarding.configuration.step_index(step_name)
+      return false if step_index.nil?
+
+      # If onboarding is completed, all steps are completed
+      return true if onboarding_completed?
+
+      # Check if current step is past the requested step
+      current_index = RailsOnboarding.configuration.step_index(onboarding_current_step)
+      return false if current_index.nil?
+
+      current_index > step_index
+    end
+
+    # Get available tooltips that haven't been shown
+    def available_tooltips
+      return [] unless RailsOnboarding.configuration.enable_tooltips
+
+      RailsOnboarding.configuration.feature_tooltips.select do |key, _config|
+        show_feature_tooltip?(key)
+      end.map do |key, config|
+        {
+          id: key.to_s,
+          title: config[:title],
+          content: config[:content],
+          target: config[:target],
+          position: config[:position] || 'top'
+        }
+      end
+    end
+
+    # Check if a specific tooltip has been shown
+    def tooltip_shown?(tooltip_id)
+      !show_feature_tooltip?(tooltip_id)
+    end
+
+    # Dismiss a tooltip (alias for mark_tooltip_shown!)
+    def dismiss_tooltip(tooltip_id, session_id: nil)
+      mark_tooltip_shown!(tooltip_id, session_id: session_id)
+      true
+    rescue StandardError => e
+      Rails.logger.error("Failed to dismiss tooltip: #{e.message}")
+      false
+    end
+
+    # Onboarding skipped check
+    def onboarding_skipped?
+      onboarding_skipped == true
     end
 
     private

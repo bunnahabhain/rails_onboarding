@@ -191,6 +191,7 @@ module RailsOnboarding
     private
 
     def send_webhook_request
+      start_time = Time.current
       uri = URI.parse(endpoint[:url])
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
@@ -224,13 +225,37 @@ module RailsOnboarding
       request.body = webhook_payload.to_json
 
       response = http.request(request)
+      duration = Time.current - start_time
 
       unless response.is_a?(Net::HTTPSuccess)
+        # Track failed delivery
+        track_webhook_monitoring(
+          success: false,
+          response_code: response.code,
+          error_message: "HTTP #{response.code}: #{response.body}",
+          duration: duration
+        )
         raise WebhookError, "Webhook failed with status #{response.code}: #{response.body}"
       end
 
+      # Track successful delivery
+      track_webhook_monitoring(
+        success: true,
+        response_code: response.code,
+        duration: duration
+      )
+
       log_webhook_success(response)
       response
+    rescue StandardError => e
+      duration = Time.current - start_time
+      # Track failed delivery
+      track_webhook_monitoring(
+        success: false,
+        error_message: e.message,
+        duration: duration
+      )
+      raise
     end
 
     def generate_signature
@@ -247,6 +272,21 @@ module RailsOnboarding
 
     def log_webhook_failure(error)
       Rails.logger.error "Webhook delivery failed: #{event_name} to #{endpoint[:url]} - #{error.message}"
+    end
+
+    def track_webhook_monitoring(success:, response_code: nil, error_message: nil, duration: nil)
+      return unless defined?(RailsOnboarding::WebhookMonitoring)
+
+      RailsOnboarding::WebhookMonitoring.track_delivery(
+        webhook_url: endpoint[:url],
+        event_type: event_name,
+        success: success,
+        response_code: response_code,
+        error_message: error_message,
+        duration: duration
+      )
+    rescue StandardError => e
+      Rails.logger.warn "Failed to track webhook monitoring: #{e.message}"
     end
   end
 
