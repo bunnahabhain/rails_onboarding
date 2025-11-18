@@ -33,15 +33,6 @@ module RailsOnboarding
         def restart
           api_restart_onboarding
         end
-
-        private
-
-        def current_user
-          @current_user ||= begin
-            token = extract_api_token
-            authenticate_with_token(token) if token.present?
-          end
-        end
       end
     end
   end

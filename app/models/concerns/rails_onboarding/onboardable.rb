@@ -33,6 +33,15 @@ module RailsOnboarding
       validate :validate_milestones_size, if: :milestones_achieved_changed?
     end
 
+    # Determines if the user needs to go through onboarding
+    #
+    # This method checks the configuration setting and user state to determine
+    # if onboarding should be shown. It supports different strategies:
+    # - :new_users - Only users created within the last hour
+    # - :all_users - All users who haven't completed onboarding
+    # - Proc - Custom logic defined in configuration
+    #
+    # @return [Boolean] true if onboarding is needed, false otherwise
     def needs_onboarding?
       return false if onboarding_completed?
 
@@ -48,6 +57,15 @@ module RailsOnboarding
       end
     end
 
+    # Calculate onboarding progress as a percentage
+    #
+    # Returns a value between 0 and 100 representing how far the user has
+    # progressed through the onboarding flow. Calculation is based on
+    # current step position divided by total steps.
+    #
+    # @return [Integer] progress percentage (0-100)
+    # @example
+    #   user.onboarding_progress #=> 75
     def onboarding_progress
       return 100 if onboarding_completed?
       return 0 unless onboarding_current_step
@@ -82,6 +100,19 @@ module RailsOnboarding
       next_step
     end
 
+    # Complete the current onboarding step and advance to the next
+    #
+    # This method handles the core onboarding flow logic:
+    # 1. Validates the step exists in the configuration
+    # 2. Tracks step completion for analytics
+    # 3. Checks and awards any relevant milestones
+    # 4. Advances to the next step or completes onboarding if on the last step
+    #
+    # @param step_name [String, Symbol] the name of the step to complete
+    # @param session_id [String] optional session identifier for tracking
+    # @param time_spent [Integer] optional time spent on step in seconds
+    # @return [void]
+    # @raise [ActiveRecord::RecordInvalid] if the update fails
     def complete_onboarding_step!(step_name, session_id: nil, time_spent: nil)
       current_index = RailsOnboarding.configuration.step_index(step_name)
 
@@ -202,11 +233,55 @@ module RailsOnboarding
 
     # Milestones
     def achieved_milestones
-      (milestones_achieved || []).map(&:to_s)
+      milestones = milestones_achieved || []
+
+      # Warn about old format if any string entries are found
+      if milestones.any? { |m| m.is_a?(String) }
+        RailsOnboarding::Deprecation.deprecate_format(
+          "Storing milestones as array of strings",
+          new_format: "array of hashes with 'key' and 'achieved_at' fields",
+          version: "2.0.0"
+        )
+      end
+
+      milestones.map { |m| m.is_a?(Hash) ? m['key'] : m.to_s }
     end
 
     def milestone_achieved?(milestone_key)
       achieved_milestones.include?(milestone_key.to_s)
+    end
+
+    # Get the timestamp when a specific milestone was achieved
+    #
+    # This method supports both old (string array) and new (hash array) formats
+    # for backwards compatibility. For old format data, it returns last_milestone_at
+    # as a fallback since per-milestone timestamps weren't stored.
+    #
+    # @param milestone_key [String, Symbol] the milestone key to lookup
+    # @return [Time, nil] the achievement timestamp, or nil if not achieved
+    # @example
+    #   user.milestone_achieved_at(:first_login) #=> 2025-01-15 10:30:00 UTC
+    def milestone_achieved_at(milestone_key)
+      return nil unless milestone_achieved?(milestone_key)
+
+      # Support both old array format and new hash format
+      milestones = milestones_achieved || []
+      milestone = milestones.find do |m|
+        if m.is_a?(Hash)
+          m['key'].to_s == milestone_key.to_s
+        else
+          m.to_s == milestone_key.to_s
+        end
+      end
+
+      # Return timestamp if available, otherwise return last_milestone_at as fallback
+      if milestone.is_a?(Hash) && milestone['achieved_at']
+        Time.parse(milestone['achieved_at'])
+      else
+        last_milestone_at
+      end
+    rescue StandardError
+      last_milestone_at
     end
 
     def achieve_milestone!(milestone_key, session_id: nil)
@@ -217,6 +292,7 @@ module RailsOnboarding
       return false unless milestone_config
 
       points_earned = milestone_config[:points] || 0
+      achieved_at = Time.current
 
       # Track milestone achievement
       AnalyticsEvent.track_milestone_achieved(
@@ -227,9 +303,13 @@ module RailsOnboarding
       )
 
       self.milestones_achieved ||= []
-      self.milestones_achieved << milestone_key.to_s
+      # Store as hash with timestamp for new achievements
+      self.milestones_achieved << {
+        'key' => milestone_key.to_s,
+        'achieved_at' => achieved_at.iso8601
+      }
       self.milestone_points = (milestone_points || 0) + points_earned
-      self.last_milestone_at = Time.current
+      self.last_milestone_at = achieved_at
 
       save!
       milestone_config
@@ -457,6 +537,13 @@ module RailsOnboarding
     end
 
     # Trim oldest tooltip entries to prevent exceeding limits
+    #
+    # This method is called automatically when approaching the MAX_TOOLTIPS_SHOWN limit
+    # to prevent unbounded growth of the JSON field. It keeps the 80% most recent
+    # tooltips to avoid frequent trimming operations.
+    #
+    # @return [void]
+    # @private
     def trim_oldest_tooltips
       return unless feature_tooltips_shown.is_a?(Hash)
       return if feature_tooltips_shown.size < MAX_TOOLTIPS_SHOWN
@@ -467,6 +554,16 @@ module RailsOnboarding
       self.feature_tooltips_shown = sorted_tooltips.last(keep_count).to_h
     end
 
+    # Check for and award milestones triggered by completing a specific step
+    #
+    # This method is called automatically after a step is completed. It looks up
+    # all milestones configured with the :onboarding_step_completed trigger and
+    # awards them if their conditions match the completed step.
+    #
+    # @param step_name [String, Symbol] the name of the completed step
+    # @param session_id [String] optional session identifier for tracking
+    # @return [void]
+    # @private
     def check_and_achieve_step_milestones(step_name, session_id: nil)
       return unless RailsOnboarding.configuration.enable_milestones
 
