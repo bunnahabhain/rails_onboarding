@@ -5,11 +5,16 @@ class AddOnboardingToUsers < ActiveRecord::Migration[<%= ActiveRecord::Migration
     add_column :users, :onboarding_current_step, :string
     add_column :users, :onboarding_skipped, :boolean, default: false
 
-    # Use jsonb for PostgreSQL, text for other databases
-    if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
+    # Use jsonb for PostgreSQL, json for MySQL/MariaDB, text for others
+    adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
+    case adapter_name
+    when "postgresql", "postgis"
       add_column :users, :feature_tooltips_shown, :jsonb, default: {}
-    else
+    when "mysql2", "trilogy", "mysql"
       add_column :users, :feature_tooltips_shown, :json
+    else
+      # SQLite and other databases - use text with serialization
+      add_column :users, :feature_tooltips_shown, :text, default: "{}"
     end
 
     # Performance indexes

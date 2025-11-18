@@ -187,10 +187,14 @@ module RailsOnboarding
       file = File.join(@template_dir, "add_onboarding_users.rb")
       content = File.read(file)
 
-      # Should handle PostgreSQL jsonb vs other databases' json
-      assert_match(/if ActiveRecord::Base\.connection\.adapter_name == "PostgreSQL"/, content)
-      assert_match(/:jsonb/, content)
-      assert_match(/:json[^b]/, content, "Should fall back to json for non-PostgreSQL")
+      # Should handle PostgreSQL jsonb, MySQL json, and SQLite text
+      assert_match(/adapter_name = ActiveRecord::Base\.connection\.adapter_name\.downcase/, content)
+      assert_match(/case adapter_name/, content)
+      assert_match(/when "postgresql", "postgis"/, content)
+      assert_match(/when "mysql2", "trilogy", "mysql"/, content)
+      assert_match(/:jsonb/, content, "Should use jsonb for PostgreSQL")
+      assert_match(/:json[^b]/, content, "Should use json for MySQL")
+      assert_match(/:text/, content, "Should fall back to text for other databases")
     end
 
     test "all migrations follow naming conventions" do
