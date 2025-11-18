@@ -76,6 +76,145 @@ This gem requires:
 4. A `current_user` method available in your controllers
 5. Authentication system (Devise, custom, etc.)
 
+### Version Compatibility Matrix
+
+| Rails Version | Ruby Version | rails_onboarding | Status | Notes |
+|--------------|--------------|------------------|--------|-------|
+| 8.0.x        | 3.2.5+       | 0.1.0+          | ✅ Fully Supported | Recommended configuration |
+| 8.0.x        | 3.1.x        | 0.1.0+          | ✅ Supported | |
+| 8.0.x        | 3.0.x        | 0.1.0+          | ⚠️ Compatible | Ruby 3.2+ recommended |
+| 7.2.x        | 3.2.5+       | 0.1.0+          | ✅ Supported | |
+| 7.2.x        | 3.1.x        | 0.1.0+          | ✅ Supported | |
+| 7.2.x        | 3.0.x        | 0.1.0+          | ⚠️ Compatible | Ruby 3.2+ recommended |
+| 7.1.x        | 3.2.5+       | 0.1.0+          | ✅ Supported | |
+| 7.1.x        | 3.1.x        | 0.1.0+          | ✅ Supported | |
+| 7.1.x        | 3.0.x        | 0.1.0+          | ⚠️ Compatible | Ruby 3.2+ recommended |
+| 7.0.x        | 3.2.5+       | 0.1.0+          | ✅ Supported | |
+| 7.0.x        | 3.1.x        | 0.1.0+          | ✅ Supported | |
+| 7.0.x        | 3.0.x        | 0.1.0+          | ⚠️ Compatible | Ruby 3.2+ recommended |
+| 6.1.x        | 2.7.x        | -               | ❌ Not Supported | Upgrade to Rails 7.0+ |
+| < 6.1        | -            | -               | ❌ Not Supported | Upgrade to Rails 7.0+ |
+
+**Legend:**
+- ✅ **Fully Supported**: Active development and testing
+- ✅ **Supported**: Compatible and tested
+- ⚠️ **Compatible**: Should work but not actively tested
+- ❌ **Not Supported**: Will not work or untested
+
+**Feature Compatibility:**
+
+| Feature | Rails 7.0+ | Rails 8.0+ | Notes |
+|---------|-----------|-----------|-------|
+| Core Onboarding | ✅ | ✅ | All versions |
+| Turbo Integration | ✅ | ✅ | Enhanced in Rails 8 |
+| Stimulus Controllers | ✅ | ✅ | Enhanced in Rails 8 |
+| Importmap | ✅ | ✅ | Native support |
+| Asset Pipeline (Sprockets) | ✅ | ✅ | |
+| Propshaft | ✅ | ✅ | |
+| ESBuild/Webpack | ✅ | ✅ | Via jsbundling-rails |
+| PostgreSQL | ✅ | ✅ | Recommended for JSONB |
+| MySQL | ✅ | ✅ | JSON field support |
+| SQLite | ✅ | ✅ | Development/testing only |
+
+### Dependencies
+
+The gem has both required and optional dependencies:
+
+#### Required Dependencies
+
+These dependencies are automatically installed with the gem:
+
+| Gem | Version | Purpose |
+|-----|---------|---------|
+| rails | >= 8.0.0 | Core Rails framework |
+
+**Note:** While the gemspec specifies Rails >= 8.0.0, the gem is compatible with Rails 7.0+ as shown in the compatibility matrix above. For Rails 7.x support, you may need to adjust the version constraint in your Gemfile.
+
+#### Optional Dependencies
+
+These enhance functionality but are not required:
+
+| Gem | Version | Purpose | When Needed |
+|-----|---------|---------|-------------|
+| stimulus-rails | >= 1.0.0 | Interactive JavaScript controllers | For Stimulus-based interactivity (tooltips, tours, navigation) |
+| turbo-rails | >= 1.0.0 | Hotwire/Turbo integration | For seamless page transitions and real-time updates |
+| importmap-rails | >= 1.0.0 | JavaScript module loading | If using importmaps for asset management |
+| jsbundling-rails | >= 1.0.0 | JavaScript bundling | If using ESBuild/Webpack for assets |
+| cssbundling-rails | >= 1.0.0 | CSS bundling | If using Tailwind/PostCSS/Sass |
+| propshaft | >= 0.6.0 | Asset pipeline | Alternative to Sprockets for Rails 7+ |
+| sprockets-rails | >= 3.4.0 | Asset pipeline | Traditional asset pipeline support |
+| pg | >= 1.1 | PostgreSQL adapter | For JSONB field support (recommended) |
+| mysql2 | >= 0.5 | MySQL adapter | For JSON field support |
+| sqlite3 | >= 1.4 | SQLite adapter | Development/testing |
+| sidekiq | >= 6.0 | Background jobs | For async email sending and webhooks |
+| resque | >= 2.0 | Background jobs | Alternative job processor |
+| delayed_job | >= 4.1 | Background jobs | Alternative job processor |
+| redis | >= 4.0 | Caching | For production caching with Redis |
+
+#### Installation Recommendations
+
+**Minimal Installation (Core Features Only):**
+```ruby
+# Gemfile
+gem "rails_onboarding"
+```
+
+**Recommended Installation (Full Features):**
+```ruby
+# Gemfile
+gem "rails_onboarding"
+gem "stimulus-rails"
+gem "turbo-rails"
+gem "importmap-rails"  # or jsbundling-rails
+```
+
+**Full-Featured Installation (All Advanced Features):**
+```ruby
+# Gemfile
+gem "rails_onboarding"
+gem "stimulus-rails"
+gem "turbo-rails"
+gem "importmap-rails"
+gem "sidekiq"  # for background jobs
+gem "redis"    # for caching
+gem "pg"       # for PostgreSQL/JSONB support
+```
+
+#### Feature Requirements
+
+Different features require different optional dependencies:
+
+| Feature | Required Dependencies | Optional Dependencies |
+|---------|----------------------|----------------------|
+| Core Onboarding | rails | - |
+| Interactive Tooltips | rails | stimulus-rails |
+| Guided Tours | rails | stimulus-rails |
+| Turbo Navigation | rails | turbo-rails, stimulus-rails |
+| Background Emails | rails | sidekiq/resque/delayed_job, actionmailer |
+| Webhooks | rails | sidekiq/resque/delayed_job (recommended) |
+| Production Caching | rails | redis, actionpack |
+| JSONB Tooltips/Milestones | rails | pg (PostgreSQL) |
+| Analytics Tracking | rails | - |
+| A/B Testing | rails | - |
+| Multi-Tenant | rails | - |
+
+#### Checking for Optional Dependencies
+
+The gem automatically detects available dependencies:
+
+```ruby
+# Check if Stimulus is available
+RailsOnboarding.stimulus_available?
+
+# Check if Turbo is available
+RailsOnboarding.turbo_available?
+
+# Check if background jobs are available
+RailsOnboarding.background_jobs_available?
+
+# The gem gracefully degrades if optional dependencies are missing
+```
+
 ## Quick Start
 
 ### 1. Include the Onboardable Concern
