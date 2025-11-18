@@ -1,5 +1,5 @@
 class AddRobustnessFieldsToUsers < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
-  def change
+  def up
     add_column :users, :onboarding_errors, :text unless column_exists?(:users, :onboarding_errors)
     add_column :users, :onboarding_failed_actions, :text unless column_exists?(:users, :onboarding_failed_actions)
     add_column :users, :onboarding_session_data, :text unless column_exists?(:users, :onboarding_session_data)
@@ -7,5 +7,14 @@ class AddRobustnessFieldsToUsers < ActiveRecord::Migration[<%= ActiveRecord::Mig
     # Add indexes for performance
     add_index :users, :onboarding_completed unless index_exists?(:users, :onboarding_completed)
     add_index :users, :onboarding_current_step unless index_exists?(:users, :onboarding_current_step)
+  end
+
+  def down
+    remove_index :users, :onboarding_current_step if index_exists?(:users, :onboarding_current_step)
+    remove_index :users, :onboarding_completed if index_exists?(:users, :onboarding_completed)
+
+    remove_column :users, :onboarding_session_data if column_exists?(:users, :onboarding_session_data)
+    remove_column :users, :onboarding_failed_actions if column_exists?(:users, :onboarding_failed_actions)
+    remove_column :users, :onboarding_errors if column_exists?(:users, :onboarding_errors)
   end
 end

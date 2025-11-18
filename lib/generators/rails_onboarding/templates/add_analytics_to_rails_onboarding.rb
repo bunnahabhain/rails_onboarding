@@ -1,5 +1,5 @@
 class AddAnalyticsToRailsOnboarding < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
-  def change
+  def up
     create_table :rails_onboarding_analytics_events do |t|
       t.references :user, polymorphic: true, null: true
       t.string :event_type, null: false
@@ -17,5 +17,9 @@ class AddAnalyticsToRailsOnboarding < ActiveRecord::Migration[<%= ActiveRecord::
       t.index [:event_type, :occurred_at], name: 'index_analytics_events_on_type_and_date'
       t.index [:user_id, :session_id], name: 'index_analytics_events_on_user_and_session'
     end
+  end
+
+  def down
+    drop_table :rails_onboarding_analytics_events if table_exists?(:rails_onboarding_analytics_events)
   end
 end

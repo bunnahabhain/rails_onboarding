@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class AddOnboardingIndexes < ActiveRecord::Migration[<%= Rails::VERSION::MAJOR %>.<%= Rails::VERSION::MINOR %>]
-  def change
+class AddOnboardingIndexes < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+  def up
     # Add indexes for frequently queried columns
     # Skip if index already exists
     unless index_exists?(:users, :onboarding_completed)
@@ -33,25 +33,42 @@ class AddOnboardingIndexes < ActiveRecord::Migration[<%= Rails::VERSION::MAJOR %
     end
 
     # Add indexes to analytics_events table if it exists
-    if table_exists?(:analytics_events)
-      unless index_exists?(:analytics_events, [:user_id, :event_type])
-        add_index :analytics_events, [:user_id, :event_type],
+    if table_exists?(:rails_onboarding_analytics_events)
+      unless index_exists?(:rails_onboarding_analytics_events, [:user_id, :event_type])
+        add_index :rails_onboarding_analytics_events, [:user_id, :event_type],
                   name: 'index_analytics_events_on_user_and_type'
       end
 
-      unless index_exists?(:analytics_events, [:event_type, :created_at])
-        add_index :analytics_events, [:event_type, :created_at],
+      unless index_exists?(:rails_onboarding_analytics_events, [:event_type, :created_at])
+        add_index :rails_onboarding_analytics_events, [:event_type, :created_at],
                   name: 'index_analytics_events_on_type_and_date'
       end
 
-      unless index_exists?(:analytics_events, :session_id)
-        add_index :analytics_events, :session_id
+      unless index_exists?(:rails_onboarding_analytics_events, :session_id)
+        add_index :rails_onboarding_analytics_events, :session_id
       end
 
-      unless index_exists?(:analytics_events, [:user_id, :session_id])
-        add_index :analytics_events, [:user_id, :session_id],
+      unless index_exists?(:rails_onboarding_analytics_events, [:user_id, :session_id])
+        add_index :rails_onboarding_analytics_events, [:user_id, :session_id],
                   name: 'index_analytics_events_on_user_and_session'
       end
     end
+  end
+
+  def down
+    # Remove indexes in reverse order
+    if table_exists?(:rails_onboarding_analytics_events)
+      remove_index :rails_onboarding_analytics_events, name: 'index_analytics_events_on_user_and_session' if index_exists?(:rails_onboarding_analytics_events, [:user_id, :session_id], name: 'index_analytics_events_on_user_and_session')
+      remove_index :rails_onboarding_analytics_events, :session_id if index_exists?(:rails_onboarding_analytics_events, :session_id)
+      remove_index :rails_onboarding_analytics_events, name: 'index_analytics_events_on_type_and_date' if index_exists?(:rails_onboarding_analytics_events, [:event_type, :created_at], name: 'index_analytics_events_on_type_and_date')
+      remove_index :rails_onboarding_analytics_events, name: 'index_analytics_events_on_user_and_type' if index_exists?(:rails_onboarding_analytics_events, [:user_id, :event_type], name: 'index_analytics_events_on_user_and_type')
+    end
+
+    remove_index :users, :last_milestone_at if index_exists?(:users, :last_milestone_at)
+    remove_index :users, :onboarding_completed_at if index_exists?(:users, :onboarding_completed_at)
+    remove_index :users, name: 'index_users_on_onboarding_status_and_created' if index_exists?(:users, [:onboarding_completed, :created_at], name: 'index_users_on_onboarding_status_and_created')
+    remove_index :users, :onboarding_skipped if index_exists?(:users, :onboarding_skipped)
+    remove_index :users, :onboarding_current_step if index_exists?(:users, :onboarding_current_step)
+    remove_index :users, :onboarding_completed if index_exists?(:users, :onboarding_completed)
   end
 end

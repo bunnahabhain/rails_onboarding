@@ -12,6 +12,19 @@ module RailsOnboarding
         Time.now.utc.strftime("%Y%m%d%H%M%S")
       end
 
+      def validate_environment
+        # Validate that we're in a Rails app
+        unless defined?(Rails)
+          raise "This generator must be run within a Rails application"
+        end
+
+        # Validate template paths exist
+        validate_template_paths!
+
+        # Validate User model exists
+        validate_user_model!
+      end
+
       def copy_migration
         migration_template "add_onboarding_users.rb",
                            "db/migrate/add_onboarding_to_users.rb"
@@ -37,6 +50,60 @@ module RailsOnboarding
 
       def display_readme
         readme "README" if behavior == :invoke
+      end
+
+      private
+
+      def validate_template_paths!
+        required_templates = [
+          "add_onboarding_users.rb",
+          "add_analytics_to_rails_onboarding.rb",
+          "rails_onboarding.rb",
+          "onboarding.css",
+          "README"
+        ]
+
+        missing_templates = required_templates.reject do |template|
+          File.exist?(File.join(self.class.source_root, template))
+        end
+
+        if missing_templates.any?
+          raise "Missing required template files: #{missing_templates.join(', ')}"
+        end
+      end
+
+      def validate_user_model!
+        user_model_path = Rails.root.join("app/models/user.rb")
+
+        unless File.exist?(user_model_path)
+          say_status :error, "User model not found at app/models/user.rb", :red
+          say ""
+          say "RailsOnboarding requires a User model to exist.", :yellow
+          say "Please create a User model before running this generator:", :yellow
+          say ""
+          say "  rails generate model User email:string", :green
+          say ""
+          raise "User model does not exist. Please create it first."
+        end
+
+        # Verify the User model is a valid ActiveRecord model
+        begin
+          require user_model_path
+          unless defined?(User) && User < ActiveRecord::Base
+            raise "User class exists but is not an ActiveRecord model"
+          end
+        rescue LoadError, NameError => e
+          say_status :error, "Unable to load User model: #{e.message}", :red
+          raise
+        end
+
+        # Check if users table exists
+        unless ActiveRecord::Base.connection.table_exists?(:users)
+          say_status :warning, "Users table does not exist yet", :yellow
+          say "Don't forget to run 'rails db:migrate' after this generator completes!", :yellow
+        end
+
+        say_status :check, "User model validated", :green
       end
     end
   end
