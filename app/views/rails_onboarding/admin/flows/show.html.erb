@@ -1,0 +1,114 @@
+<% content_for :page_title, @flow[:name] %>
+
+<% content_for :header_actions do %>
+  <%= link_to "← Back to Flows", admin_flows_path, class: "admin-btn admin-btn-secondary" %>
+  <%= link_to "Edit", edit_admin_flow_path(@flow[:id]), class: "admin-btn admin-btn-primary" %>
+<% end %>
+
+<div class="admin-flow-detail-grid">
+  <!-- Flow Info -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h3 class="admin-card-title">Flow Information</h3>
+      <% if @flow[:active] %>
+        <span class="admin-badge admin-badge-success">Active</span>
+      <% end %>
+    </div>
+    <div class="admin-card-body">
+      <dl class="admin-dl">
+        <dt>Name</dt>
+        <dd><%= @flow[:name] %></dd>
+
+        <dt>Description</dt>
+        <dd><%= @flow[:description] || 'No description' %></dd>
+
+        <dt>Total Steps</dt>
+        <dd><%= @steps.length %></dd>
+
+        <dt>Created</dt>
+        <dd><%= @flow[:created_at] ? @flow[:created_at].strftime('%B %d, %Y') : 'N/A' %></dd>
+
+        <dt>Last Modified</dt>
+        <dd><%= @flow[:updated_at] ? @flow[:updated_at].strftime('%B %d, %Y') : 'N/A' %></dd>
+      </dl>
+    </div>
+    <div class="admin-card-footer">
+      <% unless @flow[:active] %>
+        <%= button_to "Activate Flow", activate_admin_flow_path(@flow[:id]), method: :post, class: "admin-btn admin-btn-success" %>
+      <% end %>
+      <%= link_to "Preview Flow", preview_admin_flow_path(@flow[:id]), class: "admin-btn admin-btn-secondary", target: "_blank" %>
+    </div>
+  </div>
+
+  <!-- Performance Stats -->
+  <% if @flow_stats && @flow_stats.any? %>
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">Performance Metrics</h3>
+      </div>
+      <div class="admin-card-body">
+        <div class="admin-stats-list">
+          <% @flow_stats.each do |step_name, stats| %>
+            <div class="admin-stat-item">
+              <div class="admin-stat-label"><%= step_name.humanize %></div>
+              <div class="admin-stat-values">
+                <span class="admin-badge"><%= stats[:started] %> started</span>
+                <span class="admin-badge admin-badge-success"><%= stats[:completed] %> completed</span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Steps List -->
+<div class="admin-card">
+  <div class="admin-card-header">
+    <h3 class="admin-card-title">Onboarding Steps</h3>
+    <span class="admin-badge"><%= @steps.length %> steps</span>
+  </div>
+  <div class="admin-card-body">
+    <% if @steps.any? %>
+      <div class="admin-flow-steps-detail">
+        <% @steps.each_with_index do |step, index| %>
+          <div class="admin-flow-step-detail">
+            <div class="admin-flow-step-number"><%= index + 1 %></div>
+            <div class="admin-flow-step-info">
+              <h4 class="admin-flow-step-title">
+                <%= step[:icon] %> <%= step[:title] %>
+              </h4>
+              <p class="admin-flow-step-meta">
+                <code><%= step[:name] %></code>
+                <% if step[:skippable] %>
+                  <span class="admin-badge admin-badge-sm admin-badge-warning">Skippable</span>
+                <% end %>
+              </p>
+              <% if step[:description].present? %>
+                <p class="admin-flow-step-description"><%= step[:description] %></p>
+              <% end %>
+            </div>
+            <% if @flow_stats && @flow_stats[step[:name].to_s] %>
+              <div class="admin-flow-step-stats">
+                <div class="admin-stat-mini">
+                  <div class="admin-stat-mini-value"><%= @flow_stats[step[:name].to_s][:started] %></div>
+                  <div class="admin-stat-mini-label">Started</div>
+                </div>
+                <div class="admin-stat-mini">
+                  <div class="admin-stat-mini-value"><%= @flow_stats[step[:name].to_s][:completed] %></div>
+                  <div class="admin-stat-mini-label">Completed</div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+          <% if index < @steps.length - 1 %>
+            <div class="admin-flow-step-arrow">→</div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="admin-empty-state">No steps configured</p>
+    <% end %>
+  </div>
+</div>

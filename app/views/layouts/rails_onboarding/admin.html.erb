@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RailsOnboarding Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= stylesheet_link_tag "rails_onboarding/application", media: "all" %>
+  <%= stylesheet_link_tag "rails_onboarding/admin", media: "all" %>
+  <%= javascript_include_tag "rails_onboarding/application", "data-turbo-track": "reload", defer: true %>
+</head>
+
+<body class="admin-layout">
+  <div class="admin-container">
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <h1 class="admin-logo">
+          <span class="admin-logo-icon">📊</span>
+          RailsOnboarding
+        </h1>
+      </div>
+
+      <nav class="admin-nav">
+        <%= link_to admin_dashboard_path, class: "admin-nav-item #{current_page?(admin_dashboard_path) ? 'active' : ''}" do %>
+          <span class="admin-nav-icon">📈</span>
+          Dashboard
+        <% end %>
+
+        <%= link_to admin_users_path, class: "admin-nav-item #{current_page?(admin_users_path) ? 'active' : ''}" do %>
+          <span class="admin-nav-icon">👥</span>
+          Users
+        <% end %>
+
+        <%= link_to admin_flows_path, class: "admin-nav-item #{current_page?(admin_flows_path) ? 'active' : ''}" do %>
+          <span class="admin-nav-icon">🔄</span>
+          Flows
+        <% end %>
+
+        <%= link_to admin_ab_tests_path, class: "admin-nav-item #{current_page?(admin_ab_tests_path) ? 'active' : ''}" do %>
+          <span class="admin-nav-icon">🧪</span>
+          A/B Tests
+        <% end %>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-info">
+          <% if respond_to?(:current_user) && current_user %>
+            <div class="admin-user-avatar">
+              <%= current_user.email&.first&.upcase || 'A' %>
+            </div>
+            <div class="admin-user-details">
+              <div class="admin-user-name"><%= current_user.email || 'Admin' %></div>
+              <div class="admin-user-role">Administrator</div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="admin-header-content">
+          <h2 class="admin-page-title"><%= yield :page_title %></h2>
+          <div class="admin-header-actions">
+            <%= yield :header_actions %>
+          </div>
+        </div>
+      </header>
+
+      <!-- Flash Messages -->
+      <% if flash.any? %>
+        <div class="admin-flash-messages">
+          <% flash.each do |type, message| %>
+            <div class="admin-flash-message admin-flash-<%= type %>" data-controller="flash">
+              <span class="admin-flash-icon">
+                <%= type == 'notice' ? '✓' : '⚠' %>
+              </span>
+              <span class="admin-flash-text"><%= message %></span>
+              <button class="admin-flash-close" data-action="click->flash#dismiss">×</button>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Page Content -->
+      <div class="admin-content">
+        <%= yield %>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

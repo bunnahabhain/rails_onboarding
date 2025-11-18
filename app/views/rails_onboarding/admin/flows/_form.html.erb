@@ -1,0 +1,147 @@
+<%= form_with model: @flow, url: @flow[:id] ? admin_flow_path(@flow[:id]) : admin_flows_path, method: @flow[:id] ? :patch : :post, class: "admin-form", data: { controller: "flow-editor" } do |f| %>
+
+  <!-- Basic Info -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h3 class="admin-card-title">Flow Information</h3>
+    </div>
+    <div class="admin-card-body">
+      <div class="admin-form-group">
+        <%= f.label :name, "Flow Name", class: "admin-label" %>
+        <%= f.text_field :name, class: "admin-input", placeholder: "e.g., SaaS Onboarding", required: true %>
+      </div>
+
+      <div class="admin-form-group">
+        <%= f.label :description, "Description", class: "admin-label" %>
+        <%= f.text_area :description, class: "admin-textarea", rows: 3, placeholder: "Describe this onboarding flow..." %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps Configuration -->
+  <div class="admin-card" data-flow-editor-target="stepsContainer">
+    <div class="admin-card-header">
+      <h3 class="admin-card-title">Onboarding Steps</h3>
+      <button type="button" class="admin-btn admin-btn-sm admin-btn-primary" data-action="click->flow-editor#addStep">
+        + Add Step
+      </button>
+    </div>
+    <div class="admin-card-body">
+      <div id="steps-list" class="admin-steps-list">
+        <% steps = @flow[:steps] || [] %>
+        <% if steps.any? %>
+          <% steps.each_with_index do |step, index| %>
+            <div class="admin-step-item" data-step-index="<%= index %>">
+              <div class="admin-step-handle">
+                <span class="admin-step-drag-icon">⋮⋮</span>
+                <span class="admin-step-number"><%= index + 1 %></span>
+              </div>
+
+              <div class="admin-step-content">
+                <div class="admin-form-row">
+                  <div class="admin-form-group">
+                    <%= label_tag "flow_steps_#{index}_name", "Step Name", class: "admin-label admin-label-sm" %>
+                    <%= text_field_tag "flow[steps][#{index}][name]", step[:name], class: "admin-input admin-input-sm", placeholder: "welcome", required: true %>
+                  </div>
+
+                  <div class="admin-form-group">
+                    <%= label_tag "flow_steps_#{index}_title", "Display Title", class: "admin-label admin-label-sm" %>
+                    <%= text_field_tag "flow[steps][#{index}][title]", step[:title], class: "admin-input admin-input-sm", placeholder: "Welcome", required: true %>
+                  </div>
+
+                  <div class="admin-form-group admin-form-group-sm">
+                    <%= label_tag "flow_steps_#{index}_icon", "Icon", class: "admin-label admin-label-sm" %>
+                    <%= select_tag "flow[steps][#{index}][icon]",
+                        options_for_select(@available_icons.map { |icon| [icon, icon] }, step[:icon]),
+                        class: "admin-select admin-select-sm" %>
+                  </div>
+
+                  <div class="admin-form-group admin-form-group-checkbox">
+                    <%= label_tag "flow_steps_#{index}_skippable", class: "admin-checkbox-label" do %>
+                      <%= check_box_tag "flow[steps][#{index}][skippable]", "1", step[:skippable], class: "admin-checkbox" %>
+                      <span>Skippable</span>
+                    <% end %>
+                  </div>
+                </div>
+
+                <div class="admin-form-group">
+                  <%= label_tag "flow_steps_#{index}_description", "Description (optional)", class: "admin-label admin-label-sm" %>
+                  <%= text_area_tag "flow[steps][#{index}][description]", step[:description], class: "admin-textarea admin-textarea-sm", rows: 2 %>
+                </div>
+
+                <%= hidden_field_tag "flow[steps][#{index}][order]", index %>
+              </div>
+
+              <div class="admin-step-actions">
+                <button type="button" class="admin-btn admin-btn-sm admin-btn-icon admin-btn-danger" data-action="click->flow-editor#removeStep">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="admin-text-muted">No steps added yet. Click "Add Step" to get started.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="admin-form-actions">
+    <%= f.submit @flow[:id] ? "Update Flow" : "Create Flow", class: "admin-btn admin-btn-primary" %>
+    <%= link_to "Cancel", admin_flows_path, class: "admin-btn admin-btn-secondary" %>
+  </div>
+<% end %>
+
+<!-- Step Template (hidden, used by JavaScript) -->
+<template id="step-template">
+  <div class="admin-step-item" data-step-index="__INDEX__">
+    <div class="admin-step-handle">
+      <span class="admin-step-drag-icon">⋮⋮</span>
+      <span class="admin-step-number">__NUMBER__</span>
+    </div>
+
+    <div class="admin-step-content">
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-label admin-label-sm">Step Name</label>
+          <input type="text" name="flow[steps][__INDEX__][name]" class="admin-input admin-input-sm" placeholder="step_name" required>
+        </div>
+
+        <div class="admin-form-group">
+          <label class="admin-label admin-label-sm">Display Title</label>
+          <input type="text" name="flow[steps][__INDEX__][title]" class="admin-input admin-input-sm" placeholder="Step Title" required>
+        </div>
+
+        <div class="admin-form-group admin-form-group-sm">
+          <label class="admin-label admin-label-sm">Icon</label>
+          <select name="flow[steps][__INDEX__][icon]" class="admin-select admin-select-sm">
+            <% @available_icons.each do |icon| %>
+              <option value="<%= icon %>"><%= icon %></option>
+            <% end %>
+          </select>
+        </div>
+
+        <div class="admin-form-group admin-form-group-checkbox">
+          <label class="admin-checkbox-label">
+            <input type="checkbox" name="flow[steps][__INDEX__][skippable]" value="1" class="admin-checkbox">
+            <span>Skippable</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-label admin-label-sm">Description (optional)</label>
+        <textarea name="flow[steps][__INDEX__][description]" class="admin-textarea admin-textarea-sm" rows="2"></textarea>
+      </div>
+
+      <input type="hidden" name="flow[steps][__INDEX__][order]" value="__INDEX__">
+    </div>
+
+    <div class="admin-step-actions">
+      <button type="button" class="admin-btn admin-btn-sm admin-btn-icon admin-btn-danger" data-action="click->flow-editor#removeStep">
+        🗑️
+      </button>
+    </div>
+  </div>
+</template>

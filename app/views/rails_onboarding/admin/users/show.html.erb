@@ -1,0 +1,180 @@
+<% content_for :page_title, "User Details ##{@user.id}" %>
+
+<% content_for :header_actions do %>
+  <%= link_to "← Back to Users", admin_users_path, class: "admin-btn admin-btn-secondary" %>
+<% end %>
+
+<div class="admin-user-detail-grid">
+  <!-- User Info Card -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h3 class="admin-card-title">User Information</h3>
+    </div>
+    <div class="admin-card-body">
+      <dl class="admin-dl">
+        <dt>User ID</dt>
+        <dd><%= @user.id %></dd>
+
+        <% if @user.respond_to?(:email) %>
+          <dt>Email</dt>
+          <dd><%= @user.email %></dd>
+        <% end %>
+
+        <dt>Created</dt>
+        <dd><%= @user.created_at.strftime('%B %d, %Y at %I:%M %p') %></dd>
+
+        <dt>Last Updated</dt>
+        <dd><%= @user.updated_at.strftime('%B %d, %Y at %I:%M %p') %></dd>
+
+        <dt>Onboarding Status</dt>
+        <dd>
+          <% if @user.onboarding_completed %>
+            <span class="admin-badge admin-badge-success">Completed</span>
+          <% elsif @user.onboarding_skipped %>
+            <span class="admin-badge admin-badge-warning">Skipped</span>
+          <% elsif @user.onboarding_current_step %>
+            <span class="admin-badge admin-badge-info">In Progress</span>
+          <% else %>
+            <span class="admin-badge admin-badge-secondary">Not Started</span>
+          <% end %>
+        </dd>
+
+        <% if @user.onboarding_current_step %>
+          <dt>Current Step</dt>
+          <dd><%= @user.onboarding_current_step.humanize %></dd>
+        <% end %>
+
+        <% if @user.onboarding_completed_at %>
+          <dt>Completed At</dt>
+          <dd><%= @user.onboarding_completed_at.strftime('%B %d, %Y at %I:%M %p') %></dd>
+        <% end %>
+
+        <% if @user.respond_to?(:onboarding_progress_percentage) %>
+          <dt>Progress</dt>
+          <dd>
+            <div class="admin-progress-bar admin-progress-large">
+              <div class="admin-progress-fill" style="width: <%= @user.onboarding_progress_percentage %>%"></div>
+            </div>
+            <span class="admin-progress-text"><%= @user.onboarding_progress_percentage %>%</span>
+          </dd>
+        <% end %>
+      </dl>
+    </div>
+    <div class="admin-card-footer">
+      <%= button_to "Reset Onboarding",
+          reset_onboarding_admin_user_path(@user),
+          method: :post,
+          class: "admin-btn admin-btn-warning",
+          data: { confirm: "Are you sure you want to reset this user's onboarding?" } %>
+      <%= button_to "Complete Onboarding",
+          complete_onboarding_admin_user_path(@user),
+          method: :post,
+          class: "admin-btn admin-btn-success",
+          data: { confirm: "Are you sure you want to mark onboarding as complete?" } %>
+    </div>
+  </div>
+
+  <!-- Milestones Card -->
+  <% if @user_milestones && @user_milestones.any? %>
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">Milestones Achieved</h3>
+        <span class="admin-badge"><%= @user_milestones.count %></span>
+      </div>
+      <div class="admin-card-body">
+        <div class="admin-list">
+          <% @user_milestones.each do |achievement| %>
+            <div class="admin-list-item">
+              <div class="admin-list-content">
+                <div class="admin-list-title">
+                  <%= achievement.milestone.icon %> <%= achievement.milestone.title %>
+                </div>
+                <div class="admin-list-meta">
+                  Achieved <%= time_ago_in_words(achievement.achieved_at) %> ago
+                </div>
+              </div>
+              <div class="admin-list-value">
+                <span class="admin-badge admin-badge-success">+<%= achievement.milestone.points %> pts</span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Timeline Card (Full Width) -->
+<div class="admin-card">
+  <div class="admin-card-header">
+    <h3 class="admin-card-title">Activity Timeline</h3>
+  </div>
+  <div class="admin-card-body">
+    <% if @user_timeline && @user_timeline.any? %>
+      <div class="admin-timeline admin-timeline-detailed">
+        <% @user_timeline.each do |item| %>
+          <div class="admin-timeline-item">
+            <div class="admin-timeline-marker">
+              <div class="admin-timeline-dot <%= item[:type] %>"></div>
+              <div class="admin-timeline-line"></div>
+            </div>
+            <div class="admin-timeline-content">
+              <div class="admin-timeline-header">
+                <h4 class="admin-timeline-title"><%= item[:description] %></h4>
+                <span class="admin-timeline-time"><%= time_ago_in_words(item[:timestamp]) %> ago</span>
+              </div>
+              <% if item[:metadata] && item[:metadata].any? %>
+                <div class="admin-timeline-metadata">
+                  <% item[:metadata].each do |key, value| %>
+                    <span class="admin-badge admin-badge-sm"><%= key %>: <%= value %></span>
+                  <% end %>
+                </div>
+              <% end %>
+              <div class="admin-timeline-timestamp">
+                <%= item[:timestamp].strftime('%B %d, %Y at %I:%M:%S %p') %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="admin-empty-state">No activity recorded for this user</p>
+    <% end %>
+  </div>
+</div>
+
+<!-- Events Card -->
+<% if @user_events && @user_events.any? %>
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h3 class="admin-card-title">Recent Events</h3>
+      <span class="admin-badge"><%= @user_events.count %></span>
+    </div>
+    <div class="admin-card-body">
+      <table class="admin-table admin-table-sm">
+        <thead>
+          <tr>
+            <th>Event Type</th>
+            <th>Timestamp</th>
+            <th>Metadata</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @user_events.each do |event| %>
+            <tr>
+              <td><%= event.event_type.humanize %></td>
+              <td><%= event.created_at.strftime('%m/%d/%Y %I:%M %p') %></td>
+              <td>
+                <% if event.metadata && event.metadata.any? %>
+                  <code class="admin-code"><%= event.metadata.to_json %></code>
+                <% else %>
+                  -
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>
