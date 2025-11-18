@@ -12,6 +12,9 @@ require "rails_onboarding/turbo_compatibility"
 require "rails_onboarding/api_mode"
 require "rails_onboarding/background_jobs"
 require "rails_onboarding/webhooks"
+require "rails_onboarding/caching"
+require "rails_onboarding/lazy_loading"
+require "rails_onboarding/cdn_support"
 
 module RailsOnboarding
   class Error < StandardError; end

@@ -12,6 +12,9 @@ class AddOnboardingToUsers < ActiveRecord::Migration[Rails::VERSION::MAJOR.Rails
       add_column :users, :feature_tooltips_shown, :json
     end
 
+    # Performance indexes
     add_index :users, :onboarding_completed
+    add_index :users, :onboarding_current_step
+    add_index :users, [:onboarding_completed, :created_at], name: 'index_users_on_onboarding_status_and_created'
   end
 end
