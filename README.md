@@ -17,6 +17,7 @@ A flexible, customizable onboarding engine for Rails applications. Create engagi
 - 👥 **Personalization** - Adapt onboarding based on user type or role
 - 🌍 **Internationalization** - Built-in support for multiple languages
 - 📱 **Mobile Responsive** - Fully responsive design for all devices
+- ⚡ **Performance Optimized** - Caching, database optimization, lazy loading, and CDN support
 - 🔌 **Easy Integration** - Works seamlessly with Devise, Turbo, and Stimulus
 - 🎭 **Multi-Tenant Support** - Different onboarding flows per organization
 - 🔗 **Webhook Support** - Notify external systems of onboarding events
@@ -764,6 +765,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 - [Milestone System Guide](MILESTONES_GUIDE.md)
 - [Analytics Guide](ANALYTICS_GUIDE.md)
 - [Responsive Design Guide](RESPONSIVE_DESIGN.md)
+- [Performance & Scalability Guide](PERFORMANCE_GUIDE.md)
 - [API Documentation](API_DOCUMENTATION.md)
 - [Migration Guide](MIGRATION_GUIDE.md)
 
