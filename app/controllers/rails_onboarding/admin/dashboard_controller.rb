@@ -50,9 +50,12 @@ module RailsOnboarding
         return unless defined?(RailsOnboarding::Milestone)
 
         @total_milestones = RailsOnboarding::Milestone.count
+
+        # Use Arel to build safe SQL
+        users_table = user_class.arel_table
         @milestone_achievements = user_class
-          .joins("LEFT JOIN rails_onboarding_milestone_achievements ON rails_onboarding_milestone_achievements.user_id = #{user_class.table_name}.id")
-          .group("#{user_class.table_name}.id")
+          .joins("LEFT JOIN rails_onboarding_milestone_achievements ON rails_onboarding_milestone_achievements.user_id = #{users_table.name}.id")
+          .group(users_table[:id])
           .count
         @top_milestones = top_achieved_milestones
       rescue StandardError => e

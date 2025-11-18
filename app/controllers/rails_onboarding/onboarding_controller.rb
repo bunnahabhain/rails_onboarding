@@ -313,12 +313,29 @@ module RailsOnboarding
     end
 
     def process_step_data(step_name, data)
+      # Sanitize input data before processing
+      sanitized_data = sanitize_step_data(data)
+
       # Override in host app for custom processing
       # Example:
       # case step_name
       # when :profile
-      #   current_user.update(data.permit(:timezone, :notifications_enabled))
+      #   current_user.update(sanitized_data.permit(:timezone, :notifications_enabled))
       # end
+
+      # Log sanitized data for security auditing
+      Rails.logger.info("Processing step data for #{step_name}: #{sanitized_data.inspect}")
+    end
+
+    def sanitize_step_data(data)
+      return {} unless data.is_a?(ActionController::Parameters) || data.is_a?(Hash)
+
+      # Convert to ActionController::Parameters if needed
+      params_data = data.is_a?(ActionController::Parameters) ? data : ActionController::Parameters.new(data)
+
+      # Remove any potentially dangerous keys
+      dangerous_keys = %w[authenticity_token _method controller action]
+      params_data.except(*dangerous_keys)
     end
 
     def template_exists?(name)

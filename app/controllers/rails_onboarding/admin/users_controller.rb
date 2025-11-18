@@ -97,15 +97,18 @@ module RailsOnboarding
           end
         end
 
-        # Sort
+        # Sort - sanitize column and direction to prevent SQL injection
+        ALLOWED_SORT_COLUMNS = %w[email created_at updated_at onboarding_current_step onboarding_completed_at].freeze
+        ALLOWED_DIRECTIONS = %w[asc desc].freeze
+
         sort_column = params[:sort] || 'created_at'
         sort_direction = params[:direction] || 'desc'
 
-        if user_class.column_names.include?(sort_column)
-          users = users.order("#{sort_column} #{sort_direction}")
-        else
-          users = users.order(created_at: :desc)
-        end
+        # Sanitize inputs
+        sort_column = ALLOWED_SORT_COLUMNS.include?(sort_column) ? sort_column : 'created_at'
+        sort_direction = ALLOWED_DIRECTIONS.include?(sort_direction.downcase) ? sort_direction.downcase : 'desc'
+
+        users = users.order("#{user_class.table_name}.#{sort_column} #{sort_direction}")
 
         users
       end

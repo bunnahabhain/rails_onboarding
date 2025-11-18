@@ -276,8 +276,10 @@ module RailsOnboarding
       elsif user_class.column_names.include?('api_token')
         user_class.find_by(api_token: token)
       else
-        # Fallback: try to find by a session token or similar
-        nil
+        # Raise error if no token authentication method is available
+        raise NotImplementedError,
+          "API token authentication not configured. Please add an 'api_token' column to your User model " \
+          "or implement a custom 'find_by_api_token' class method. See documentation for more details."
       end
     end
 

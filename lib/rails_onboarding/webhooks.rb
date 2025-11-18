@@ -234,7 +234,10 @@ module RailsOnboarding
     end
 
     def generate_signature
-      data = "#{event_name}:#{payload.to_json}:#{Time.current.to_i}"
+      # Use UTC timestamp to avoid timezone edge cases
+      # This ensures consistent signature generation regardless of server timezone
+      timestamp = Time.now.utc.to_i
+      data = "#{event_name}:#{payload.to_json}:#{timestamp}"
       OpenSSL::HMAC.hexdigest('SHA256', options[:secret_key], data)
     end
 

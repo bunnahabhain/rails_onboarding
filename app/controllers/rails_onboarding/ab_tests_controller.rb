@@ -74,7 +74,19 @@ module RailsOnboarding
     private
 
     def set_ab_test
-      @test_name = params[:test_name] || params[:id]
+      # Sanitize test_name to prevent SQL injection
+      raw_test_name = params[:test_name] || params[:id]
+
+      # Only allow alphanumeric characters, underscores, and hyphens
+      unless raw_test_name =~ /\A[a-zA-Z0-9_-]+\z/
+        respond_to do |format|
+          format.html { redirect_to ab_tests_path, alert: "Invalid test name format" }
+          format.json { render json: { error: 'Invalid test name format' }, status: :bad_request }
+        end
+        return
+      end
+
+      @test_name = raw_test_name
       @test_config = RailsOnboarding.configuration.ab_tests[@test_name.to_sym]
 
       unless @test_config
