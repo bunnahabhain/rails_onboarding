@@ -19,18 +19,23 @@ module RailsOnboarding
 
     # Load JavaScript and CSS assets
     initializer "rails_onboarding.assets" do |app|
-      app.config.assets.paths << root.join("app", "assets", "stylesheets")
-      app.config.assets.paths << root.join("app", "assets", "javascripts")
+      # Detect which asset pipeline is in use
+      asset_pipeline = detect_asset_pipeline(app)
 
-      # Precompile JavaScript assets only (CSS should be included via host app's application.css)
-      app.config.assets.precompile += %w[
-        rails_onboarding/application.css
-        rails_onboarding/application.js
-        rails_onboarding/onboarding_controller.js
-        rails_onboarding/progress_controller.js
-        rails_onboarding/navigation_controller.js
-        rails_onboarding/tooltip_controller.js
-      ]
+      # Configure assets based on the pipeline
+      case asset_pipeline
+      when :sprockets
+        configure_sprockets_assets(app)
+      when :propshaft
+        configure_propshaft_assets(app)
+      when :importmap
+        configure_importmap_assets(app)
+      else
+        # Fallback configuration for modern bundlers (ESBuild, Webpack, etc.)
+        configure_modern_bundler_assets(app)
+      end
+
+      Rails.logger.info "RailsOnboarding: Detected asset pipeline: #{asset_pipeline}"
     end
 
     # Add engine's controller methods to ApplicationController
@@ -43,7 +48,25 @@ module RailsOnboarding
     # Add view paths for the engine
     initializer "rails_onboarding.view_paths" do |app|
       ActiveSupport.on_load(:action_controller_base) do
-        append_view_path RailsOnboarding::Engine.root.join("app", "views")
+        # Add engine views to the view path
+        view_path = RailsOnboarding::Engine.root.join("app", "views")
+
+        # Ensure the view path exists before adding it
+        if File.directory?(view_path)
+          append_view_path view_path
+          Rails.logger.debug "RailsOnboarding: Added view path: #{view_path}"
+        else
+          Rails.logger.warn "RailsOnboarding: View path not found: #{view_path}"
+        end
+      end
+
+      # Also add to ActionMailer if available
+      ActiveSupport.on_load(:action_mailer) do
+        view_path = RailsOnboarding::Engine.root.join("app", "views")
+        if File.directory?(view_path)
+          append_view_path view_path
+          Rails.logger.debug "RailsOnboarding: Added mailer view path: #{view_path}"
+        end
       end
     end
 
@@ -54,6 +77,73 @@ module RailsOnboarding
     end
 
     private
+
+    # Detect which asset pipeline is being used
+    def self.detect_asset_pipeline(app)
+      if defined?(Propshaft)
+        :propshaft
+      elsif defined?(Sprockets) && app.config.respond_to?(:assets)
+        :sprockets
+      elsif importmap_available?(app)
+        :importmap
+      else
+        :modern_bundler
+      end
+    end
+
+    # Configure Sprockets-based asset pipeline
+    def self.configure_sprockets_assets(app)
+      app.config.assets.paths << root.join("app", "assets", "stylesheets")
+      app.config.assets.paths << root.join("app", "assets", "javascripts")
+
+      # Precompile all CSS and JavaScript assets
+      app.config.assets.precompile += %w[
+        rails_onboarding/application.css
+        rails_onboarding/tooltips.css
+        rails_onboarding/utilities.css
+        rails_onboarding/accessibility.css
+        rails_onboarding/tour.css
+        rails_onboarding/mobile.css
+        rails_onboarding/milestones.css
+        rails_onboarding/progressive_disclosure.css
+        rails_onboarding/flash_messages.css
+        rails_onboarding/admin.css
+        rails_onboarding/application.js
+        rails_onboarding/*.js
+      ]
+
+      Rails.logger.info "RailsOnboarding: Configured Sprockets asset pipeline"
+    end
+
+    # Configure Propshaft-based asset pipeline
+    def self.configure_propshaft_assets(app)
+      # Propshaft automatically includes all assets from engine paths
+      app.config.assets.paths << root.join("app", "assets", "stylesheets")
+      app.config.assets.paths << root.join("app", "assets", "javascripts")
+
+      Rails.logger.info "RailsOnboarding: Configured Propshaft asset pipeline"
+    end
+
+    # Configure Importmap-based asset loading
+    def self.configure_importmap_assets(app)
+      # Importmap handles JavaScript, but we still need stylesheets
+      if app.config.respond_to?(:assets)
+        app.config.assets.paths << root.join("app", "assets", "stylesheets")
+      end
+
+      Rails.logger.info "RailsOnboarding: Configured Importmap asset loading"
+    end
+
+    # Configure for modern bundlers (ESBuild, Webpack, etc.)
+    def self.configure_modern_bundler_assets(app)
+      # Add asset paths if assets config is available
+      if app.config.respond_to?(:assets)
+        app.config.assets.paths << root.join("app", "assets", "stylesheets")
+        app.config.assets.paths << root.join("app", "assets", "javascripts")
+      end
+
+      Rails.logger.info "RailsOnboarding: Configured for modern bundler (ESBuild/Webpack/etc.)"
+    end
 
     def self.stimulus_available?(app)
       defined?(StimulusRails) &&
