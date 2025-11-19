@@ -290,6 +290,9 @@ module RailsOnboarding
     end
   end
 
+  # Custom webhook error
+  class WebhookError < StandardError; end
+
   # Webhook delivery job for async processing
   class WebhookDeliveryJob < ApplicationJob
     queue_as { RailsOnboarding::BackgroundJobs.background_job_options[:queue] || :default }
@@ -302,9 +305,6 @@ module RailsOnboarding
       delivery.deliver
     end
   end
-
-  # Custom webhook error
-  class WebhookError < StandardError; end
 
   # Webhook verification helper
   module WebhookVerification
