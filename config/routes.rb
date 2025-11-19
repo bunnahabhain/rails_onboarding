@@ -54,6 +54,8 @@ RailsOnboarding::Engine.routes.draw do
         post :declare_winner
         get :export
       end
+    end
+  end
   # API routes (v1)
   namespace :api do
     namespace :v1 do
