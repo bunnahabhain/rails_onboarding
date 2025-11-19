@@ -121,7 +121,7 @@ GEM
       net-smtp
     marcel (1.1.0)
     mini_mime (1.1.5)
-    minitest (5.26.1)
+    minitest (5.26.2)
     minitest-rails (8.1.0)
       minitest (~> 5.20)
       railties (>= 8.1.0, < 8.2.0)
@@ -295,7 +295,7 @@ DEPENDENCIES
   rails (~> 8.1.1)
   rails_onboarding!
   rubocop-rails-omakase
-  sqlite3
+  sqlite3 (~> 2.0, >= 0)
   stimulus-rails (>= 1.0.0)
   turbo-rails (>= 1.0.0)
 
