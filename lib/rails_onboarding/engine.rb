@@ -20,19 +20,19 @@ module RailsOnboarding
     # Load JavaScript and CSS assets
     initializer "rails_onboarding.assets" do |app|
       # Detect which asset pipeline is in use
-      asset_pipeline = detect_asset_pipeline(app)
+      asset_pipeline = Engine.detect_asset_pipeline(app)
 
       # Configure assets based on the pipeline
       case asset_pipeline
       when :sprockets
-        configure_sprockets_assets(app)
+        Engine.configure_sprockets_assets(app)
       when :propshaft
-        configure_propshaft_assets(app)
+        Engine.configure_propshaft_assets(app)
       when :importmap
-        configure_importmap_assets(app)
+        Engine.configure_importmap_assets(app)
       else
         # Fallback configuration for modern bundlers (ESBuild, Webpack, etc.)
-        configure_modern_bundler_assets(app)
+        Engine.configure_modern_bundler_assets(app)
       end
 
       Rails.logger.info "RailsOnboarding: Detected asset pipeline: #{asset_pipeline}"
@@ -72,8 +72,8 @@ module RailsOnboarding
 
     # Optional: Setup Stimulus integration if available
     config.after_initialize do |app|
-      setup_stimulus_integration(app) if stimulus_available?(app)
-      setup_importmap_integration(app) if importmap_available?(app)
+      Engine.setup_stimulus_integration(app) if Engine.stimulus_available?(app)
+      Engine.setup_importmap_integration(app) if Engine.importmap_available?(app)
     end
 
     private
