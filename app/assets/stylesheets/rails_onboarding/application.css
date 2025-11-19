@@ -1,14 +1,23 @@
 /*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
+ * Rails Onboarding Engine Stylesheet
  *
- * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
- * or any plugin's vendor/assets/stylesheets directory can be referenced here using a relative path.
+ * This is the main stylesheet for the Rails Onboarding gem. All styles are carefully
+ * namespaced to prevent conflicts with host application styles.
  *
- * You're free to add application-wide styles to this file and they'll appear at the bottom of the
- * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
- * files in this directory. Styles in this file should be added after the last require_* statement.
- * It is generally better to create a new file per style scope.
+ * CSS Isolation Strategy:
+ * - All class names are prefixed with 'onboarding-' or 'rails-onboarding-'
+ * - CSS custom properties (variables) use the --onboarding- prefix
+ * - Selectors are scoped to specific onboarding containers
+ * - No global element selectors without namespace scoping
+ *
+ * Asset Pipeline Compatibility:
+ * - Compatible with Sprockets, Propshaft, and modern bundlers (ESBuild, Webpack)
+ * - Can be imported via asset pipeline or directly linked
+ *
+ * Usage in host application:
+ *   Sprockets:      *= require rails_onboarding/application
+ *   Import:         @import "rails_onboarding/application";
+ *   Link tag:       <%= stylesheet_link_tag "rails_onboarding/application" %>
  *
  *= require_tree .
  *= require_self
@@ -21,7 +30,7 @@
  *= require rails_onboarding/flash_messages
  */
 
-/* Rails Onboarding Styles - Semantic CSS */
+/* Rails Onboarding Styles - Semantic CSS with Namespace Isolation */
 
 /* ======================
    Design Tokens

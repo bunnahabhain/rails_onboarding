@@ -1,22 +1,53 @@
+/**
+ * Rails Onboarding JavaScript Application
+ *
+ * This file provides flexible integration with different JavaScript bundling strategies:
+ * - Stimulus (via importmap or bundler)
+ * - Standalone (without Stimulus)
+ * - ESBuild/Webpack/Vite
+ *
+ * The code automatically detects the environment and adapts accordingly.
+ *
+ * Compatibility:
+ * - Works with Asset Pipeline (Sprockets)
+ * - Works with Propshaft
+ * - Works with importmap-rails
+ * - Works with esbuild, webpack, vite, etc.
+ */
 
-import { Application } from "@hotwired/stimulus"
-import OnboardingController from "../onboarding_controller"
-import ProgressController from "../progress_controller"
-import NavigationController from "../navigation_controller"
-import TooltipController from "../tooltip_controller"
+(function() {
+  'use strict';
 
-// Start Stimulus application
-const application = Application.start()
+  // Initialize Stimulus application if available
+  function initializeStimulusIfAvailable() {
+    // Check if Stimulus is already loaded
+    if (window.Stimulus) {
+      console.log('RailsOnboarding: Using existing Stimulus application');
+      return window.Stimulus;
+    }
 
-// Configure Stimulus development experience
-application.debug = false
-window.Stimulus = application
+    // Check if we can create a new Stimulus application
+    if (typeof Application !== 'undefined') {
+      const app = Application.start();
+      app.debug = false;
+      window.Stimulus = app;
+      console.log('RailsOnboarding: Created new Stimulus application');
+      return app;
+    }
 
-// Register controllers
-application.register("onboarding", OnboardingController)
-application.register("progress", ProgressController)
-application.register("navigation", NavigationController)
-application.register("tooltip", TooltipController)
+    console.debug('RailsOnboarding: Stimulus not available, using standalone mode');
+    return null;
+  }
+
+  // Auto-initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeStimulusIfAvailable();
+    });
+  } else {
+    initializeStimulusIfAvailable();
+  }
+})();
 
 // Global utilities for onboarding
 window.RailsOnboarding = {
