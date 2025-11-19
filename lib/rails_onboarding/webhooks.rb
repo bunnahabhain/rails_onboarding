@@ -341,7 +341,7 @@ module RailsOnboarding
   class WebhookReceiverController < ActionController::Base
     include WebhookVerification
 
-    skip_before_action :verify_authenticity_token
+    protect_from_forgery with: :null_session
 
     def receive
       if verify_webhook_signature(request, Rails.application.credentials.webhook_secret)
