@@ -10,7 +10,7 @@ module RailsOnboarding
       # Skip CSRF for API requests
       skip_before_action :verify_authenticity_token, if: :api_request?, raise: false
       before_action :set_api_response_format, if: :api_request?
-      rescue_from StandardError, with: :handle_api_error if: :api_request?
+      rescue_from StandardError, with: :handle_api_error if :api_request?
     end
 
     module ClassMethods
