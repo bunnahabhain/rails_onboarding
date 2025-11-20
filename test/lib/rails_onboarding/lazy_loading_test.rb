@@ -7,7 +7,6 @@ module RailsOnboarding
     setup do
       @user = User.create!(
         email: 'test@example.com',
-        password: 'password123',
         onboarding_completed: false,
         onboarding_current_step: 'welcome'
       )
@@ -19,7 +18,6 @@ module RailsOnboarding
       # Create user who needs onboarding (created recently)
       recent_user = User.create!(
         email: 'recent@example.com',
-        password: 'password123',
         onboarding_completed: false,
         created_at: 30.minutes.ago
       )
@@ -27,7 +25,6 @@ module RailsOnboarding
       # Create user who doesn't need onboarding (old user)
       old_user = User.create!(
         email: 'old@example.com',
-        password: 'password123',
         onboarding_completed: false,
         created_at: 2.hours.ago
       )
@@ -41,7 +38,6 @@ module RailsOnboarding
       # User in onboarding
       in_onboarding = User.create!(
         email: 'in_onboarding@example.com',
-        password: 'password123',
         onboarding_completed: false,
         onboarding_current_step: 'welcome'
       )
@@ -49,7 +45,6 @@ module RailsOnboarding
       # User not in onboarding
       not_in_onboarding = User.create!(
         email: 'not_in_onboarding@example.com',
-        password: 'password123',
         onboarding_completed: false,
         onboarding_current_step: nil
       )
@@ -62,14 +57,12 @@ module RailsOnboarding
     test 'batch_load_onboarding_states returns hash of user states' do
       user1 = User.create!(
         email: 'user1@example.com',
-        password: 'password123',
         onboarding_completed: false,
         onboarding_current_step: 'welcome'
       )
 
       user2 = User.create!(
         email: 'user2@example.com',
-        password: 'password123',
         onboarding_completed: true
       )
 
@@ -90,21 +83,18 @@ module RailsOnboarding
       # Create users in different steps
       User.create!(
         email: 'user1@example.com',
-        password: 'password123',
         onboarding_completed: false,
         onboarding_current_step: 'welcome'
       )
 
       User.create!(
         email: 'user2@example.com',
-        password: 'password123',
         onboarding_completed: false,
         onboarding_current_step: 'welcome'
       )
 
       User.create!(
         email: 'user3@example.com',
-        password: 'password123',
         onboarding_completed: false,
         onboarding_current_step: 'profile'
       )
@@ -197,8 +187,7 @@ module RailsOnboarding
       # Create more users to exceed threshold
       2.times do |i|
         User.create!(
-          email: "user#{i}@example.com",
-          password: 'password123'
+          email: "user#{i}@example.com"
         )
       end
 
