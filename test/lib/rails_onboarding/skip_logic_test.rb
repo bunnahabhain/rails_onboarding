@@ -123,13 +123,7 @@ module RailsOnboarding
     end
 
     test "evaluate_hash_conditions with operator :any" do
-      conditions = {
-        operator: :any,
-        has_attribute: :nonexistent,
-        has_attribute: :email
-      }
-
-      # Since we can't have duplicate keys, this tests the any logic
+      # Testing the :any operator - should return true if any condition matches
       conditions = {
         operator: :any,
         missing_attribute: :phone
