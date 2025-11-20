@@ -128,7 +128,7 @@ module RailsOnboarding
     # @return [Boolean]
     def lazy_load_enabled?
       self.class.lazy_load_enabled &&
-        self.class.count < self.class.lazy_load_threshold
+        self.class.unscoped.count < self.class.lazy_load_threshold
     end
 
     # Preload onboarding data for this user
