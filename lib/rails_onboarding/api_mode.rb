@@ -7,10 +7,26 @@ module RailsOnboarding
     extend ActiveSupport::Concern
 
     included do
-      # Skip CSRF for API requests
-      skip_before_action :verify_authenticity_token, if: :api_request?, raise: false
-      before_action :set_api_response_format, if: :api_request?
-      rescue_from StandardError, with: :handle_api_error if :api_request?
+      # Skip CSRF for API requests (only works with ActionController classes)
+      begin
+        skip_before_action :verify_authenticity_token, if: :api_request?, raise: false
+      rescue NoMethodError
+        # Not an ActionController class, skip this setup
+      end
+
+      # Set API response format (only works with ActionController classes)
+      begin
+        before_action :set_api_response_format, if: :api_request?
+      rescue NoMethodError
+        # Not an ActionController class, skip this setup
+      end
+
+      # Error handling (only works with ActionController classes)
+      begin
+        rescue_from StandardError, with: :handle_api_error if :api_request?
+      rescue NoMethodError
+        # Not an ActionController class, skip this setup
+      end
     end
 
     module ClassMethods
