@@ -127,8 +127,15 @@ module RailsOnboarding
     #
     # @return [Boolean]
     def lazy_load_enabled?
-      self.class.lazy_load_enabled &&
-        self.class.unscoped.count < self.class.lazy_load_threshold
+      return false unless self.class.lazy_load_enabled
+
+      # Use a direct SQL count to ensure accuracy in all contexts (including tests)
+      # This avoids potential caching or scope issues with ActiveRecord's count method
+      count = self.class.connection.select_value(
+        "SELECT COUNT(*) FROM #{self.class.quoted_table_name}"
+      ).to_i
+
+      count < self.class.lazy_load_threshold
     end
 
     # Preload onboarding data for this user
