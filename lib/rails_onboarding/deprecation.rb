@@ -13,7 +13,9 @@ module RailsOnboarding
         full_message += " It will be removed in version #{version}." if version
 
         if defined?(ActiveSupport::Deprecation)
-          ActiveSupport::Deprecation.warn(full_message)
+          # Use the default deprecator instance
+          deprecator = ActiveSupport::Deprecation._instance || ActiveSupport::Deprecation.new
+          deprecator.warn(full_message)
         else
           Rails.logger.warn(full_message) if defined?(Rails)
         end

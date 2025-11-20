@@ -72,6 +72,7 @@ module RailsOnboarding
       assert_equal false, states[user1.id][:completed]
       assert_equal 'welcome', states[user1.id][:current_step]
       assert_equal true, states[user2.id][:completed]
+      assert_nil states[user2.id][:current_step]
     end
 
     test 'batch_load_onboarding_states returns empty hash for empty array' do
@@ -80,6 +81,7 @@ module RailsOnboarding
     end
 
     test 'onboarding_step_counts returns counts by step' do
+      # Note: setup creates a user with 'welcome' step
       # Create users in different steps
       User.create!(
         email: 'user1@example.com',
@@ -90,18 +92,15 @@ module RailsOnboarding
       User.create!(
         email: 'user2@example.com',
         onboarding_completed: false,
-        onboarding_current_step: 'welcome'
-      )
-
-      User.create!(
-        email: 'user3@example.com',
-        onboarding_completed: false,
         onboarding_current_step: 'profile'
       )
 
+      # Clear cache to ensure fresh counts
+      Rails.cache.clear
+
       counts = User.onboarding_step_counts
 
-      assert_equal 2, counts['welcome']
+      assert_equal 2, counts['welcome']  # @user from setup + user1
       assert_equal 1, counts['profile']
     end
 
@@ -185,11 +184,15 @@ module RailsOnboarding
       @user.class.lazy_load_threshold = 1
 
       # Create more users to exceed threshold
+      # Note: setup already creates 1 user, so we need to create enough to go over threshold
       2.times do |i|
         User.create!(
           email: "user#{i}@example.com"
         )
       end
+
+      # Clear Rails cache to ensure fresh count
+      Rails.cache.clear
 
       refute @user.lazy_load_enabled?
 

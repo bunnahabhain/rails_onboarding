@@ -40,12 +40,11 @@ module RailsOnboarding
         return {} if user_ids.empty?
 
         where(id: user_ids)
-          .pluck(:id, :onboarding_completed, :onboarding_current_step, :onboarding_progress)
-          .each_with_object({}) do |(id, completed, step, progress), hash|
+          .pluck(:id, :onboarding_completed, :onboarding_current_step)
+          .each_with_object({}) do |(id, completed, step), hash|
             hash[id] = {
               completed: completed,
-              current_step: step,
-              progress: progress
+              current_step: step
             }
           end
       end
