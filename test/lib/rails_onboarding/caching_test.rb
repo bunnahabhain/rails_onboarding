@@ -7,7 +7,6 @@ module RailsOnboarding
     setup do
       @user = User.create!(
         email: 'test@example.com',
-        password: 'password123',
         onboarding_completed: false,
         onboarding_current_step: 'welcome'
       )
