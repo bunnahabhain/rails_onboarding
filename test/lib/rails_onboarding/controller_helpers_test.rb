@@ -22,8 +22,8 @@ module RailsOnboarding
     end
 
     setup do
-      @user = users(:one)
-      @user.update(
+      @user = User.create!(
+        email: "test@example.com",
         onboarding_completed: false,
         onboarding_current_step: "welcome",
         onboarding_skipped: false
