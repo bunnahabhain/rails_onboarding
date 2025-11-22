@@ -3,12 +3,37 @@ require "test_helper"
 module RailsOnboarding
   class OnboardableTest < ActiveSupport::TestCase
     setup do
+      # Configure steps, tooltips, and milestones for tests
+      RailsOnboarding.configuration.steps = [
+        { name: :welcome, title: "Welcome", icon: "1", skippable: true },
+        { name: :profile, title: "Profile", icon: "2", skippable: false },
+        { name: :first_action, title: "First Action", icon: "3", skippable: false },
+        { name: :explore, title: "Explore", icon: "4", skippable: true }
+      ]
+
+      RailsOnboarding.configuration.feature_tooltips = {
+        "dashboard_overview" => { text: "Dashboard overview", position: "top" },
+        "feature_test" => { text: "Feature test", position: "top" },
+        "feature_new" => { text: "Feature new", position: "top" },
+        "feature_dashboard" => { text: "Feature dashboard", position: "top" }
+      }
+
+      RailsOnboarding.configuration.milestones = [
+        { key: :first_step, title: "First Step", description: "First step milestone", points: 10, trigger: :custom },
+        { key: :completed_milestone, title: "Completed", description: "Completed", points: 20, trigger: :custom }
+      ]
+
+      RailsOnboarding.configuration.enable_tooltips = true
+      RailsOnboarding.configuration.enable_milestones = true
+
       @user = users(:one)
       @user.update(
         onboarding_completed: false,
         onboarding_current_step: "welcome",
         onboarding_skipped: false,
-        feature_tooltips_shown: {}
+        feature_tooltips_shown: {},
+        milestones_achieved: [],
+        milestone_points: 0
       )
     end
 
