@@ -3,12 +3,39 @@ module RailsOnboarding
   # Allows different onboarding configurations per organization/tenant
   class MultiTenant
     class << self
+      # Storage for organization-specific configurations (by ID)
+      def organization_configurations
+        @organization_configurations ||= {}
+      end
+
+      # Configure onboarding for a specific organization by ID
+      #
+      # @param organization_id [Integer, String] The organization ID
+      # @yield [config] Configuration object to customize
+      def configure_for_organization(organization_id)
+        config = OrganizationConfig.new(organization_id)
+        yield config if block_given?
+        organization_configurations[organization_id] = config.to_hash
+      end
+
+      # Clear all organization configurations (useful for testing)
+      def clear_all_configurations
+        @organization_configurations = {}
+      end
+
       # Get configuration for a specific tenant
       #
-      # @param tenant [Object] The tenant object (organization, account, etc.)
+      # @param tenant [Object, Integer, String] The tenant object or organization ID
       # @return [Hash] Tenant-specific configuration
       def configuration_for(tenant)
         return default_configuration unless tenant
+
+        # Check if tenant is an ID (for organization_configurations lookup)
+        if tenant.is_a?(Integer) || tenant.is_a?(String)
+          stored_config = organization_configurations[tenant]
+          return merge_configurations(default_configuration, stored_config) if stored_config
+          return default_configuration
+        end
 
         # Check if tenant has custom configuration
         tenant_config = if tenant.respond_to?(:onboarding_configuration)
@@ -216,6 +243,43 @@ module RailsOnboarding
         RailsOnboarding.configuration.enable_tooltips = original[:enable_tooltips]
         RailsOnboarding.configuration.enable_milestones = original[:enable_milestones]
       end
+    end
+  end
+
+  # Configuration object for organization-specific settings
+  class OrganizationConfig
+    attr_accessor :steps, :feature_tooltips, :milestones,
+                  :enable_tooltips, :enable_milestones, :enable_analytics,
+                  :enable_ab_testing, :personalization_enabled,
+                  :redirect_after_completion, :redirect_after_skip,
+                  :webhook_url
+
+    def initialize(organization_id)
+      @organization_id = organization_id
+      @steps = []
+      @feature_tooltips = {}
+      @milestones = {}
+      @enable_tooltips = true
+      @enable_milestones = true
+      @enable_analytics = true
+      @enable_ab_testing = false
+      @personalization_enabled = false
+    end
+
+    def to_hash
+      {
+        steps: @steps,
+        feature_tooltips: @feature_tooltips,
+        milestones: @milestones,
+        enable_tooltips: @enable_tooltips,
+        enable_milestones: @enable_milestones,
+        enable_analytics: @enable_analytics,
+        enable_ab_testing: @enable_ab_testing,
+        personalization_enabled: @personalization_enabled,
+        redirect_after_completion: @redirect_after_completion,
+        redirect_after_skip: @redirect_after_skip,
+        webhook_url: @webhook_url
+      }
     end
   end
 end

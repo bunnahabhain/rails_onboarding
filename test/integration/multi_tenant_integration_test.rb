@@ -3,13 +3,16 @@
 require "test_helper"
 
 module RailsOnboarding
+  # Simple organization struct for testing
+  Organization = Struct.new(:id, :name, :subdomain, keyword_init: true)
+
   class MultiTenantIntegrationTest < ActionDispatch::IntegrationTest
     include Engine.routes.url_helpers
 
     setup do
       # Create organizations
-      @org1 = OpenStruct.new(id: 1, name: "Organization One", subdomain: "org1")
-      @org2 = OpenStruct.new(id: 2, name: "Organization Two", subdomain: "org2")
+      @org1 = Organization.new(id: 1, name: "Organization One", subdomain: "org1")
+      @org2 = Organization.new(id: 2, name: "Organization Two", subdomain: "org2")
 
       # Create users for different organizations
       @user_org1 = User.create!(
