@@ -8,7 +8,7 @@ module RailsOnboarding
       include Engine.routes.url_helpers
 
       def setup
-        @admin_user = User.create!(email: 'admin@example.com', admin: true)
+        @admin_user = User.create!(email: 'admin@example.com')
       end
 
       test "should list flows" do
