@@ -90,7 +90,7 @@ module RailsOnboarding
       def save_step_data(user, session, step_name, data)
         session_data = initialize_session(user, session)
         session_data[:form_data] ||= {}
-        session_data[:form_data][step_name.to_s] = {
+        session_data[:form_data][step_name.to_sym] = {
           data: data,
           saved_at: Time.current.iso8601
         }
@@ -109,7 +109,7 @@ module RailsOnboarding
       # Clear step data
       def clear_step_data(user, session, step_name)
         session_data = initialize_session(user, session)
-        session_data[:form_data]&.delete(step_name.to_s)
+        session_data[:form_data]&.delete(step_name.to_sym)
         persist_session(user, session, session_data)
       end
 
