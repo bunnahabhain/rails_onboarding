@@ -94,10 +94,10 @@ module RailsOnboarding
     end
 
     test 'cached_achieved_milestones returns milestones array' do
-      @user.update!(milestones_achieved: ['welcome_completed'])
+      @user.update!(milestones_achieved: [ { 'key' => 'welcome_completed', 'achieved_at' => Time.current.iso8601 } ])
 
       milestones = @user.cached_achieved_milestones
-      assert_equal ['welcome_completed'], milestones
+      assert_equal [ 'welcome_completed' ], milestones
     end
 
     test 'cached_available_tooltips returns tooltips for user' do
