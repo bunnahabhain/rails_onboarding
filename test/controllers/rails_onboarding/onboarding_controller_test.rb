@@ -27,7 +27,7 @@ module RailsOnboarding
     end
 
     test "should advance to next step" do
-      post next_step_onboarding_url
+      post next_onboarding_url
       assert_redirected_to onboarding_url
       @user.reload
 
@@ -38,7 +38,7 @@ module RailsOnboarding
     test "should go to previous step" do
       @user.update(onboarding_current_step: "profile")
 
-      post previous_step_onboarding_url
+      post back_onboarding_url
       assert_redirected_to onboarding_url
       @user.reload
 
@@ -104,7 +104,7 @@ module RailsOnboarding
     end
 
     test "should respond to turbo requests" do
-      post next_step_onboarding_url, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      post next_onboarding_url, headers: { "Accept" => "text/vnd.turbo-stream.html" }
       assert_response :success
       assert_match /turbo-stream/, response.content_type
     end
