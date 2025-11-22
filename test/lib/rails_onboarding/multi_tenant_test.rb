@@ -1,10 +1,13 @@
 require "test_helper"
 
 module RailsOnboarding
+  # Simple organization struct for testing
+  TestOrganization = Struct.new(:id, :name, keyword_init: true)
+
   class MultiTenantTest < ActiveSupport::TestCase
     setup do
       @user = users(:one)
-      @organization = OpenStruct.new(id: 1, name: "Test Org")
+      @organization = TestOrganization.new(id: 1, name: "Test Org")
     end
 
     test "can set organization-specific configuration" do
