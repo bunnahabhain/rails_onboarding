@@ -16,7 +16,7 @@ module RailsOnboarding
 
       assert_equal @user.id, session_data[:user_id]
       assert session_data[:session_id].present?
-      assert_equal :welcome, session_data[:current_step]
+      assert_equal "welcome", session_data[:current_step]
       assert_equal [], session_data[:step_history]
     end
 

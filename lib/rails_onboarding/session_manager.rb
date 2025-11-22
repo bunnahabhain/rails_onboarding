@@ -102,7 +102,7 @@ module RailsOnboarding
         session_data = restore_session(user, session)
         return nil unless session_data
 
-        step_data = session_data.dig(:form_data, step_name.to_s)
+        step_data = session_data.dig(:form_data, step_name.to_sym)
         step_data ? step_data[:data] : nil
       end
 
