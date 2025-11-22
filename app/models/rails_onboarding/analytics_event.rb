@@ -141,5 +141,14 @@ module RailsOnboarding
         session_id: session_id
       )
     end
+
+    def self.track_custom_event(user:, event_name:, event_data: {}, session_id: nil)
+      track_event(
+        user: user,
+        event_type: event_name,
+        properties: event_data,
+        session_id: session_id
+      )
+    end
   end
 end
