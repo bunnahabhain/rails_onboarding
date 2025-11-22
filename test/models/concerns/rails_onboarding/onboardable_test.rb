@@ -31,33 +31,32 @@ module RailsOnboarding
       assert_not @user.needs_onboarding?
     end
 
-    test "onboarding_in_progress? returns true for active onboarding" do
-      assert @user.onboarding_in_progress?
+    test "onboarding_skipped? returns true when skipped" do
+      @user.update(onboarding_skipped: true)
+      assert @user.onboarding_skipped?
     end
 
-    test "onboarding_in_progress? returns false when completed" do
-      @user.update(onboarding_completed: true)
-      assert_not @user.onboarding_in_progress?
+    test "onboarding_skipped? returns false when not skipped" do
+      @user.update(onboarding_skipped: false)
+      assert_not @user.onboarding_skipped?
     end
 
     # Step Navigation Tests
-    test "current_step_index returns correct index" do
+    test "current_onboarding_step returns current step hash" do
       @user.update(onboarding_current_step: "profile")
-      index = @user.current_step_index
+      step = @user.current_onboarding_step
 
-      expected_index = RailsOnboarding.configuration.steps.find_index do |s|
-        s[:name].to_s == "profile"
-      end
-
-      assert_equal expected_index, index
+      assert step.is_a?(Hash)
+      assert_equal :profile, step[:name]
     end
 
-    test "next_step returns next step name" do
+    test "next_step returns next step hash" do
       @user.update(onboarding_current_step: "welcome")
       next_step = @user.next_step
 
+      assert next_step.is_a?(Hash)
       expected_step = RailsOnboarding.configuration.steps[1][:name]
-      assert_equal expected_step, next_step
+      assert_equal expected_step, next_step[:name]
     end
 
     test "next_step returns nil on last step" do
@@ -67,12 +66,13 @@ module RailsOnboarding
       assert_nil @user.next_step
     end
 
-    test "previous_step returns previous step name" do
+    test "previous_step returns previous step hash" do
       @user.update(onboarding_current_step: "profile")
       prev_step = @user.previous_step
 
+      assert prev_step.is_a?(Hash)
       expected_step = RailsOnboarding.configuration.steps[0][:name]
-      assert_equal expected_step, prev_step
+      assert_equal expected_step, prev_step[:name]
     end
 
     test "previous_step returns nil on first step" do
@@ -90,31 +90,19 @@ module RailsOnboarding
       assert_not @user.can_go_back?
     end
 
-    test "last_step? returns true on last step" do
-      last_step = RailsOnboarding.configuration.steps.last[:name]
-      @user.update(onboarding_current_step: last_step.to_s)
-
-      assert @user.last_step?
-    end
-
-    test "last_step? returns false on non-last step" do
-      @user.update(onboarding_current_step: "welcome")
-      assert_not @user.last_step?
-    end
-
     # Step Advancement Tests
-    test "advance_step! moves to next step" do
+    test "complete_onboarding_step! moves to next step" do
       @user.update(onboarding_current_step: "welcome")
-      @user.advance_step!
+      @user.complete_onboarding_step!("welcome")
 
       expected_step = RailsOnboarding.configuration.steps[1][:name].to_s
       assert_equal expected_step, @user.onboarding_current_step
     end
 
-    test "advance_step! completes onboarding on last step" do
+    test "complete_onboarding_step! completes onboarding on last step" do
       last_step = RailsOnboarding.configuration.steps.last[:name]
       @user.update(onboarding_current_step: last_step.to_s)
-      @user.advance_step!
+      @user.complete_onboarding_step!(last_step)
 
       assert @user.onboarding_completed
       assert_not_nil @user.onboarding_completed_at
@@ -122,15 +110,17 @@ module RailsOnboarding
 
     test "go_back! moves to previous step" do
       @user.update(onboarding_current_step: "profile")
-      @user.go_back!
+      result = @user.go_back!
 
+      assert result
       assert_equal "welcome", @user.onboarding_current_step
     end
 
-    test "go_back! does nothing on first step" do
+    test "go_back! returns false on first step" do
       @user.update(onboarding_current_step: "welcome")
-      @user.go_back!
+      result = @user.go_back!
 
+      assert_not result
       assert_equal "welcome", @user.onboarding_current_step
     end
 
@@ -146,6 +136,7 @@ module RailsOnboarding
       @user.skip_onboarding!
 
       assert @user.onboarding_skipped
+      assert @user.onboarding_completed
     end
 
     test "restart_onboarding! resets onboarding state" do
@@ -158,6 +149,20 @@ module RailsOnboarding
 
       assert_not @user.onboarding_completed
       assert_equal "welcome", @user.onboarding_current_step
+    end
+
+    test "reset_onboarding! resets onboarding state without starting" do
+      @user.update(
+        onboarding_completed: true,
+        onboarding_current_step: "explore",
+        onboarding_skipped: true
+      )
+
+      @user.reset_onboarding!
+
+      assert_not @user.onboarding_completed
+      assert_not @user.onboarding_skipped
+      assert_nil @user.onboarding_current_step
     end
 
     # Progress Tests
@@ -177,7 +182,17 @@ module RailsOnboarding
     end
 
     # Tooltip Tests
-    test "tooltip_shown? returns false for new tooltip" do
+    test "show_feature_tooltip? returns true for unseen tooltip" do
+      assert @user.show_feature_tooltip?("dashboard_overview")
+    end
+
+    test "show_feature_tooltip? returns false for seen tooltip" do
+      @user.mark_tooltip_shown!("feature_test")
+
+      assert_not @user.show_feature_tooltip?("feature_test")
+    end
+
+    test "tooltip_shown? returns false for unseen tooltip" do
       assert_not @user.tooltip_shown?("feature_new")
     end
 
@@ -193,76 +208,83 @@ module RailsOnboarding
       assert @user.feature_tooltips_shown["feature_dashboard"]
     end
 
-    test "reset_tooltips! clears all tooltips" do
-      @user.update(feature_tooltips_shown: {
-        "feature_1" => true,
-        "feature_2" => true
-      })
-
-      @user.reset_tooltips!
-
-      assert_empty @user.feature_tooltips_shown
-    end
-
     # Milestone Tests
     test "milestone_achieved? returns false for new milestone" do
       assert_not @user.milestone_achieved?("test_milestone")
     end
 
     test "milestone_achieved? returns true for achieved milestone" do
-      @user.update(onboarding_milestones_achieved: ["completed_milestone"])
+      @user.update(milestones_achieved: [{ "key" => "completed_milestone", "achieved_at" => Time.current.iso8601 }])
 
       assert @user.milestone_achieved?("completed_milestone")
     end
 
     test "achieve_milestone! records milestone" do
-      @user.achieve_milestone!("new_achievement", 100)
+      result = @user.achieve_milestone!("first_step")
 
-      assert_includes @user.onboarding_milestones_achieved, "new_achievement"
-      assert_equal 100, @user.onboarding_milestone_points
+      assert result
+      assert @user.milestone_achieved?("first_step")
+      assert @user.milestone_points > 0
     end
 
     test "achieve_milestone! does not duplicate milestones" do
-      @user.achieve_milestone!("duplicate_test", 50)
-      @user.achieve_milestone!("duplicate_test", 50)
+      @user.achieve_milestone!("first_step")
+      initial_points = @user.milestone_points
 
-      count = @user.onboarding_milestones_achieved.count("duplicate_test")
-      assert_equal 1, count
-      assert_equal 50, @user.onboarding_milestone_points
+      result = @user.achieve_milestone!("first_step")
+
+      assert_not result
+      assert_equal initial_points, @user.milestone_points
     end
 
-    # Scopes Tests
-    test "needs_onboarding scope returns users needing onboarding" do
-      @user.update(onboarding_completed: false, onboarding_skipped: false)
-      user_two = users(:two)
-      user_two.update(onboarding_completed: true)
+    test "achieved_milestones returns list of achieved milestone keys" do
+      @user.achieve_milestone!("first_step")
 
-      users_needing = User.needs_onboarding
-
-      assert_includes users_needing, @user
-      assert_not_includes users_needing, user_two
+      assert_includes @user.achieved_milestones, "first_step"
     end
 
-    test "onboarding_completed scope returns completed users" do
-      @user.update(onboarding_completed: true)
-      user_two = users(:two)
-      user_two.update(onboarding_completed: false)
+    test "total_milestone_points returns points total" do
+      @user.update(milestone_points: 150)
 
-      completed_users = User.onboarding_completed
-
-      assert_includes completed_users, @user
-      assert_not_includes completed_users, user_two
+      assert_equal 150, @user.total_milestone_points
     end
 
-    test "onboarding_in_progress scope returns users in progress" do
-      @user.update(onboarding_completed: false, onboarding_skipped: false)
-      user_two = users(:two)
-      user_two.update(onboarding_completed: true)
+    # Step completion check
+    test "step_completed? returns true for completed steps" do
+      @user.update(onboarding_current_step: "profile")
 
-      in_progress = User.onboarding_in_progress
+      assert @user.step_completed?("welcome")
+    end
 
-      assert_includes in_progress, @user
-      assert_not_includes in_progress, user_two
+    test "step_completed? returns false for current and future steps" do
+      @user.update(onboarding_current_step: "welcome")
+
+      assert_not @user.step_completed?("welcome")
+      assert_not @user.step_completed?("profile")
+    end
+
+    # Navigation
+    test "go_to_step! moves to specified step" do
+      @user.update(onboarding_current_step: "welcome")
+      result = @user.go_to_step!("profile")
+
+      assert result
+      assert_equal "profile", @user.onboarding_current_step
+    end
+
+    test "go_to_step! returns false for invalid step" do
+      result = @user.go_to_step!("nonexistent_step")
+
+      assert_not result
+    end
+
+    # skip_onboarding_step tests
+    test "skip_onboarding_step! moves to next step" do
+      @user.update(onboarding_current_step: "welcome")
+      @user.skip_onboarding_step!("welcome")
+
+      expected_step = RailsOnboarding.configuration.steps[1][:name].to_s
+      assert_equal expected_step, @user.onboarding_current_step
     end
   end
 end

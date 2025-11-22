@@ -1,0 +1,22 @@
+# Users fixtures for testing RailsOnboarding functionality
+one:
+  email: user_one@example.com
+  onboarding_completed: false
+  onboarding_completed_at: null
+  onboarding_current_step: welcome
+  onboarding_skipped: false
+  feature_tooltips_shown: "{}"
+  milestones_achieved: "[]"
+  milestone_points: 0
+  last_milestone_at: null
+
+two:
+  email: user_two@example.com
+  onboarding_completed: false
+  onboarding_completed_at: null
+  onboarding_current_step: welcome
+  onboarding_skipped: false
+  feature_tooltips_shown: "{}"
+  milestones_achieved: "[]"
+  milestone_points: 0
+  last_milestone_at: null
