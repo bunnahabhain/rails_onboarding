@@ -68,7 +68,7 @@ module RailsOnboarding
     # @param ttl [Integer] Time-to-live in seconds (default: 5 minutes)
     # @return [Integer] The cached progress percentage
     def cached_onboarding_progress(ttl: 300)
-      return onboarding_progress if onboarding_attributes_changed?
+      return onboarding_progress if has_dirty_onboarding_attributes?
 
       cache_key = "rails_onboarding:user:#{id}:progress"
       Rails.cache.fetch(cache_key, expires_in: ttl) do
@@ -81,7 +81,7 @@ module RailsOnboarding
     # @param ttl [Integer] Time-to-live in seconds (default: 5 minutes)
     # @return [Hash, nil] The cached current step
     def cached_current_onboarding_step(ttl: 300)
-      return current_onboarding_step if onboarding_attributes_changed?
+      return current_onboarding_step if has_dirty_onboarding_attributes?
 
       cache_key = "rails_onboarding:user:#{id}:current_step"
       Rails.cache.fetch(cache_key, expires_in: ttl) do
@@ -94,7 +94,7 @@ module RailsOnboarding
     # @param ttl [Integer] Time-to-live in seconds (default: 10 minutes)
     # @return [Array<String>] The cached achieved milestones
     def cached_achieved_milestones(ttl: 600)
-      return achieved_milestones if milestone_attributes_changed?
+      return achieved_milestones if has_dirty_milestone_attributes?
 
       cache_key = "rails_onboarding:user:#{id}:milestones"
       Rails.cache.fetch(cache_key, expires_in: ttl) do
@@ -133,7 +133,7 @@ module RailsOnboarding
     # @param ttl [Integer] Time-to-live in seconds (default: 1 minute)
     # @return [Boolean] Whether user needs onboarding
     def cached_needs_onboarding?(ttl: 60)
-      return needs_onboarding? if onboarding_attributes_changed?
+      return needs_onboarding? if has_dirty_onboarding_attributes?
 
       cache_key = "rails_onboarding:user:#{id}:needs_onboarding"
       Rails.cache.fetch(cache_key, expires_in: ttl) do
@@ -143,6 +143,8 @@ module RailsOnboarding
 
     private
 
+    # Check if onboarding attributes were just saved (for after_save callback)
+    # Uses previous_changes which contains the changes from the last save
     def onboarding_attributes_changed?
       return false unless persisted?
 
@@ -151,12 +153,28 @@ module RailsOnboarding
       end
     end
 
+    # Check if onboarding attributes have unsaved changes (for caching bypass)
+    # Uses changes which contains dirty/unsaved attributes
+    def has_dirty_onboarding_attributes?
+      changes.keys.any? do |attr|
+        attr.start_with?('onboarding_')
+      end
+    end
+
+    # Check if milestone attributes were just saved (for after_save callback)
     def milestone_attributes_changed?
       return false unless persisted?
 
       previous_changes.key?('milestones_achieved') ||
         previous_changes.key?('milestone_points') ||
         previous_changes.key?('last_milestone_at')
+    end
+
+    # Check if milestone attributes have unsaved changes (for caching bypass)
+    def has_dirty_milestone_attributes?
+      changes.key?('milestones_achieved') ||
+        changes.key?('milestone_points') ||
+        changes.key?('last_milestone_at')
     end
   end
 end
