@@ -84,7 +84,7 @@ module RailsOnboarding
 
     test "onboarding_path returns correct path" do
       path = @controller.onboarding_path
-      assert_equal "/onboarding", path
+      assert_equal "/rails_onboarding/onboarding", path
     end
 
     test "needs_onboarding? returns false for XHR requests" do
@@ -104,7 +104,7 @@ module RailsOnboarding
     end
 
     test "needs_onboarding? returns false when on onboarding page" do
-      @controller.request.path = "/onboarding"
+      @controller.request.path = "/rails_onboarding/onboarding"
       assert_not @controller.needs_onboarding?
     end
 
