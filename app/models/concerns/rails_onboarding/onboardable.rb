@@ -44,6 +44,7 @@ module RailsOnboarding
     # @return [Boolean] true if onboarding is needed, false otherwise
     def needs_onboarding?
       return false if onboarding_completed?
+      return false if onboarding_skipped?
 
       case RailsOnboarding.configuration.onboarding_required_for
       when :new_users
