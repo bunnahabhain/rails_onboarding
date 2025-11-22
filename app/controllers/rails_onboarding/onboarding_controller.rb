@@ -361,6 +361,9 @@ module RailsOnboarding
             locals: { alert: error_message }
           ), status: :unprocessable_entity
         end
+        format.any do
+          redirect_to onboarding_path, alert: error_message
+        end
       end
     end
 
@@ -377,6 +380,9 @@ module RailsOnboarding
             partial: "rails_onboarding/shared/flash",
             locals: { alert: "Resource not found. Please try again." }
           ), status: :not_found
+        end
+        format.any do
+          redirect_to main_app.root_path, alert: "Resource not found. Please try again."
         end
       end
     end
@@ -402,6 +408,9 @@ module RailsOnboarding
             locals: { alert: error_message }
           ), status: :internal_server_error
         end
+        format.any do
+          redirect_to onboarding_path, alert: error_message
+        end
       end
     end
 
@@ -420,6 +429,9 @@ module RailsOnboarding
             partial: "rails_onboarding/shared/flash",
             locals: { alert: error_message }
           ), status: :internal_server_error
+        end
+        format.any do
+          redirect_to main_app.root_path, alert: error_message
         end
       end
     end
