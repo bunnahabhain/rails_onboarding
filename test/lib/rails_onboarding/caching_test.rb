@@ -10,11 +10,15 @@ module RailsOnboarding
         onboarding_completed: false,
         onboarding_current_step: 'welcome'
       )
-      Rails.cache.clear
+      # Use memory_store for caching tests since test env uses null_store by default
+      @original_cache = Rails.cache
+      @memory_cache = ActiveSupport::Cache::MemoryStore.new
+      Rails.cache = @memory_cache
     end
 
     teardown do
       Rails.cache.clear
+      Rails.cache = @original_cache
     end
 
     # Class-level caching tests
@@ -25,13 +29,15 @@ module RailsOnboarding
     end
 
     test 'cached_config uses cache for subsequent calls' do
-      # First call - cache miss
-      Rails.cache.expects(:fetch).once.returns(true)
+      # First call populates cache
       User.cached_config(:enable_tooltips)
 
-      # Subsequent calls should use cache
-      # (cannot test this directly without integration, but we verify key exists)
+      # Verify cache key exists after first call
       assert Rails.cache.exist?('rails_onboarding:config:enable_tooltips')
+
+      # Second call should return cached value
+      result = User.cached_config(:enable_tooltips)
+      assert_equal RailsOnboarding.configuration.enable_tooltips, result
     end
 
     test 'clear_config_cache removes all config caches' do
