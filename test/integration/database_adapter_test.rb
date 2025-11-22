@@ -310,28 +310,78 @@ module RailsOnboarding
     # ===== Constraint Tests =====
 
     test "NOT NULL constraints work across adapters" do
-      # Assuming email has a NOT NULL constraint
-      assert_raises(ActiveRecord::NotNullViolation) do
-        User.create!(email: nil)
+      connection = ActiveRecord::Base.connection
+
+      # Create a temporary table with NOT NULL constraint
+      connection.create_table :test_not_null_table, force: true do |t|
+        t.string :required_field, null: false
+      end
+
+      # Define a temporary model class
+      test_model = Class.new(ActiveRecord::Base) do
+        self.table_name = "test_not_null_table"
+      end
+
+      begin
+        assert_raises(ActiveRecord::NotNullViolation) do
+          test_model.create!(required_field: nil)
+        end
+      ensure
+        connection.drop_table :test_not_null_table
       end
     end
 
     test "UNIQUE constraints work across adapters" do
-      # Assuming email has a UNIQUE constraint
-      User.create!(email: "unique_test@example.com")
+      connection = ActiveRecord::Base.connection
 
-      assert_raises(ActiveRecord::RecordNotUnique) do
-        User.create!(email: "unique_test@example.com")
+      # Create a temporary table with UNIQUE constraint
+      connection.create_table :test_unique_table, force: true do |t|
+        t.string :unique_field
+      end
+      connection.add_index :test_unique_table, :unique_field, unique: true
+
+      # Define a temporary model class
+      test_model = Class.new(ActiveRecord::Base) do
+        self.table_name = "test_unique_table"
+      end
+
+      begin
+        test_model.create!(unique_field: "unique_value")
+
+        assert_raises(ActiveRecord::RecordNotUnique) do
+          test_model.create!(unique_field: "unique_value")
+        end
+      ensure
+        connection.drop_table :test_unique_table
       end
     end
 
     # ===== Default Values Tests =====
 
     test "default values work across adapters" do
-      user = User.new(email: "default_test@example.com")
+      connection = ActiveRecord::Base.connection
 
-      # onboarding_completed should default to false
-      assert_equal false, user.onboarding_completed if user.has_attribute?(:onboarding_completed)
+      # Create a temporary table with default values
+      connection.create_table :test_defaults_table, force: true do |t|
+        t.boolean :active, default: false
+        t.string :status, default: "pending"
+        t.integer :counter, default: 0
+      end
+
+      # Define a temporary model class
+      test_model = Class.new(ActiveRecord::Base) do
+        self.table_name = "test_defaults_table"
+      end
+
+      begin
+        record = test_model.new
+
+        assert_equal false, record.active
+        assert_equal "pending", record.status
+        assert_equal 0, record.counter
+      ensure
+        connection.drop_table :test_defaults_table
+      end
     end
 
     # ===== Connection Pool Tests =====
