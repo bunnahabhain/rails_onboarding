@@ -1,29 +1,36 @@
 require "test_helper"
 
 module RailsOnboarding
-  class ControllerHelpersTest < ActionDispatch::IntegrationTest
+  class ControllerHelpersTest < ActiveSupport::TestCase
     class TestController < ActionController::Base
+      include Rails.application.routes.url_helpers
+      include RailsOnboarding::Engine.routes.url_helpers
       include RailsOnboarding::ControllerHelpers
 
-      attr_accessor :current_user
+      attr_accessor :current_user, :action_name
 
-      def index
-        render plain: "success"
+      def initialize
+        super
+        @action_name = "index"
       end
 
-      def profile
-        skip_onboarding_requirement
-        render plain: "profile"
+      def request
+        @request ||= begin
+          req = ActionDispatch::TestRequest.create
+          req.host = "test.host"
+          req.path = "/test"
+          req
+        end
       end
+    end
 
-      def dashboard
-        render plain: "dashboard"
-      end
+    class SkippedController < TestController
+      skip_onboarding_check only: [:profile]
     end
 
     setup do
       @user = User.create!(
-        email: "test@example.com",
+        email: "controller_helpers_test_#{SecureRandom.hex(4)}@example.com",
         onboarding_completed: false,
         onboarding_current_step: "welcome",
         onboarding_skipped: false
@@ -33,61 +40,77 @@ module RailsOnboarding
       @controller.current_user = @user
     end
 
-    test "require_onboarding redirects when user needs onboarding" do
-      @controller.request = ActionDispatch::TestRequest.create
-      @controller.response = ActionDispatch::TestResponse.new
-
-      result = @controller.send(:require_onboarding)
-
-      assert_not_nil result
+    teardown do
+      @user&.destroy
     end
 
-    test "require_onboarding allows access when onboarding is complete" do
-      @user.update(onboarding_completed: true)
-      @controller.request = ActionDispatch::TestRequest.create
-      @controller.response = ActionDispatch::TestResponse.new
-
-      result = @controller.send(:require_onboarding)
-
-      assert_nil result
+    test "needs_onboarding? returns true when user has not completed onboarding" do
+      assert @controller.needs_onboarding?
     end
 
-    test "require_onboarding allows access when onboarding is skipped" do
-      @user.update(onboarding_skipped: true)
-      @controller.request = ActionDispatch::TestRequest.create
-      @controller.response = ActionDispatch::TestResponse.new
-
-      result = @controller.send(:require_onboarding)
-
-      assert_nil result
+    test "needs_onboarding? returns false when onboarding is complete" do
+      @user.update!(onboarding_completed: true)
+      assert_not @controller.needs_onboarding?
     end
 
-    test "skip_onboarding_requirement excludes actions from onboarding check" do
-      # This is tested via integration tests since it requires the full Rails stack
-      assert @controller.class.method_defined?(:skip_onboarding_requirement)
+    test "needs_onboarding? returns false when onboarding is skipped" do
+      @user.update!(onboarding_skipped: true)
+      assert_not @controller.needs_onboarding?
     end
 
-    test "user_needs_onboarding? returns correct status" do
-      assert @controller.send(:user_needs_onboarding?)
+    test "needs_onboarding? returns false when current_user is nil" do
+      @controller.current_user = nil
+      assert_not @controller.needs_onboarding?
+    end
 
-      @user.update(onboarding_completed: true)
-      assert_not @controller.send(:user_needs_onboarding?)
+    test "skip_onboarding_check excludes specified actions from onboarding check" do
+      skipped_controller = SkippedController.new
+      skipped_controller.current_user = @user
+
+      # Profile action should be skipped
+      skipped_controller.action_name = "profile"
+      assert_not skipped_controller.needs_onboarding?
+
+      # Index action should NOT be skipped
+      skipped_controller.action_name = "index"
+      assert skipped_controller.needs_onboarding?
+    end
+
+    test "skip_onboarding_for_action? returns correct value for configured actions" do
+      assert SkippedController.skip_onboarding_for_action?(:profile)
+      assert_not SkippedController.skip_onboarding_for_action?(:index)
+      assert_not TestController.skip_onboarding_for_action?(:profile)
     end
 
     test "onboarding_path returns correct path" do
-      path = @controller.send(:onboarding_path)
-      assert_includes path, "/onboarding"
+      path = @controller.onboarding_path
+      assert_equal "/onboarding", path
     end
 
-    test "handles missing current_user gracefully" do
-      @controller.current_user = nil
-      @controller.request = ActionDispatch::TestRequest.create
-      @controller.response = ActionDispatch::TestResponse.new
+    test "needs_onboarding? returns false for XHR requests" do
+      @controller.request.headers["X-Requested-With"] = "XMLHttpRequest"
+      assert_not @controller.needs_onboarding?
+    end
 
-      result = @controller.send(:require_onboarding)
+    test "needs_onboarding? returns false for JSON requests" do
+      @controller.request.headers["Accept"] = "application/json"
+      @controller.request.format = :json
+      assert_not @controller.needs_onboarding?
+    end
 
-      # Should not crash, may return nil or redirect
-      assert_nothing_raised { result }
+    test "needs_onboarding? returns false for API paths" do
+      @controller.request.path = "/api/v1/something"
+      assert_not @controller.needs_onboarding?
+    end
+
+    test "needs_onboarding? returns false when on onboarding page" do
+      @controller.request.path = "/onboarding"
+      assert_not @controller.needs_onboarding?
+    end
+
+    test "helper_methods are defined" do
+      assert TestController.method_defined?(:needs_onboarding?)
+      assert TestController.method_defined?(:onboarding_path)
     end
   end
 end
