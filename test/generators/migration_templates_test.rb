@@ -162,7 +162,7 @@ module RailsOnboarding
 
       # Should use namespaced table name
       assert_match(/rails_onboarding_analytics_events/, content)
-      refute_match(/analytics_events[^_]/, content, "Should use fully qualified table name")
+      refute_match(/(?<!rails_onboarding_)(?<!index_)analytics_events\b/, content, "Should use fully qualified table name")
     end
 
     test "migrations include proper indexes for performance" do
