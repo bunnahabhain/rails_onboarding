@@ -504,9 +504,17 @@ module RailsOnboarding
       end
     end
 
-    # Check if a specific tooltip has been shown
+    # Check if a specific tooltip has been shown to this user
+    #
+    # This method directly checks the user's feature_tooltips_shown hash
+    # to determine if a tooltip was marked as shown, regardless of whether
+    # the tooltip is configured in the application settings.
+    #
+    # @param tooltip_id [String, Symbol] the tooltip identifier
+    # @return [Boolean] true if the tooltip has been shown, false otherwise
     def tooltip_shown?(tooltip_id)
-      !show_feature_tooltip?(tooltip_id)
+      shown_tooltips = feature_tooltips_shown || {}
+      shown_tooltips.key?(tooltip_id.to_s)
     end
 
     # Dismiss a tooltip (alias for mark_tooltip_shown!)

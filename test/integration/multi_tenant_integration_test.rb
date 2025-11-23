@@ -64,12 +64,16 @@ module RailsOnboarding
     end
 
     test "users see different steps based on organization" do
+      # Capture organization IDs in local variables for closure
+      org1_id = @org1.id
+      org2_id = @org2.id
+
       # User from Org 1
-      @user_org1.define_singleton_method(:current_organization_id) { @org1.id }
+      @user_org1.define_singleton_method(:current_organization_id) { org1_id }
       steps_org1 = @user_org1.onboarding_steps
 
       # User from Org 2
-      @user_org2.define_singleton_method(:current_organization_id) { @org2.id }
+      @user_org2.define_singleton_method(:current_organization_id) { org2_id }
       steps_org2 = @user_org2.onboarding_steps
 
       assert_equal [:org1_welcome, :org1_setup], steps_org1.map { |s| s[:name] }
@@ -300,7 +304,9 @@ module RailsOnboarding
       # This would test authorization checks if implemented
 
       # Setup: User1 tries to view User2's onboarding
-      @user_org1.define_singleton_method(:current_organization_id) { @org1.id }
+      # Capture organization ID in local variable for closure
+      org1_id = @org1.id
+      @user_org1.define_singleton_method(:current_organization_id) { org1_id }
 
       # Attempt to access Org2 data should fail
       assert_raises(ActiveRecord::RecordNotFound) do
