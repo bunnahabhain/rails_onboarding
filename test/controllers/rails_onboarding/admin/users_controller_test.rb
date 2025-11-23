@@ -8,7 +8,7 @@ module RailsOnboarding
       include Engine.routes.url_helpers
 
       def setup
-        @admin_user = User.create!(email: 'admin@example.com', admin: true)
+        @admin_user = User.create!(email: 'admin@example.com')
         @test_user = User.create!(
           email: 'test@example.com',
           onboarding_current_step: 'welcome',
