@@ -203,7 +203,8 @@ module RailsOnboarding
 
       migration_files.each do |file|
         content = File.read(file)
-        basename = File.basename(file, ".*")
+        # Handle both .rb and .rb.tt extensions
+        basename = File.basename(file).sub(/\.rb(\.tt)?$/, "")
 
         # Extract class name from content
         class_match = content.match(/class (\w+) < ActiveRecord::Migration/)
