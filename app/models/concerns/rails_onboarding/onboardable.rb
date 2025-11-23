@@ -450,6 +450,25 @@ module RailsOnboarding
     alias_method :skip_step, :skip_onboarding_step!
     alias_method :next_step, :next_onboarding_step
     alias_method :previous_step, :previous_onboarding_step
+    alias_method :reset_onboarding, :reset_onboarding!
+    alias_method :mark_tooltip_shown, :mark_tooltip_shown!
+
+    # Returns the onboarding steps for this user
+    #
+    # If multi-tenant support is enabled and the user has an organization,
+    # returns organization-specific steps. Otherwise returns the default steps.
+    #
+    # @return [Array<Hash>] Array of step configurations
+    def onboarding_steps
+      # Check for organization-specific steps via MultiTenant
+      if respond_to?(:current_organization_id) && current_organization_id
+        MultiTenant.steps_for(current_organization_id)
+      elsif respond_to?(:organization_id) && organization_id
+        MultiTenant.steps_for(organization_id)
+      else
+        RailsOnboarding.configuration.steps
+      end
+    end
 
     # Check if a specific step has been completed
     def step_completed?(step_name)
