@@ -56,6 +56,7 @@ module RailsOnboarding
         { name: :_starts_with_underscore },
         { name: "name123" }
       ]
+      @config.milestones = [] # Clear default milestones that reference step :welcome
 
       assert @config.valid?
     end

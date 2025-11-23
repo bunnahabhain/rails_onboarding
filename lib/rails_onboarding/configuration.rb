@@ -236,14 +236,20 @@ module RailsOnboarding
       return nil if name.nil?
 
       @step_by_name_cache ||= {}
-      @step_by_name_cache[name.to_sym] ||= steps.find { |s| s[:name].to_sym == name.to_sym }
+      @step_by_name_cache[name.to_sym] ||= steps.find do |s|
+        next false unless s.is_a?(Hash) && s[:name]
+        s[:name].to_sym == name.to_sym
+      end
     end
 
     def step_index(name)
       return nil if name.nil?
 
       @step_index_cache ||= {}
-      @step_index_cache[name.to_sym] ||= steps.find_index { |s| s[:name].to_sym == name.to_sym }
+      @step_index_cache[name.to_sym] ||= steps.find_index do |s|
+        next false unless s.is_a?(Hash) && s[:name]
+        s[:name].to_sym == name.to_sym
+      end
     end
 
     def milestone_by_key(key)
