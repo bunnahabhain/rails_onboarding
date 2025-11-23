@@ -28,9 +28,11 @@ module RailsOnboarding
         serialize :milestones_achieved, coder: JSON
       end
 
-      # Validations for JSON field sizes
-      validate :validate_tooltips_size, if: :feature_tooltips_shown_changed?
-      validate :validate_milestones_size, if: :milestones_achieved_changed?
+      # Validations for JSON field sizes (only if ActiveRecord validations are available)
+      if respond_to?(:validate)
+        validate :validate_tooltips_size, if: :feature_tooltips_shown_changed?
+        validate :validate_milestones_size, if: :milestones_achieved_changed?
+      end
     end
 
     # Determines if the user needs to go through onboarding
