@@ -1,4 +1,4 @@
-class AddOnboardingToUsers < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+class AddOnboardingUsers < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
   def up
     add_column :users, :onboarding_completed, :boolean, default: false, null: false
     add_column :users, :onboarding_completed_at, :datetime
