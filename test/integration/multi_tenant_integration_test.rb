@@ -261,42 +261,6 @@ module RailsOnboarding
       skip "Organization context handling not implemented"
     end
 
-    # ===== Webhook Isolation Tests =====
-
-    test "webhooks contain organization context" do
-      skip "Webhook organization context not implemented" unless defined?(RailsOnboarding::Webhooks)
-
-      webhook_payload = nil
-
-      # Stub webhook delivery to capture payload
-      Webhooks.stub :deliver, ->(payload) { webhook_payload = payload } do
-        Webhooks.trigger(:onboarding_completed, @user_org1, organization_id: @org1.id)
-      end
-
-      assert_equal @org1.id, webhook_payload[:organization_id]
-    rescue NameError
-      skip "Webhooks module not available"
-    end
-
-    test "different webhook URLs per organization" do
-      skip "Webhook organization URLs not implemented"
-
-      MultiTenant.configure_for_organization(@org1.id) do |config|
-        config.webhook_url = "https://org1.example.com/webhook"
-      end
-
-      MultiTenant.configure_for_organization(@org2.id) do |config|
-        config.webhook_url = "https://org2.example.com/webhook"
-      end
-
-      # Verify different URLs are used for different orgs
-      config_org1 = MultiTenant.configuration_for(@org1.id)
-      config_org2 = MultiTenant.configuration_for(@org2.id)
-
-      assert_equal "https://org1.example.com/webhook", config_org1[:webhook_url]
-      assert_equal "https://org2.example.com/webhook", config_org2[:webhook_url]
-    end
-
     # ===== Security Tests =====
 
     test "users cannot access other organization's onboarding data" do

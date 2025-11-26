@@ -183,20 +183,6 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
     assert_equal 'support@example.com', RailsOnboarding.configuration.mailer_from
   end
 
-  test "can configure webhooks" do
-    RailsOnboarding.configure do |config|
-      config.webhooks_enabled = true
-      config.webhook_endpoints = ['https://example.com/webhook']
-      config.webhook_secret_key = 'secret123'
-      config.webhook_async = false
-    end
-
-    assert_equal true, RailsOnboarding.configuration.webhooks_enabled
-    assert_equal ['https://example.com/webhook'], RailsOnboarding.configuration.webhook_endpoints
-    assert_equal 'secret123', RailsOnboarding.configuration.webhook_secret_key
-    assert_equal false, RailsOnboarding.configuration.webhook_async
-  end
-
   private
 
   # Mock controllers for testing
@@ -230,18 +216,6 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
 
     def current_user
       nil
-    end
-  end
-
-  class MockWebhookController
-    include RailsOnboarding::Webhooks
-
-    def self.webhook_options
-      {
-        enabled: true,
-        endpoints: [],
-        async: false
-      }
     end
   end
 
