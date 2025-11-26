@@ -7,7 +7,7 @@ module RailsOnboarding
     setup do
       @user = users(:one)
       @user.update(feature_tooltips_shown: {})
-      sign_in @user
+      sign_in_as(@user)
     end
 
     test "should dismiss tooltip" do
@@ -20,13 +20,13 @@ module RailsOnboarding
     end
 
     test "should track tooltip dismissal" do
-      assert_difference "AnalyticsEvent.count" do
+      assert_difference "RailsOnboarding::AnalyticsEvent.count" do
         post dismiss_tooltip_url, params: { tooltip_id: "feature_search" }
       end
 
-      event = AnalyticsEvent.last
+      event = RailsOnboarding::AnalyticsEvent.last
       assert_equal "tooltip_dismissed", event.event_type
-      assert_equal "feature_search", event.metadata["tooltip_id"]
+      assert_equal "feature_search", event.properties["tooltip_feature"]
     end
 
     test "should return json response" do
@@ -78,8 +78,10 @@ module RailsOnboarding
 
     private
 
-    def sign_in(user)
-      @request.session[:user_id] = user.id if @request
+    def sign_in_as(user)
+      # For integration tests, post to a URL that sets the session
+      # We need to make an actual request to set the session
+      post "/rails_onboarding/test_session", params: { user_id: user.id }
     end
   end
 end

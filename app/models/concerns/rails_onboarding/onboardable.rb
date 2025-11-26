@@ -225,6 +225,12 @@ module RailsOnboarding
       save!
     end
 
+    # Reset all tooltips (mark all as not shown)
+    def reset_tooltips!
+      self.feature_tooltips_shown = {}
+      save!
+    end
+
     def track_tooltip_interaction!(feature, action, session_id: nil)
       AnalyticsEvent.track_tooltip_interaction(
         user: self,
@@ -519,9 +525,20 @@ module RailsOnboarding
       shown_tooltips.key?(tooltip_id.to_s)
     end
 
-    # Dismiss a tooltip (alias for mark_tooltip_shown!)
+    # Dismiss a tooltip (marks as shown and tracks as dismissed)
     def dismiss_tooltip(tooltip_id, session_id: nil)
-      mark_tooltip_shown!(tooltip_id, session_id: session_id)
+      # Mark as shown without tracking (to avoid duplicate event)
+      self.feature_tooltips_shown ||= {}
+      self.feature_tooltips_shown[tooltip_id.to_s] = Time.current.iso8601
+      save!
+
+      # Track as dismissed, not shown
+      AnalyticsEvent.track_tooltip_interaction(
+        user: self,
+        tooltip_feature: tooltip_id,
+        action: 'dismissed',
+        session_id: session_id
+      )
       true
     rescue StandardError => e
       Rails.logger.error("Failed to dismiss tooltip: #{e.message}")

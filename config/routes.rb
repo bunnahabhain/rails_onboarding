@@ -1,4 +1,7 @@
 RailsOnboarding::Engine.routes.draw do
+  # Test-only route for setting session in integration tests (no URL helpers needed)
+  post 'test_session', to: 'test_sessions#create', as: nil if Rails.env.test?
+
   # Regular web routes
   resource :onboarding, only: [ :show ], controller: "onboarding" do
     post :next
@@ -7,6 +10,12 @@ RailsOnboarding::Engine.routes.draw do
     post :back
     post :restart
   end
+
+  # Tooltip routes
+  post 'tooltips/dismiss', to: 'tooltips#dismiss', as: :dismiss_tooltip
+  post 'tooltips/show', to: 'tooltips#show', as: :show_tooltip
+  post 'tooltips/reset', to: 'tooltips#reset', as: :reset_tooltips
+  get 'tooltips/status', to: 'tooltips#status', as: :tooltip_status
 
   resources :tooltips, only: [] do
     member do
