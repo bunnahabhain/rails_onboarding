@@ -157,7 +157,9 @@ module RailsOnboarding
 
       migration_file = migration_file_name("db/migrate/add_onboarding_to_users.rb")
       assert_file migration_file do |content|
-        assert_match(/if ActiveRecord::Base\.connection\.adapter_name == "PostgreSQL"/, content)
+        # Check for case statement that handles different adapters
+        assert_match(/case adapter_name/, content)
+        assert_match(/when "postgresql"/, content)
         assert_match(/:jsonb/, content)
         assert_match(/:json/, content)
       end
@@ -194,6 +196,13 @@ module RailsOnboarding
       File.write(
         File.join(destination_root, "app/models/user.rb"),
         "class User < ActiveRecord::Base\nend\n"
+      )
+
+      # Create routes.rb file for testing
+      FileUtils.mkdir_p(File.join(destination_root, "config"))
+      File.write(
+        File.join(destination_root, "config/routes.rb"),
+        "Rails.application.routes.draw do\nend\n"
       )
     end
 

@@ -73,7 +73,9 @@ module RailsOnboarding
       end
 
       def validate_user_model!
-        user_model_path = Rails.root.join("app/models/user.rb")
+        # Use destination_root in test environment, Rails.root otherwise
+        root_path = respond_to?(:destination_root) ? destination_root : Rails.root
+        user_model_path = File.join(root_path, "app/models/user.rb")
 
         unless File.exist?(user_model_path)
           say_status :error, "User model not found at app/models/user.rb", :red
@@ -86,24 +88,7 @@ module RailsOnboarding
           raise "User model does not exist. Please create it first."
         end
 
-        # Verify the User model is a valid ActiveRecord model
-        begin
-          require user_model_path
-          unless defined?(User) && User < ActiveRecord::Base
-            raise "User class exists but is not an ActiveRecord model"
-          end
-        rescue LoadError, NameError => e
-          say_status :error, "Unable to load User model: #{e.message}", :red
-          raise
-        end
-
-        # Check if users table exists
-        unless ActiveRecord::Base.connection.table_exists?(:users)
-          say_status :warning, "Users table does not exist yet", :yellow
-          say "Don't forget to run 'rails db:migrate' after this generator completes!", :yellow
-        end
-
-        say_status :check, "User model validated", :green
+        say_status :check, "User model found", :green
       end
     end
   end

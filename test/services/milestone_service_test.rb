@@ -6,10 +6,15 @@ class MilestoneServiceTest < ActiveSupport::TestCase
     # Disable analytics for milestone service tests to avoid Rails 8 polymorphic association issues
     @original_analytics_setting = RailsOnboarding.configuration.enable_analytics
     RailsOnboarding.configuration.enable_analytics = false
+
+    # Enable milestones for these tests
+    @original_milestones_setting = RailsOnboarding.configuration.enable_milestones
+    RailsOnboarding.configuration.enable_milestones = true
   end
 
   def teardown
     RailsOnboarding.configuration.enable_analytics = @original_analytics_setting
+    RailsOnboarding.configuration.enable_milestones = @original_milestones_setting
   end
 
   test "check_onboarding_step_milestones awards appropriate milestone" do

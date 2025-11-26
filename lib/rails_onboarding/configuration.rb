@@ -16,6 +16,7 @@ module RailsOnboarding
                   :custom_js_path,
                   :enable_analytics,
                   :analytics_data_retention_days,
+                  :analytics_retention_days,
                   :analytics_session_timeout_minutes,
                   :welcome_heading,
                   :welcome_subheading,
@@ -39,6 +40,8 @@ module RailsOnboarding
                   :mailer_from,
                   :webhooks_enabled,
                   :webhook_endpoints,
+                  :webhook_url,
+                  :webhook_events,
                   :webhook_secret_key,
                   :webhook_async,
                   :rate_limiting_enabled,
@@ -51,9 +54,10 @@ module RailsOnboarding
       @redirect_after_completion = :root_path
       @redirect_after_skip = :root_path
       @enable_tooltips = true
-      @enable_milestones = true
+      @enable_milestones = false
       @enable_analytics = true
       @analytics_data_retention_days = 365 # Keep analytics data for 1 year
+      @analytics_retention_days = 365 # Alias for analytics_data_retention_days
       @analytics_session_timeout_minutes = 30 # Consider session ended after 30 minutes of inactivity
       @onboarding_required_for = :new_users # :new_users, :all_users, or a Proc
       @welcome_heading = "We're excited to have you here!"
@@ -70,6 +74,24 @@ module RailsOnboarding
           name: :welcome,
           title: "Welcome",
           icon: "🎉",
+          skippable: true
+        },
+        {
+          name: :profile,
+          title: "Setup Profile",
+          icon: "👤",
+          skippable: false
+        },
+        {
+          name: :first_action,
+          title: "First Action",
+          icon: "🚀",
+          skippable: false
+        },
+        {
+          name: :explore,
+          title: "Explore Features",
+          icon: "🔍",
           skippable: true
         }
       ]
@@ -137,6 +159,8 @@ module RailsOnboarding
       @mailer_from = 'noreply@example.com'
       @webhooks_enabled = false
       @webhook_endpoints = []
+      @webhook_url = nil
+      @webhook_events = []
       @webhook_secret_key = nil
       @webhook_async = true
 
@@ -286,6 +310,17 @@ module RailsOnboarding
     def milestones=(value)
       clear_cache!
       @milestones = value
+    end
+
+    # Keep analytics_retention_days in sync with analytics_data_retention_days
+    def analytics_retention_days=(value)
+      @analytics_retention_days = value
+      @analytics_data_retention_days = value
+    end
+
+    def analytics_data_retention_days=(value)
+      @analytics_data_retention_days = value
+      @analytics_retention_days = value
     end
 
     # Clear all cached lookups - call this when configuration changes
