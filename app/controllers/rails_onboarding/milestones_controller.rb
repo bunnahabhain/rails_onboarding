@@ -4,12 +4,23 @@ module RailsOnboarding
     before_action :check_milestones_enabled
 
     def index
-      @achieved_milestones = current_user.achieved_milestones.map do |key|
+      achieved_milestones = current_user.achieved_milestones.map do |key|
         RailsOnboarding.configuration.milestone_by_key(key)
       end.compact
 
-      @available_milestones = current_user.milestones_available
-      @total_points = current_user.total_milestone_points
+      available_milestones = current_user.milestones_available
+      total_points = current_user.total_milestone_points
+
+      respond_to do |format|
+        format.html do
+          @achieved_milestones = achieved_milestones
+          @available_milestones = available_milestones
+          @total_points = total_points
+        end
+        format.json do
+          render json: (achieved_milestones + available_milestones)
+        end
+      end
     end
 
     def show
@@ -46,6 +57,55 @@ module RailsOnboarding
     def recent
       @recent_milestones = current_user.recent_milestones(limit: params[:limit]&.to_i || 5)
       render json: @recent_milestones
+    end
+
+    def progress
+      render json: {
+        points: current_user.milestone_points || 0,
+        achieved: current_user.milestones_achieved.map { |m| m['key'] || m[:key] }.compact
+      }
+    end
+
+    def check
+      milestone_id = params[:id]
+      achieved = current_user.milestone_achieved?(milestone_id)
+
+      render json: { achieved: achieved }
+    end
+
+    def trigger
+      milestone_id = params[:milestone_id]
+
+      # Check if milestone is already achieved
+      if current_user.milestone_achieved?(milestone_id)
+        render json: {
+          success: false,
+          message: "Milestone already achieved"
+        }
+        return
+      end
+
+      # Award the milestone
+      milestone = current_user.achieve_milestone!(milestone_id)
+
+      if milestone
+        render json: {
+          success: true,
+          celebration: true,
+          points_awarded: milestone[:points] || 0,
+          total_points: current_user.milestone_points || 0
+        }
+      else
+        render json: {
+          success: false,
+          error: "Milestone could not be triggered"
+        }, status: :unprocessable_entity
+      end
+    end
+
+    def available
+      available_milestones = current_user.milestones_available || []
+      render json: available_milestones
     end
 
     private

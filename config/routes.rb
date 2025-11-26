@@ -27,6 +27,12 @@ RailsOnboarding::Engine.routes.draw do
     collection do
       get :recent
       post :achieve
+      get :progress
+      post :trigger
+      get :available
+    end
+    member do
+      get :check
     end
   end
 
