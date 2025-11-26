@@ -133,9 +133,9 @@ module RailsOnboarding
       @user.class.lazy_loading_enabled = true
 
       next_step = @user.lazy_next_step
-      # Both should return nil since user is on 'welcome' step (first step)
-      assert_nil next_step
-      assert_nil @user.next_onboarding_step
+      # User is on 'welcome' (first step), so next step should be 'profile' (second step)
+      assert_equal :profile, next_step[:name]
+      assert_equal :profile, @user.next_onboarding_step[:name]
     end
 
     test 'lazy_milestones_available returns milestones when enabled' do
@@ -235,9 +235,9 @@ module RailsOnboarding
 
       assert_equal @user.needs_onboarding?, data[:needs_onboarding]
       assert_equal @user.current_onboarding_step, data[:current_step]
-      # next_step is nil since user is on 'welcome' step (first step)
-      assert_nil data[:next_step]
-      assert_nil @user.next_onboarding_step
+      # User is on 'welcome' (first step), so next step should be 'profile' (second step)
+      assert_equal :profile, data[:next_step][:name]
+      assert_equal :profile, @user.next_onboarding_step[:name]
       assert_equal @user.onboarding_progress, data[:progress]
       # achieved_milestones returns an array of string keys
       assert_equal ['welcome_completed'], data[:milestones]
