@@ -8,8 +8,8 @@ module RailsOnboarding
     end
 
     test "engine is properly loaded" do
-      assert_kind_of Rails::Engine, @engine
-      assert_equal "RailsOnboarding", @engine.engine_name
+      assert @engine < Rails::Engine, "RailsOnboarding::Engine should inherit from Rails::Engine"
+      assert_equal "rails_onboarding", @engine.engine_name
     end
 
     test "engine has isolated namespace" do
@@ -97,13 +97,11 @@ module RailsOnboarding
     end
 
     test "engine views are accessible" do
+      # Only check for views that are actually provided by the gem
+      # Host application should provide step-specific views
       view_files = [
-        "rails_onboarding/onboarding/show.html.erb",
         "rails_onboarding/onboarding/step.html.erb",
-        "rails_onboarding/onboarding/welcome.html.erb",
-        "rails_onboarding/onboarding/profile.html.erb",
-        "rails_onboarding/onboarding/first_action.html.erb",
-        "rails_onboarding/onboarding/explore.html.erb"
+        "rails_onboarding/onboarding/welcome.html.erb"
       ]
 
       view_files.each do |file|
@@ -212,15 +210,19 @@ module RailsOnboarding
         "JS should use strict mode")
     end
 
-    # Migration Path Tests
-    test "migrations directory exists" do
-      migrations_path = @engine.root.join("db", "migrate")
-      assert File.directory?(migrations_path), "Migrations directory should exist"
+    # Generator Tests (migrations are provided via generators, not in gem's db/migrate)
+    test "install generator exists" do
+      generator_path = @engine.root.join("lib", "generators", "rails_onboarding", "install_generator.rb")
+      assert File.exist?(generator_path), "Install generator should exist"
     end
 
-    test "migration files are accessible" do
-      migrations = Dir[File.join(@engine.root, "db", "migrate", "*.rb")]
-      assert migrations.any?, "Should have at least one migration file"
+    test "migration templates are accessible" do
+      templates_dir = @engine.root.join("lib", "generators", "rails_onboarding", "templates")
+      assert File.directory?(templates_dir), "Generator templates directory should exist"
+
+      # Check for migration template files
+      migration_templates = Dir[File.join(templates_dir, "*add_*users*.rb*")]
+      assert migration_templates.any?, "Should have migration templates for users table"
     end
   end
 end
