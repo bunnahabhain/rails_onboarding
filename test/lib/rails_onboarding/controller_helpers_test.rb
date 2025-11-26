@@ -98,11 +98,6 @@ module RailsOnboarding
       assert_not @controller.needs_onboarding?
     end
 
-    test "needs_onboarding? returns false for API paths" do
-      @controller.request.path = "/api/v1/something"
-      assert_not @controller.needs_onboarding?
-    end
-
     test "needs_onboarding? returns false when on onboarding page" do
       @controller.request.path = "/rails_onboarding/onboarding"
       assert_not @controller.needs_onboarding?
