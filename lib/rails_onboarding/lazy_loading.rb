@@ -10,7 +10,7 @@ module RailsOnboarding
 
     included do
       # Class-level configuration for lazy loading
-      class_attribute :lazy_load_enabled, default: true
+      class_attribute :lazy_loading_enabled, default: true
       class_attribute :lazy_load_threshold, default: 1000 # Load data only when user count < threshold
     end
 
@@ -124,16 +124,15 @@ module RailsOnboarding
     end
 
     # Check if lazy loading should be enabled for this user
+    # based on both the enabled flag and user count threshold
     #
     # @return [Boolean]
     def lazy_load_enabled?
-      return false unless self.class.lazy_load_enabled
+      return false unless self.class.lazy_loading_enabled
 
-      # Use a direct SQL count to ensure accuracy in all contexts (including tests)
-      # This avoids potential caching or scope issues with ActiveRecord's count method
-      count = self.class.connection.select_value(
-        "SELECT COUNT(*) FROM #{self.class.quoted_table_name}"
-      ).to_i
+      # Use ActiveRecord's count with uncached query to ensure fresh count
+      # This works better with Rails test transactions
+      count = self.class.uncached { self.class.count }
 
       count < self.class.lazy_load_threshold
     end

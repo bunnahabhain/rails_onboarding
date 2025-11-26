@@ -4,7 +4,13 @@ require 'test_helper'
 
 module RailsOnboarding
   class LazyLoadingTest < ActiveSupport::TestCase
+    # Note: We explicitly clean up users in setup to avoid fixture pollution
+    # since test_helper.rb loads all fixtures automatically
+
     setup do
+      # Clean up any existing users from fixtures or previous tests
+      User.delete_all
+
       @user = User.create!(
         email: 'test@example.com',
         onboarding_completed: false,
@@ -107,31 +113,33 @@ module RailsOnboarding
     # Instance-level lazy loading tests
 
     test 'lazy_current_step returns current step when enabled' do
-      @user.class.lazy_load_enabled = true
+      @user.class.lazy_loading_enabled = true
 
       step = @user.lazy_current_step
       assert_equal @user.current_onboarding_step, step
     end
 
     test 'lazy_current_step returns nil when disabled' do
-      @user.class.lazy_load_enabled = false
+      @user.class.lazy_loading_enabled = false
 
       step = @user.lazy_current_step
       assert_nil step
 
       # Reset
-      @user.class.lazy_load_enabled = true
+      @user.class.lazy_loading_enabled = true
     end
 
     test 'lazy_next_step returns next step when enabled' do
-      @user.class.lazy_load_enabled = true
+      @user.class.lazy_loading_enabled = true
 
       next_step = @user.lazy_next_step
-      assert_equal @user.next_onboarding_step, next_step
+      # Both should return nil since user is on 'welcome' step (first step)
+      assert_nil next_step
+      assert_nil @user.next_onboarding_step
     end
 
     test 'lazy_milestones_available returns milestones when enabled' do
-      @user.class.lazy_load_enabled = true
+      @user.class.lazy_loading_enabled = true
 
       milestones = @user.lazy_milestones_available
       assert_equal @user.milestones_available, milestones
@@ -173,15 +181,16 @@ module RailsOnboarding
     end
 
     test 'lazy_load_enabled? returns true when under threshold' do
-      @user.class.lazy_load_enabled = true
+      @user.class.lazy_loading_enabled = true
       @user.class.lazy_load_threshold = 1000
 
       assert @user.lazy_load_enabled?
     end
 
     test 'lazy_load_enabled? returns false when over threshold' do
-      @user.class.lazy_load_enabled = true
-      @user.class.lazy_load_threshold = 1
+      # Set threshold and enabled flag before creating users
+      User.lazy_loading_enabled = true
+      User.lazy_load_threshold = 1
 
       # Create more users to exceed threshold
       # Note: setup already creates 1 user, so we need to create enough to go over threshold
@@ -191,13 +200,15 @@ module RailsOnboarding
         )
       end
 
-      # Clear Rails cache to ensure fresh count
+      # Clear Rails cache
       Rails.cache.clear
 
-      refute @user.lazy_load_enabled?
+      # Test with a fresh user instance
+      test_user = User.first
+      refute test_user.lazy_load_enabled?
 
       # Reset
-      @user.class.lazy_load_threshold = 1000
+      User.lazy_load_threshold = 1000
     end
 
     test 'preload_onboarding_data returns hash of user data' do
@@ -213,14 +224,22 @@ module RailsOnboarding
     end
 
     test 'preload_onboarding_data includes correct values' do
-      @user.update!(milestones_achieved: ['welcome_completed'], milestone_points: 10)
+      # Use new hash format for milestones to avoid deprecation warning when storing
+      # Note: achieved_milestones always returns keys as strings for backward compatibility
+      @user.update!(
+        milestones_achieved: [{ 'key' => 'welcome_completed', 'achieved_at' => Time.current.iso8601 }],
+        milestone_points: 10
+      )
 
       data = @user.preload_onboarding_data
 
       assert_equal @user.needs_onboarding?, data[:needs_onboarding]
       assert_equal @user.current_onboarding_step, data[:current_step]
-      assert_equal @user.next_onboarding_step, data[:next_step]
+      # next_step is nil since user is on 'welcome' step (first step)
+      assert_nil data[:next_step]
+      assert_nil @user.next_onboarding_step
       assert_equal @user.onboarding_progress, data[:progress]
+      # achieved_milestones returns an array of string keys
       assert_equal ['welcome_completed'], data[:milestones]
       assert_equal 10, data[:milestone_points]
     end
