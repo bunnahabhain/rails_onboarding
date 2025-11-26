@@ -12,8 +12,6 @@ This guide helps diagnose and resolve common issues with Rails Onboarding.
 - [Tooltip Issues](#tooltip-issues)
 - [Milestone Problems](#milestone-problems)
 - [Analytics Issues](#analytics-issues)
-- [API Problems](#api-problems)
-- [Webhook Issues](#webhook-issues)
 - [Performance Problems](#performance-problems)
 - [Debugging Tools](#debugging-tools)
 
@@ -593,81 +591,6 @@ No data in analytics reports
    config.analytics_retention_days = 90  # Increase retention
    ```
 
-## Webhook Issues
-
-### Problem: Webhooks not being delivered
-
-**Symptoms:**
-Events occur but webhooks never received
-
-**Solution:**
-
-1. Check webhook configuration:
-   ```ruby
-   config.webhooks = [
-     {
-       url: 'https://your-endpoint.com/webhook',
-       events: ['onboarding.completed'],
-       secret_key: ENV['WEBHOOK_SECRET_KEY']
-     }
-   ]
-   ```
-
-2. Verify URL is accessible:
-   ```bash
-   curl -X POST https://your-endpoint.com/webhook \
-     -H "Content-Type: application/json" \
-     -d '{"test":"data"}'
-   ```
-
-3. Check webhook monitoring:
-   ```bash
-   rails console
-   RailsOnboarding::WebhookMonitoring.failed_deliveries(since: 1.hour.ago)
-   RailsOnboarding::WebhookMonitoring.health_status
-   ```
-
-4. Enable debug logging:
-   ```ruby
-   # config/initializers/rails_onboarding.rb
-   RailsOnboarding.logger.level = Logger::DEBUG
-   ```
-
-### Problem: Signature verification failing
-
-**Error (at webhook endpoint):**
-```
-Invalid signature
-```
-
-**Solution:**
-
-1. Verify secret key matches:
-   ```ruby
-   # Sender (Rails Onboarding)
-   config.webhooks = [{ secret_key: 'abc123' }]
-
-   # Receiver (your endpoint)
-   ENV['WEBHOOK_SECRET_KEY'] = 'abc123'  # Must match exactly
-   ```
-
-2. Check signature algorithm:
-   ```ruby
-   # Must use same algorithm on both sides
-   data = "#{event}:#{payload.to_json}:#{timestamp}"
-   signature = OpenSSL::HMAC.hexdigest('SHA256', secret_key, data)
-   ```
-
-3. Debug signature:
-   ```ruby
-   # At receiving endpoint
-   Rails.logger.debug "Received signature: #{request.headers['X-Webhook-Signature']}"
-   Rails.logger.debug "Expected signature: #{expected_signature}"
-   Rails.logger.debug "Payload: #{request.body.read}"
-   ```
-
-See [WEBHOOK_SECURITY_GUIDE.md](WEBHOOK_SECURITY_GUIDE.md) for detailed debugging.
-
 ## Performance Problems
 
 ### Problem: Slow page loads
@@ -784,13 +707,6 @@ user.onboarding_points
 # View analytics
 RailsOnboarding::Analytics.completion_rate
 RailsOnboarding::Analytics.funnel_analysis
-
-# Test webhooks
-RailsOnboarding::Webhooks.trigger(
-  'test.event',
-  { test: 'data' },
-  user
-)
 ```
 
 ### Log Analysis
@@ -855,8 +771,6 @@ document.querySelectorAll('[data-controller~="rails-onboarding--tooltip"]')
 ### Documentation
 
 - [README.md](README.md) - Main documentation
-- [API_AUTHENTICATION_GUIDE.md](API_AUTHENTICATION_GUIDE.md) - API setup
-- [WEBHOOK_SECURITY_GUIDE.md](WEBHOOK_SECURITY_GUIDE.md) - Webhook integration
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Production deployment
 - [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md) - Version upgrades
 

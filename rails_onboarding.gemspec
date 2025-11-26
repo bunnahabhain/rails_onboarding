@@ -29,7 +29,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "minitest-rails", "~> 8.0"
   spec.add_development_dependency "factory_bot_rails", "~> 6.0"
   spec.add_development_dependency "sqlite3", "~> 2.0"
-  spec.add_development_dependency "webmock", "~> 3.0"  # Optional - webhook tests will be skipped if not available
 
   # Optional dependencies for enhanced functionality
   spec.add_development_dependency "stimulus-rails", ">= 1.0.0"

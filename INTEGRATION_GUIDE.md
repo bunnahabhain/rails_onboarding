@@ -6,10 +6,8 @@ This guide covers how to integrate RailsOnboarding with various frameworks, auth
 
 1. [Devise Integration](#devise-integration)
 2. [Turbo & Stimulus Compatibility](#turbo--stimulus-compatibility)
-3. [API Mode Support](#api-mode-support)
-4. [Background Jobs](#background-jobs)
-5. [Webhooks](#webhooks)
-6. [Configuration Examples](#configuration-examples)
+3. [Background Jobs](#background-jobs)
+4. [Configuration Examples](#configuration-examples)
 
 ---
 
@@ -302,169 +300,6 @@ end
 
 ---
 
-## Webhooks
-
-Notify external systems of onboarding events.
-
-### Features
-
-- **Event Triggers**: Automatic webhooks for key events
-- **Multiple Endpoints**: Support for multiple webhook URLs
-- **Signature Verification**: HMAC signatures for security
-- **Retry Logic**: Automatic retry with exponential backoff
-- **Async Delivery**: Non-blocking webhook delivery
-
-### Setup
-
-1. **Enable Webhooks**:
-
-```ruby
-# config/initializers/rails_onboarding.rb
-RailsOnboarding.configure do |config|
-  config.webhooks_enabled = true
-  config.webhook_secret_key = ENV['WEBHOOK_SECRET_KEY']
-  config.webhook_async = true
-
-  config.webhook_endpoints = [
-    {
-      url: 'https://example.com/webhooks/onboarding',
-      events: [], # empty = all events
-      headers: {
-        'X-API-Key' => ENV['EXTERNAL_API_KEY']
-      },
-      enabled: true
-    }
-  ]
-end
-```
-
-2. **Include in Your Controller**:
-
-```ruby
-# app/controllers/rails_onboarding/onboarding_controller.rb
-class OnboardingController < ApplicationController
-  include RailsOnboarding::Webhooks
-
-  def complete_step
-    if current_user.complete_step(params[:step])
-      webhook_step_completed(current_user, params[:step])
-    end
-  end
-end
-```
-
-### Available Webhook Events
-
-```ruby
-# Onboarding started
-webhook_onboarding_started(user)
-
-# Step completed
-webhook_step_completed(user, 'profile')
-
-# Step skipped
-webhook_step_skipped(user, 'explore')
-
-# Onboarding completed
-webhook_onboarding_completed(user)
-
-# Onboarding skipped
-webhook_onboarding_skipped(user)
-
-# Milestone achieved
-webhook_milestone_achieved(user, :early_adopter)
-
-# Tooltip shown
-webhook_tooltip_shown(user, 'getting_started')
-
-# Tooltip dismissed
-webhook_tooltip_dismissed(user, 'getting_started')
-```
-
-### Webhook Payload Format
-
-```json
-{
-  "event": "onboarding.step_completed",
-  "data": {
-    "user_id": 123,
-    "step_name": "profile",
-    "current_step": "first_action",
-    "progress_percentage": 50,
-    "completed_at": "2024-01-15T10:30:00Z"
-  },
-  "timestamp": "2024-01-15T10:30:00Z",
-  "webhook_id": "550e8400-e29b-41d4-a716-446655440000"
-}
-```
-
-### Receiving Webhooks
-
-Create a webhook receiver in your external application:
-
-```ruby
-# app/controllers/webhooks_controller.rb
-class WebhooksController < ApplicationController
-  include RailsOnboarding::WebhookVerification
-
-  skip_before_action :verify_authenticity_token
-
-  def receive
-    secret = ENV['WEBHOOK_SECRET_KEY']
-
-    if verify_webhook_signature(request, secret)
-      payload = extract_webhook_payload(request)
-      process_webhook(payload)
-
-      render json: { status: 'success' }, status: :ok
-    else
-      render json: { error: 'Invalid signature' }, status: :unauthorized
-    end
-  end
-
-  private
-
-  def process_webhook(payload)
-    case payload[:event]
-    when 'onboarding.completed'
-      # Handle onboarding completion
-      user_id = payload[:data][:user_id]
-      # Your logic here
-    when 'onboarding.step_completed'
-      # Handle step completion
-    end
-  end
-end
-```
-
-### Dynamic Webhook Registration
-
-```ruby
-# Register a webhook at runtime
-RailsOnboarding::Webhooks.register_webhook(
-  'https://example.com/webhook',
-  events: ['onboarding.completed', 'onboarding.step_completed'],
-  headers: { 'Authorization' => 'Bearer token' }
-)
-
-# Unregister a webhook
-RailsOnboarding::Webhooks.unregister_webhook('https://example.com/webhook')
-```
-
-### Webhook Security
-
-Webhooks include an HMAC signature in the `X-Webhook-Signature` header:
-
-```ruby
-# Signature generation
-data = "#{event_name}:#{payload.to_json}:#{timestamp}"
-signature = OpenSSL::HMAC.hexdigest('SHA256', secret_key, data)
-```
-
-Always verify signatures before processing webhook payloads!
-
----
-
 ## Configuration Examples
 
 ### Complete Integration Setup
@@ -485,26 +320,10 @@ RailsOnboarding.configure do |config|
   config.turbo_streams_enabled = true
   config.turbo_morphing_enabled = false
 
-  # API Mode
-  config.api_mode_enabled = true
-  config.api_authentication_method = :token
-
   # Background Jobs
   config.background_jobs_enabled = true
   config.background_jobs_queue = :onboarding
   config.mailer_from = 'onboarding@example.com'
-
-  # Webhooks
-  config.webhooks_enabled = true
-  config.webhook_secret_key = ENV['WEBHOOK_SECRET_KEY']
-  config.webhook_async = true
-  config.webhook_endpoints = [
-    {
-      url: ENV['WEBHOOK_URL'],
-      events: ['onboarding.completed'],
-      headers: { 'X-API-Key' => ENV['API_KEY'] }
-    }
-  ]
 
   # Onboarding Steps
   config.steps = [
@@ -546,7 +365,6 @@ class ActiveSupport::TestCase
     # Disable async jobs in tests
     RailsOnboarding.configure do |config|
       config.background_jobs_enabled = false
-      config.webhooks_enabled = false
     end
   end
 end
@@ -603,26 +421,6 @@ bundle exec sidekiq -q default -q onboarding
 
 # For DelayedJob
 bundle exec rake jobs:work
-```
-
-### Webhooks Not Delivering
-
-**Issue**: External services aren't receiving webhook events.
-
-**Solution**: Check webhook configuration and logs:
-
-```ruby
-# Enable webhook logging
-Rails.logger.level = :debug
-
-# Test webhook delivery manually
-delivery = RailsOnboarding::WebhookDelivery.new(
-  endpoint,
-  'test.event',
-  { test: 'data' },
-  RailsOnboarding.configuration.webhook_options
-)
-delivery.deliver
 ```
 
 ---

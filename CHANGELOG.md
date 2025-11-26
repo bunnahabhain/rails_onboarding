@@ -61,9 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Integration & Compatibility
 - Devise integration for authentication
 - Full Turbo/Stimulus compatibility for Rails 7+
-- API mode support for headless/API-only applications
 - Background job support for emails and notifications
-- Webhook support for external system integration
 - Complete integration examples with tests
 
 #### Admin Interface

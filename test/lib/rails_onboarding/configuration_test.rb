@@ -125,15 +125,5 @@ module RailsOnboarding
       assert RailsOnboarding.configuration.enable_analytics
       assert_equal 90, RailsOnboarding.configuration.analytics_retention_days
     end
-
-    test "can configure webhook settings" do
-      RailsOnboarding.configure do |config|
-        config.webhook_url = "https://example.com/webhook"
-        config.webhook_events = [ :onboarding_completed, :step_completed ]
-      end
-
-      assert_equal "https://example.com/webhook", RailsOnboarding.configuration.webhook_url
-      assert_equal [ :onboarding_completed, :step_completed ], RailsOnboarding.configuration.webhook_events
-    end
   end
 end

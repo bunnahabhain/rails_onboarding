@@ -28,7 +28,6 @@ module RailsOnboarding
       validate_ab_tests
       validate_personalized_flows
       validate_progressive_features
-      validate_webhook_config
       validate_mailer_config
 
       raise ConfigurationError, error_message unless errors.empty?
@@ -408,28 +407,6 @@ module RailsOnboarding
             end
           end
         end
-      end
-    end
-
-    def validate_webhook_config
-      return unless config.webhooks_enabled
-
-      unless config.webhook_endpoints.is_a?(Array)
-        errors << InvalidTypeError.new(
-          "webhook_endpoints must be an Array, got #{config.webhook_endpoints.class}"
-        )
-      end
-
-      if config.webhook_secret_key && !config.webhook_secret_key.is_a?(String)
-        errors << InvalidTypeError.new(
-          "webhook_secret_key must be a String, got #{config.webhook_secret_key.class}"
-        )
-      end
-
-      if config.webhook_async && ![TrueClass, FalseClass].include?(config.webhook_async.class)
-        errors << InvalidTypeError.new(
-          "webhook_async must be a Boolean, got #{config.webhook_async.class}"
-        )
       end
     end
 

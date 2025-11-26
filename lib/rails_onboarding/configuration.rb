@@ -38,12 +38,6 @@ module RailsOnboarding
                   :background_jobs_enabled,
                   :background_jobs_queue,
                   :mailer_from,
-                  :webhooks_enabled,
-                  :webhook_endpoints,
-                  :webhook_url,
-                  :webhook_events,
-                  :webhook_secret_key,
-                  :webhook_async,
                   :rate_limiting_enabled,
                   :rate_limit_per_period,
                   :rate_limit_period
@@ -157,12 +151,6 @@ module RailsOnboarding
       @background_jobs_enabled = false
       @background_jobs_queue = :default
       @mailer_from = 'noreply@example.com'
-      @webhooks_enabled = false
-      @webhook_endpoints = []
-      @webhook_url = nil
-      @webhook_events = []
-      @webhook_secret_key = nil
-      @webhook_async = true
 
       # Rate limiting
       @rate_limiting_enabled = true

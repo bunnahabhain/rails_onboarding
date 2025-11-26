@@ -105,32 +105,6 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
     assert defined?(RailsOnboarding::OnboardingMailer)
   end
 
-  # Webhooks Tests
-  test "webhooks module is available" do
-    assert defined?(RailsOnboarding::Webhooks)
-  end
-
-  test "webhooks has trigger method" do
-    controller = MockWebhookController.new
-    assert_respond_to controller, :trigger_webhook
-  end
-
-  test "webhook delivery class is available" do
-    assert defined?(RailsOnboarding::WebhookDelivery)
-  end
-
-  test "webhook delivery job is available" do
-    assert defined?(RailsOnboarding::WebhookDeliveryJob)
-  end
-
-  test "webhook verification module is available" do
-    assert defined?(RailsOnboarding::WebhookVerification)
-  end
-
-  test "webhook error class is available" do
-    assert defined?(RailsOnboarding::WebhookError)
-  end
-
   # Configuration Tests
   test "configuration has devise integration options" do
     config = RailsOnboarding.configuration
@@ -146,28 +120,12 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
     assert_respond_to config, :turbo_morphing_enabled
   end
 
-  test "configuration has api mode options" do
-    config = RailsOnboarding.configuration
-
-    assert_respond_to config, :api_mode_enabled
-    assert_respond_to config, :api_authentication_method
-  end
-
   test "configuration has background job options" do
     config = RailsOnboarding.configuration
 
     assert_respond_to config, :background_jobs_enabled
     assert_respond_to config, :background_jobs_queue
     assert_respond_to config, :mailer_from
-  end
-
-  test "configuration has webhook options" do
-    config = RailsOnboarding.configuration
-
-    assert_respond_to config, :webhooks_enabled
-    assert_respond_to config, :webhook_endpoints
-    assert_respond_to config, :webhook_secret_key
-    assert_respond_to config, :webhook_async
   end
 
   test "configuration defaults are set correctly" do
@@ -177,15 +135,9 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
     assert_equal false, config.redirect_unconfirmed_to_onboarding
     assert_equal true, config.turbo_streams_enabled
     assert_equal false, config.turbo_morphing_enabled
-    assert_equal false, config.api_mode_enabled
-    assert_equal :token, config.api_authentication_method
     assert_equal false, config.background_jobs_enabled
     assert_equal :default, config.background_jobs_queue
     assert_equal 'noreply@example.com', config.mailer_from
-    assert_equal false, config.webhooks_enabled
-    assert_equal [], config.webhook_endpoints
-    assert_nil config.webhook_secret_key
-    assert_equal true, config.webhook_async
   end
 
   # Integration Tests

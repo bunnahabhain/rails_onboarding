@@ -251,8 +251,7 @@ module RailsOnboarding
     attr_accessor :steps, :feature_tooltips, :milestones,
                   :enable_tooltips, :enable_milestones, :enable_analytics,
                   :enable_ab_testing, :personalization_enabled,
-                  :redirect_after_completion, :redirect_after_skip,
-                  :webhook_url
+                  :redirect_after_completion, :redirect_after_skip
 
     def initialize(organization_id)
       @organization_id = organization_id
@@ -277,8 +276,7 @@ module RailsOnboarding
         enable_ab_testing: @enable_ab_testing,
         personalization_enabled: @personalization_enabled,
         redirect_after_completion: @redirect_after_completion,
-        redirect_after_skip: @redirect_after_skip,
-        webhook_url: @webhook_url
+        redirect_after_skip: @redirect_after_skip
       }
     end
   end

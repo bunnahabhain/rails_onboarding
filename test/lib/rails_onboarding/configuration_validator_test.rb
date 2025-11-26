@@ -411,24 +411,6 @@ module RailsOnboarding
       assert_match /references undefined step/i, error.message
     end
 
-    # Webhook validation tests
-
-    test "validates webhook_endpoints is an array" do
-      @config.webhooks_enabled = true
-      @config.webhook_endpoints = "invalid"
-
-      error = assert_raises(ConfigurationError) { @config.validate! }
-      assert_match /webhook_endpoints must be an array/i, error.message
-    end
-
-    test "validates webhook_secret_key is a string if present" do
-      @config.webhooks_enabled = true
-      @config.webhook_secret_key = 123
-
-      error = assert_raises(ConfigurationError) { @config.validate! }
-      assert_match /webhook_secret_key must be a string/i, error.message
-    end
-
     # Mailer validation tests
 
     test "validates mailer_from is a string if present" do
@@ -454,29 +436,6 @@ module RailsOnboarding
       assert @config.valid?
     end
 
-    # API mode validation tests
-
-    test "validates api_authentication_method is valid" do
-      @config.api_mode_enabled = true
-      @config.api_authentication_method = :invalid
-
-      error = assert_raises(ConfigurationError) { @config.validate! }
-      assert_match /api_authentication_method/i, error.message
-    end
-
-    test "accepts valid api_authentication_methods" do
-      @config.api_mode_enabled = true
-
-      @config.api_authentication_method = :token
-      assert @config.valid?
-
-      @config.api_authentication_method = :session
-      assert @config.valid?
-
-      @config.api_authentication_method = :custom
-      assert @config.valid?
-    end
-
     # Multiple errors test
 
     test "collects multiple validation errors" do
@@ -493,7 +452,6 @@ module RailsOnboarding
 
     test "handles nil values appropriately" do
       @config.analytics_data_retention_days = nil
-      @config.webhook_secret_key = nil
 
       assert @config.valid?
     end

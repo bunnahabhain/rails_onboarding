@@ -20,7 +20,6 @@ A flexible, customizable onboarding engine for Rails applications. Create engagi
 - ⚡ **Performance Optimized** - Caching, database optimization, lazy loading, and CDN support
 - 🔌 **Easy Integration** - Works seamlessly with Devise, Turbo, and Stimulus
 - 🎭 **Multi-Tenant Support** - Different onboarding flows per organization
-- 🔗 **Webhook Support** - Notify external systems of onboarding events
 - 📦 **Pre-built Templates** - 5 ready-to-use onboarding flows for common use cases
 
 ## Table of Contents
@@ -146,7 +145,7 @@ These enhance functionality but are not required:
 | pg | >= 1.1 | PostgreSQL adapter | For JSONB field support (recommended) |
 | mysql2 | >= 0.5 | MySQL adapter | For JSON field support |
 | sqlite3 | >= 1.4 | SQLite adapter | Development/testing |
-| sidekiq | >= 6.0 | Background jobs | For async email sending and webhooks |
+| sidekiq | >= 6.0 | Background jobs | For async email sending |
 | resque | >= 2.0 | Background jobs | Alternative job processor |
 | delayed_job | >= 4.1 | Background jobs | Alternative job processor |
 | redis | >= 4.0 | Caching | For production caching with Redis |
@@ -191,7 +190,6 @@ Different features require different optional dependencies:
 | Guided Tours | rails | stimulus-rails |
 | Turbo Navigation | rails | turbo-rails, stimulus-rails |
 | Background Emails | rails | sidekiq/resque/delayed_job, actionmailer |
-| Webhooks | rails | sidekiq/resque/delayed_job (recommended) |
 | Production Caching | rails | redis, actionpack |
 | JSONB Tooltips/Milestones | rails | pg (PostgreSQL) |
 | Analytics Tracking | rails | - |
@@ -383,20 +381,6 @@ RailsOnboarding.configure do |config|
     :tooltip_viewed,
     :tooltip_dismissed
   ]
-end
-```
-
-### Webhook Configuration
-
-```ruby
-RailsOnboarding.configure do |config|
-  config.webhook_url = ENV['ONBOARDING_WEBHOOK_URL']
-  config.webhook_events = [
-    :onboarding_completed,
-    :step_completed,
-    :milestone_achieved
-  ]
-  config.webhook_secret = ENV['WEBHOOK_SECRET']
 end
 ```
 
