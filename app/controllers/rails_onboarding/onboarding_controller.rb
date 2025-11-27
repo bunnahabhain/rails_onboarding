@@ -26,7 +26,9 @@ module RailsOnboarding
           return
         end
 
-        redirect_to onboarding_path and return
+        # Temporarily disabled to debug
+        # redirect_to onboarding_path and return
+        return
       end
 
       # Dynamic action based on current step
@@ -53,6 +55,8 @@ module RailsOnboarding
         end
       end
     rescue => e
+      Rails.logger.error "Error in show action: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
       handle_standard_error(e)
     end
 
@@ -274,7 +278,7 @@ module RailsOnboarding
     def authenticate_user!
       # This should be overridden by the host app
       # or use the host app's authentication
-      unless defined?(current_user) && current_user
+      unless respond_to?(:current_user,  true) && current_user.present?
         redirect_to main_app.root_path
       end
     end
@@ -286,7 +290,10 @@ module RailsOnboarding
     end
 
     def set_step
+      Rails.logger.debug "set_step called"
+      Rails.logger.debug "current_user: #{current_user.inspect}"
       @current_step = current_user.current_onboarding_step
+      Rails.logger.debug "@current_step: #{@current_step.inspect}"
       @next_step = current_user.next_onboarding_step
       @progress = current_user.onboarding_progress
       @total_steps = RailsOnboarding.configuration.total_steps
@@ -361,9 +368,6 @@ module RailsOnboarding
             locals: { alert: error_message }
           ), status: :unprocessable_entity
         end
-        format.any do
-          redirect_to onboarding_path, alert: error_message
-        end
       end
     end
 
@@ -381,9 +385,6 @@ module RailsOnboarding
             locals: { alert: "Resource not found. Please try again." }
           ), status: :not_found
         end
-        format.any do
-          redirect_to main_app.root_path, alert: "Resource not found. Please try again."
-        end
       end
     end
 
@@ -397,20 +398,14 @@ module RailsOnboarding
                         "Error: #{exception.message}"
                       end
 
-      respond_to do |format|
-        format.html do
-          redirect_to onboarding_path, alert: error_message
-        end
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            "flash-messages",
-            partial: "rails_onboarding/shared/flash",
-            locals: { alert: error_message }
-          ), status: :internal_server_error
-        end
-        format.any do
-          redirect_to onboarding_path, alert: error_message
-        end
+      if request.format == :turbo_stream || request.headers["Accept"]&.include?("turbo-stream")
+        render turbo_stream: turbo_stream.replace(
+          "flash-messages",
+          partial: "rails_onboarding/shared/flash",
+          locals: { alert: error_message }
+        ), status: :internal_server_error
+      else
+        redirect_to onboarding_path, alert: error_message
       end
     end
 
@@ -429,9 +424,6 @@ module RailsOnboarding
             partial: "rails_onboarding/shared/flash",
             locals: { alert: error_message }
           ), status: :internal_server_error
-        end
-        format.any do
-          redirect_to main_app.root_path, alert: error_message
         end
       end
     end

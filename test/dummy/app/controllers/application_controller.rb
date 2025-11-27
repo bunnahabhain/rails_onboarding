@@ -7,4 +7,8 @@ class ApplicationController < ActionController::Base
     @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]
   end
   helper_method :current_user
+
+  def index
+    render html: "<h1>Test App Home</h1>".html_safe
+  end
 end

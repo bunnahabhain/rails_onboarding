@@ -108,12 +108,5 @@ module RailsOnboarding
       assert_response :success
       assert_match /turbo-stream/, response.content_type
     end
-
-    private
-
-    def sign_in(user)
-      # Simple sign in for testing
-      @request.session[:user_id] = user.id if @request
-    end
   end
 end
