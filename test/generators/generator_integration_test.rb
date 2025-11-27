@@ -1,12 +1,15 @@
 require "test_helper"
+require "generators/rails_onboarding/install_generator"
 
 module RailsOnboarding
   class GeneratorIntegrationTest < ActiveSupport::TestCase
     def setup
       @generator_class = RailsOnboarding::Generators::InstallGenerator
-      @template_dir = File.join(
-        File.dirname(__FILE__),
-        "../../lib/generators/rails_onboarding/templates"
+      @template_dir = File.expand_path(
+        File.join(
+          File.dirname(__FILE__),
+          "../../lib/generators/rails_onboarding/templates"
+        )
       )
     end
 
@@ -74,7 +77,7 @@ module RailsOnboarding
 
     test "all required template files exist" do
       required_templates = [
-        "add_onboarding_users.rb",
+        "add_onboarding_to_users.rb",
         "add_analytics_to_rails_onboarding.rb",
         "add_milestone_tracking_to_users.rb",
         "add_onboarding_indexes.rb",
@@ -115,7 +118,7 @@ module RailsOnboarding
       initializer_path = File.join(@template_dir, "rails_onboarding.rb")
       content = File.read(initializer_path)
 
-      example_steps = %w[welcome profile]
+      example_steps = %w[welcome explore]
 
       example_steps.each do |step|
         assert_match(/name: :#{step}/, content,
@@ -195,6 +198,8 @@ module RailsOnboarding
       migration_files = Dir.glob(File.join(@template_dir, "*.rb"))
         .reject { |f| f.end_with?("rails_onboarding.rb") }
 
+      assert migration_files.any?, "Should have at least one migration template"
+
       migration_files.each do |file|
         content = File.read(file)
         basename = File.basename(file)
@@ -204,7 +209,8 @@ module RailsOnboarding
 
         # Check Ruby syntax
         begin
-          RubyVM::InstructionSequence.compile(ruby_content)
+          compiled = RubyVM::InstructionSequence.compile(ruby_content)
+          assert compiled, "#{basename} should compile successfully"
         rescue SyntaxError => e
           flunk "#{basename} has invalid Ruby syntax: #{e.message}"
         end
@@ -217,7 +223,9 @@ module RailsOnboarding
 
       migration_files.each do |file|
         content = File.read(file)
-        basename = File.basename(file, ".*")
+        # Remove all extensions (.rb.tt -> remove .tt then .rb)
+        basename = File.basename(file)
+        basename = basename.sub(/\.rb\.tt$/, '').sub(/\.rb$/, '')
 
         # Class name should be CamelCase version of file name
         expected_pattern = basename.split("_").map { |w| w.capitalize }.join

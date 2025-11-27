@@ -26,7 +26,7 @@ module RailsOnboarding
       end
 
       def copy_migration
-        migration_template "add_onboarding_users.rb",
+        migration_template "add_onboarding_to_users.rb",
                            "db/migrate/add_onboarding_to_users.rb"
       end
 
@@ -56,7 +56,7 @@ module RailsOnboarding
 
       def validate_template_paths!
         required_templates = [
-          "add_onboarding_users.rb",
+          "add_onboarding_to_users.rb",
           "add_analytics_to_rails_onboarding.rb",
           "rails_onboarding.rb",
           "onboarding.css",
