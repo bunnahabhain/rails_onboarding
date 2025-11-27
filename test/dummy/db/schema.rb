@@ -10,16 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_15_220000) do
-  create_table "rails_onboarding_analytics_events", force: :cascade do |t|
-    t.string "user_type"
+ActiveRecord::Schema[8.1].define(version: 2025_11_27_041342) do
+  create_table "analytics_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "event_data"
+    t.string "event_type"
+    t.datetime "updated_at", null: false
     t.integer "user_id"
+  end
+
+  create_table "rails_onboarding_analytics_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
     t.string "event_type", null: false
+    t.datetime "occurred_at", null: false
     t.text "properties"
     t.string "session_id"
-    t.datetime "occurred_at", null: false
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.string "user_type"
     t.index ["event_type"], name: "index_rails_onboarding_analytics_events_on_event_type"
     t.index ["occurred_at"], name: "index_rails_onboarding_analytics_events_on_occurred_at"
     t.index ["session_id"], name: "index_rails_onboarding_analytics_events_on_session_id"
@@ -28,18 +36,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_15_220000) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.string "api_token"
+    t.datetime "created_at", null: false
     t.string "email"
+    t.text "feature_tooltips_shown"
+    t.datetime "last_milestone_at"
+    t.integer "milestone_points"
+    t.text "milestones_achieved"
     t.boolean "onboarding_completed"
     t.datetime "onboarding_completed_at"
     t.string "onboarding_current_step"
     t.boolean "onboarding_skipped"
-    t.text "feature_tooltips_shown"
-    t.text "milestones_achieved"
-    t.integer "milestone_points"
-    t.datetime "last_milestone_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.integer "organization_id"
+    t.datetime "updated_at", null: false
     t.index ["organization_id"], name: "index_users_on_organization_id"
   end
 end

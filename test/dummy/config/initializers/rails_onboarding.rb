@@ -13,4 +13,11 @@ RailsOnboarding.configure do |config|
     { name: :first_action, title: 'First Action', icon: '🚀', skippable: false },
     { name: :explore, title: 'Explore Features', icon: '🔍', skippable: true }
   ]
+
+  # Welcome page configuration
+  config.welcome_features = [
+    { icon: '🚀', text: 'Getting started with the platform' },
+    { icon: '👥', text: 'Building your profile' },
+    { icon: '🎯', text: 'Achieving your goals' }
+  ]
 end

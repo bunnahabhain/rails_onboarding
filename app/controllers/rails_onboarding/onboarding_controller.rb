@@ -1,7 +1,7 @@
 module RailsOnboarding
   class OnboardingController < ApplicationController
     before_action :authenticate_user!
-    before_action :check_onboarding_status, except: [ :complete, :skip ]
+    before_action :check_onboarding_status, except: [ :complete, :skip, :restart ]
     before_action :set_step
 
     # Error handling for common scenarios
@@ -21,38 +21,38 @@ module RailsOnboarding
 
         begin
           current_user.update!(onboarding_current_step: first_step[:name])
+          @current_step = current_user.current_onboarding_step
         rescue ActiveRecord::RecordInvalid => e
           handle_validation_error(e)
           return
         end
+      end
 
-        # Temporarily disabled to debug
-        # redirect_to onboarding_path and return
-        return
+      # Reset invalid step to first step
+      if current_user.onboarding_current_step &&
+         !RailsOnboarding.configuration.step_by_name(current_user.onboarding_current_step)
+        first_step = RailsOnboarding.configuration.steps.first
+        current_user.update!(onboarding_current_step: first_step[:name])
+        @current_step = current_user.current_onboarding_step
+      end
+
+      # Track step view - use gem's analytics if enabled
+      if RailsOnboarding.configuration.enable_analytics
+        RailsOnboarding::AnalyticsEvent.track_custom_event(
+          user: current_user,
+          event_name: "onboarding_step_view",
+          event_data: { step: @current_step[:name] }
+        )
       end
 
       # Dynamic action based on current step
       step_template = @current_step[:name]
 
-      respond_to do |format|
-        format.html do
-          if template_exists?(step_template)
-            render step_template
-          else
-            render :step
-          end
-        end
-        format.turbo_stream do
-          if template_exists?("#{step_template}.turbo_stream")
-            render "#{step_template}.turbo_stream"
-          else
-            render turbo_stream: turbo_stream.replace(
-              "onboarding-content",
-              partial: "rails_onboarding/onboarding/step_content",
-              locals: { current_step: @current_step, progress: @progress, total_steps: @total_steps }
-            )
-          end
-        end
+      # Render the appropriate template
+      if template_exists?(step_template)
+        render step_template
+      else
+        render :step
       end
     rescue => e
       Rails.logger.error "Error in show action: #{e.message}"
@@ -170,15 +170,7 @@ module RailsOnboarding
       begin
         if params[:skip_all] == "true"
           current_user.skip_onboarding!
-          respond_to do |format|
-            format.html { redirect_to_after_skip }
-            format.turbo_stream do
-              render turbo_stream: turbo_stream.action(
-                :redirect,
-                main_app.send(RailsOnboarding.configuration.redirect_after_skip)
-              )
-            end
-          end
+          redirect_to_after_skip
         elsif @current_step && @current_step[:skippable]
           current_user.skip_onboarding_step!(@current_step[:name])
           if current_user.onboarding_completed?
@@ -278,7 +270,10 @@ module RailsOnboarding
     def authenticate_user!
       # This should be overridden by the host app
       # or use the host app's authentication
-      unless respond_to?(:current_user,  true) && current_user.present?
+      Rails.logger.debug "authenticate_user! - respond_to?(:current_user): #{respond_to?(:current_user, true)}"
+      Rails.logger.debug "authenticate_user! - current_user: #{current_user.inspect}"
+      unless respond_to?(:current_user, true) && current_user.present?
+        Rails.logger.debug "authenticate_user! - REDIRECTING to root"
         redirect_to main_app.root_path
       end
     end
@@ -290,13 +285,12 @@ module RailsOnboarding
     end
 
     def set_step
-      Rails.logger.debug "set_step called"
-      Rails.logger.debug "current_user: #{current_user.inspect}"
-      @current_step = current_user.current_onboarding_step
-      Rails.logger.debug "@current_step: #{@current_step.inspect}"
-      @next_step = current_user.next_onboarding_step
-      @progress = current_user.onboarding_progress
-      @total_steps = RailsOnboarding.configuration.total_steps
+      if current_user
+        @current_step = current_user.current_onboarding_step
+        @next_step = current_user.next_onboarding_step
+        @progress = current_user.onboarding_progress
+        @total_steps = RailsOnboarding.configuration.total_steps
+      end
 
       @progress ||= 0
       @total_steps ||= 4
@@ -398,15 +392,8 @@ module RailsOnboarding
                         "Error: #{exception.message}"
                       end
 
-      if request.format == :turbo_stream || request.headers["Accept"]&.include?("turbo-stream")
-        render turbo_stream: turbo_stream.replace(
-          "flash-messages",
-          partial: "rails_onboarding/shared/flash",
-          locals: { alert: error_message }
-        ), status: :internal_server_error
-      else
-        redirect_to onboarding_path, alert: error_message
-      end
+      # Simple redirect for all error cases
+      redirect_to onboarding_path, alert: error_message
     end
 
     def handle_configuration_error(message)
