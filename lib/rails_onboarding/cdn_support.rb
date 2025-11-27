@@ -9,86 +9,91 @@ module RailsOnboarding
   module CdnSupport
     extend ActiveSupport::Concern
 
-    class_methods do
-      # Get the CDN host URL
-      #
-      # @return [String, nil] CDN host URL or nil if not configured
-      def cdn_host
-        @cdn_host ||= begin
-          # Check Rails configuration first
-          if defined?(Rails.application) && Rails.application.config.action_controller.asset_host
-            Rails.application.config.action_controller.asset_host
-          else
-            ENV['RAILS_ONBOARDING_CDN_HOST']
-          end
-        end
-      end
-
-      # Set the CDN host URL
-      #
-      # @param host [String] CDN host URL
-      def cdn_host=(host)
-        @cdn_host = host
-      end
-
-      # Check if CDN is enabled
-      #
-      # @return [Boolean]
-      def cdn_enabled?
-        cdn_host.present? && !Rails.env.development?
-      end
-
-      # Get asset URL with CDN support
-      #
-      # @param asset_path [String] The asset path (e.g., 'rails_onboarding/application.css')
-      # @param asset_type [Symbol] Asset type (:stylesheet, :javascript, :image)
-      # @return [String] Full URL to the asset
-      def cdn_asset_url(asset_path, asset_type: :stylesheet)
-        if cdn_enabled?
-          case asset_type
-          when :stylesheet
-            "#{cdn_host}/assets/#{asset_path}"
-          when :javascript
-            "#{cdn_host}/assets/#{asset_path}"
-          when :image
-            "#{cdn_host}/assets/#{asset_path}"
-          else
-            "#{cdn_host}/assets/#{asset_path}"
-          end
+    # Get the CDN host URL
+    #
+    # @return [String, nil] CDN host URL or nil if not configured
+    def self.cdn_host
+      @cdn_host ||= begin
+        # Check Rails configuration first
+        if defined?(Rails.application) && Rails.application.config.action_controller.asset_host
+          Rails.application.config.action_controller.asset_host
         else
-          # Fall back to local asset path
-          "/assets/#{asset_path}"
+          ENV['RAILS_ONBOARDING_CDN_HOST']
         end
       end
+    end
 
-      # Preload critical onboarding assets
-      #
-      # @return [Array<Hash>] Array of asset preload hints
-      def preload_assets
-        [
-          {
-            href: cdn_asset_url('rails_onboarding/application.css', asset_type: :stylesheet),
-            as: 'style',
-            type: 'text/css'
-          },
-          {
-            href: cdn_asset_url('rails_onboarding/application.js', asset_type: :javascript),
-            as: 'script',
-            type: 'text/javascript'
-          }
-        ]
-      end
+    # Set the CDN host URL
+    #
+    # @param host [String] CDN host URL
+    def self.cdn_host=(host)
+      @cdn_host = host
+    end
 
-      # Generate cache-busting URL with versioning
-      #
-      # @param asset_path [String] The asset path
-      # @param version [String] Asset version (defaults to gem version)
-      # @return [String] URL with version parameter
-      def versioned_asset_url(asset_path, version: nil)
-        version ||= RailsOnboarding::VERSION
-        url = cdn_asset_url(asset_path)
-        "#{url}?v=#{version}"
+    # Check if CDN is enabled
+    #
+    # @return [Boolean]
+    def self.cdn_enabled?
+      cdn_host.present? && !Rails.env.development?
+    end
+
+    # Get asset URL with CDN support
+    #
+    # @param asset_path [String] The asset path (e.g., 'rails_onboarding/application.css')
+    # @param asset_type [Symbol] Asset type (:stylesheet, :javascript, :image)
+    # @return [String] Full URL to the asset
+    def self.cdn_asset_url(asset_path, asset_type: :stylesheet)
+      if cdn_enabled?
+        case asset_type
+        when :stylesheet
+          "#{cdn_host}/assets/#{asset_path}"
+        when :javascript
+          "#{cdn_host}/assets/#{asset_path}"
+        when :image
+          "#{cdn_host}/assets/#{asset_path}"
+        else
+          "#{cdn_host}/assets/#{asset_path}"
+        end
+      else
+        # Fall back to local asset path
+        "/assets/#{asset_path}"
       end
+    end
+
+    # Preload critical onboarding assets
+    #
+    # @return [Array<Hash>] Array of asset preload hints
+    def self.preload_assets
+      [
+        {
+          href: cdn_asset_url('rails_onboarding/application.css', asset_type: :stylesheet),
+          as: 'style',
+          type: 'text/css'
+        },
+        {
+          href: cdn_asset_url('rails_onboarding/application.js', asset_type: :javascript),
+          as: 'script',
+          type: 'text/javascript'
+        }
+      ]
+    end
+
+    # Generate cache-busting URL with versioning
+    #
+    # @param asset_path [String] The asset path
+    # @param version [String] Asset version (defaults to gem version)
+    # @param asset_type [Symbol] Asset type (:stylesheet, :javascript, :image)
+    # @return [String] URL with version parameter
+    def self.versioned_asset_url(asset_path, version: nil, asset_type: :stylesheet)
+      version ||= RailsOnboarding::VERSION
+      url = cdn_asset_url(asset_path, asset_type: asset_type)
+      "#{url}?v=#{version}"
+    end
+
+    # Make these methods available as class methods when included
+    class_methods do
+      delegate :cdn_host, :cdn_host=, :cdn_enabled?, :cdn_asset_url,
+               :preload_assets, :versioned_asset_url, to: CdnSupport
     end
 
     module_function
