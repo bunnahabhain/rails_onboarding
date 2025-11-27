@@ -28,11 +28,13 @@ module RailsOnboarding
         serialize :milestones_achieved, coder: JSON
       end
 
-      # Association with analytics events
-      has_many :analytics_events,
-               as: :user,
-               class_name: "RailsOnboarding::AnalyticsEvent",
-               dependent: :destroy
+      # Association with analytics events (only if ActiveRecord is available)
+      if respond_to?(:has_many)
+        has_many :analytics_events,
+                 as: :user,
+                 class_name: "RailsOnboarding::AnalyticsEvent",
+                 dependent: :destroy
+      end
 
       # Validations for JSON field sizes (only if ActiveRecord validations are available)
       if respond_to?(:validate)
