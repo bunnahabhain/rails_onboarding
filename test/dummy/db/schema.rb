@@ -36,7 +36,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_27_041342) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "api_token"
     t.datetime "created_at", null: false
     t.string "email"
     t.text "feature_tooltips_shown"
