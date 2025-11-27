@@ -12,7 +12,7 @@ module RailsOnboarding
 
     test "all migration templates exist" do
       required_migrations = [
-        "add_onboarding_users.rb",
+        "add_onboarding_to_users.rb",
         "add_analytics_to_rails_onboarding.rb",
         "add_milestone_tracking_to_users.rb",
         "add_onboarding_indexes.rb",
@@ -58,8 +58,8 @@ module RailsOnboarding
       end
     end
 
-    test "add_onboarding_users migration has proper rollback" do
-      file = File.join(@template_dir, "add_onboarding_users.rb")
+    test "add_onboarding_to_users migration has proper rollback" do
+      file = File.join(@template_dir, "add_onboarding_to_users.rb")
       content = File.read(file)
 
       # Check up method
@@ -166,7 +166,7 @@ module RailsOnboarding
     end
 
     test "migrations include proper indexes for performance" do
-      onboarding_file = File.join(@template_dir, "add_onboarding_users.rb")
+      onboarding_file = File.join(@template_dir, "add_onboarding_to_users.rb")
       onboarding_content = File.read(onboarding_file)
 
       # Check for performance indexes
@@ -184,7 +184,7 @@ module RailsOnboarding
     end
 
     test "onboarding migration handles different database adapters" do
-      file = File.join(@template_dir, "add_onboarding_users.rb")
+      file = File.join(@template_dir, "add_onboarding_to_users.rb")
       content = File.read(file)
 
       # Should handle PostgreSQL jsonb, MySQL json, and SQLite text
