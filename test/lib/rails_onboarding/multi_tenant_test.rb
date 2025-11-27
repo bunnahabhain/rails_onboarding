@@ -31,7 +31,9 @@ module RailsOnboarding
     end
 
     test "can retrieve organization for user" do
-      @user.define_singleton_method(:organization_id) { @organization.id }
+      # Capture organization in closure for singleton method
+      org = @organization
+      @user.define_singleton_method(:organization_id) { org.id }
 
       org_id = MultiTenant.organization_for_user(@user)
       assert_equal @organization.id, org_id

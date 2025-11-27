@@ -116,6 +116,23 @@ module RailsOnboarding
         restore_original_config(original_config) if original_config
       end
 
+      # Get organization ID for user
+      #
+      # @param user [User] The user object
+      # @return [Integer, String, nil] The organization ID
+      def organization_for_user(user)
+        return nil unless user
+
+        # Try to get organization_id directly
+        if user.respond_to?(:organization_id)
+          return user.organization_id
+        end
+
+        # Otherwise, get tenant and extract its ID
+        tenant = tenant_from_user(user)
+        tenant&.id
+      end
+
       # Get tenant from user
       #
       # @param user [User] The user object
