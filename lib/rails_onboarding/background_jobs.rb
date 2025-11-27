@@ -407,53 +407,6 @@ module RailsOnboarding
     end
   end
 
-  # Mailer for onboarding emails (only defined if ActionMailer is available)
-  if action_mailer_available?
-    class OnboardingMailer < ::ActionMailer::Base
-      default from: -> { RailsOnboarding.configuration.mailer_from || 'noreply@example.com' }
-
-      def welcome_email(user)
-        @user = user
-        @onboarding_url = Rails.application.routes.url_helpers.rails_onboarding_onboarding_url
-
-        mail(
-          to: user.email,
-          subject: I18n.t('rails_onboarding.mailer.welcome.subject', default: 'Welcome! Get Started')
-        )
-      end
-
-      def reminder_email(user)
-        @user = user
-        @current_step = user.onboarding_current_step
-        @progress = user.onboarding_progress_percentage
-        @onboarding_url = Rails.application.routes.url_helpers.rails_onboarding_onboarding_url
-
-        mail(
-          to: user.email,
-          subject: I18n.t('rails_onboarding.mailer.reminder.subject', default: 'Complete Your Onboarding')
-        )
-      end
-
-      def completion_email(user)
-        @user = user
-        @completed_at = user.onboarding_completed_at
-
-        mail(
-          to: user.email,
-          subject: I18n.t('rails_onboarding.mailer.completion.subject', default: 'Congratulations! Onboarding Complete')
-        )
-      end
-
-      def step_completed_email(user)
-        @user = user
-        @step = user.onboarding_current_step
-        @progress = user.onboarding_progress_percentage
-
-        mail(
-          to: user.email,
-          subject: I18n.t('rails_onboarding.mailer.step_completed.subject', default: 'Step Completed!')
-        )
-      end
-    end
-  end
+  # Mailer is now defined in app/mailers/rails_onboarding/onboarding_mailer.rb
+  # and will be autoloaded by Rails when needed
 end

@@ -28,6 +28,12 @@ module RailsOnboarding
         serialize :milestones_achieved, coder: JSON
       end
 
+      # Association with analytics events
+      has_many :analytics_events,
+               as: :user,
+               class_name: "RailsOnboarding::AnalyticsEvent",
+               dependent: :destroy
+
       # Validations for JSON field sizes (only if ActiveRecord validations are available)
       if respond_to?(:validate)
         validate :validate_tooltips_size, if: :feature_tooltips_shown_changed?
@@ -92,6 +98,9 @@ module RailsOnboarding
 
       step || RailsOnboarding.configuration.steps.first
     end
+
+    # Alias for performance testing - returns the same as current_onboarding_step
+    alias_method :current_step_info, :current_onboarding_step
 
     def next_onboarding_step
       return nil if onboarding_completed?

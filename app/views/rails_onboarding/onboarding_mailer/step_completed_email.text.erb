@@ -13,7 +13,7 @@
 <%= t('rails_onboarding.mailer.step_completed.encouragement',
   default: "Keep up the great work! Each step brings you closer to unlocking all features and getting the most out of your experience.") %>
 
-<%= t('rails_onboarding.mailer.step_completed.cta', default: 'Continue Onboarding') %>: <%= Rails.application.routes.url_helpers.rails_onboarding_onboarding_url rescue '#' %>
+<%= t('rails_onboarding.mailer.step_completed.cta', default: 'Continue Onboarding') %>: <%= @onboarding_url rescue '#' %>
 
 ---
 <%= t('rails_onboarding.mailer.step_completed.footer', default: 'Keep going!') %>

@@ -8,6 +8,11 @@
 <%= t('rails_onboarding.mailer.completion.intro',
   default: "You've successfully completed your onboarding! You now have access to all features and can explore everything we have to offer.") %>
 
+<% if @milestone_points && @milestone_points > 0 %>
+🏆 <%= t('rails_onboarding.mailer.completion.milestone', default: 'Achievement Unlocked!') %>
+<%= t('rails_onboarding.mailer.completion.points_earned', default: "You've earned %{points} milestone points!", points: @milestone_points) %>
+
+<% end %>
 <%= t('rails_onboarding.mailer.completion.next_steps', default: "Here's what you can do next:") %>
 
 - <%= t('rails_onboarding.mailer.completion.step_1', default: 'Explore all available features') %>

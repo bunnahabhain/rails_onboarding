@@ -146,7 +146,7 @@ module RailsOnboarding
       10.times do |i|
         user = User.create!(email: "n1_test_#{i}@example.com")
         3.times do
-          AnalyticsEvent.create!(
+          RailsOnboarding::AnalyticsEvent.create!(
             user: user,
             event_type: "test_event",
             occurred_at: Time.current

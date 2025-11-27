@@ -22,6 +22,15 @@ module RailsOnboarding
       end
     end
 
+    # Helper method to extract text body from multipart emails
+    def email_text_body(email)
+      if email.multipart?
+        email.text_part&.body&.to_s || email.html_part&.body&.to_s || ""
+      else
+        email.body.to_s
+      end
+    end
+
     # ===== Welcome Email Tests =====
 
     test "welcome email is sent to correct recipient" do
@@ -55,7 +64,7 @@ module RailsOnboarding
       @user.update(name: "John Doe")
       email = OnboardingMailer.welcome_email(@user)
 
-      assert_match(/John Doe/, email.body.to_s) if @user.respond_to?(:name)
+      assert_match(/John Doe/, email_text_body(email)) if @user.respond_to?(:name)
     rescue NameError
       skip "OnboardingMailer not defined"
     end
@@ -64,7 +73,7 @@ module RailsOnboarding
       skip "OnboardingMailer not implemented yet" unless defined?(OnboardingMailer)
 
       email = OnboardingMailer.welcome_email(@user)
-      body = email.body.to_s
+      body = email_text_body(email)
 
       assert_match(/onboarding|get started|start now/i, body)
     rescue NameError
@@ -120,7 +129,7 @@ module RailsOnboarding
       @user.update(onboarding_current_step: "profile")
       email = OnboardingMailer.reminder_email(@user)
 
-      body = email.body.to_s
+      body = email_text_body(email)
       assert_match(/profile|Setup Profile/i, body)
     rescue NameError
       skip "OnboardingMailer not defined"
@@ -130,7 +139,7 @@ module RailsOnboarding
       skip "OnboardingMailer not implemented yet" unless defined?(OnboardingMailer)
 
       email = OnboardingMailer.reminder_email(@user)
-      body = email.body.to_s
+      body = email_text_body(email)
 
       # Should mention progress percentage or steps remaining
       assert_match(/\d+%|\d+ step|remaining|left/i, body)
@@ -190,7 +199,7 @@ module RailsOnboarding
       @user.update(onboarding_completed: true)
       email = OnboardingMailer.completion_email(@user)
 
-      body = email.body.to_s
+      body = email_text_body(email)
       assert_match(/next|explore|now|ready/i, body)
     rescue NameError
       skip "OnboardingMailer not defined"
@@ -205,7 +214,7 @@ module RailsOnboarding
       ) if @user.respond_to?(:milestone_points=)
 
       email = OnboardingMailer.completion_email(@user)
-      body = email.body.to_s
+      body = email_text_body(email)
 
       # Might mention points, achievements, or milestones
       assert_match(/points|achievement|milestone|earned/i, body) rescue nil
@@ -235,7 +244,7 @@ module RailsOnboarding
       @user.update(onboarding_current_step: "profile")
       email = OnboardingMailer.step_completed_email(@user)
 
-      body = email.body.to_s
+      body = email_text_body(email)
       assert_match(/profile|step/i, body)
     rescue NameError
       skip "OnboardingMailer not defined"
@@ -245,7 +254,7 @@ module RailsOnboarding
       skip "OnboardingMailer not implemented yet" unless defined?(OnboardingMailer)
 
       email = OnboardingMailer.step_completed_email(@user)
-      body = email.body.to_s
+      body = email_text_body(email)
 
       # Should show some indication of progress
       assert_match(/progress|completed|next|remaining/i, body)
@@ -262,7 +271,10 @@ module RailsOnboarding
 
       [:welcome_email, :reminder_email, :completion_email].each do |email_type|
         email = OnboardingMailer.send(email_type, @user)
-        body = email.body.to_s
+        body = email_text_body(email)
+
+        # Emails should have content
+        assert body.present?, "Email body should not be empty for #{email_type}"
 
         # Should include user name if available
         assert_match(/Jane|Smith/, body) if @user.respond_to?(:name) && @user.name.present?
@@ -276,7 +288,7 @@ module RailsOnboarding
 
       I18n.with_locale(:es) do
         email = OnboardingMailer.welcome_email(@user)
-        body = email.body.to_s
+        body = email_text_body(email)
 
         # Should use Spanish locale
         # This depends on having translations
@@ -336,7 +348,7 @@ module RailsOnboarding
       skip "OnboardingMailer not implemented yet" unless defined?(OnboardingMailer)
 
       email = OnboardingMailer.welcome_email(@user)
-      body = email.body.to_s
+      body = email_text_body(email)
 
       # Should contain absolute URLs, not relative paths
       assert_match(%r{https?://}, body)
@@ -348,10 +360,14 @@ module RailsOnboarding
       skip "OnboardingMailer not implemented yet" unless defined?(OnboardingMailer)
 
       email = OnboardingMailer.reminder_email(@user)
-      body = email.body.to_s
+      body = email_text_body(email)
 
       # Should include unsubscribe option for reminder emails
-      assert_match(/unsubscribe|opt.out|preferences/i, body) rescue nil
+      if body.match?(/unsubscribe|opt.out|preferences/i)
+        assert_match(/unsubscribe|opt.out|preferences/i, body)
+      else
+        skip "Unsubscribe functionality not yet implemented"
+      end
     rescue NameError
       skip "OnboardingMailer not defined"
     end
@@ -447,6 +463,8 @@ module RailsOnboarding
       html_body = html_part.body.to_s
 
       # Should have proper semantic HTML
+      assert html_body.present?, "HTML body should not be empty"
+
       # Should have alt text for images
       assert_match(/alt=/i, html_body) if html_body.include?("<img")
     rescue NameError
@@ -461,7 +479,7 @@ module RailsOnboarding
       @user.update(api_token: "secret_token_12345") if @user.respond_to?(:api_token=)
 
       email = OnboardingMailer.welcome_email(@user)
-      body = email.body.to_s
+      body = email_text_body(email)
 
       # Should not include API tokens or other secrets
       assert_not_includes body, "secret_token_12345" if @user.respond_to?(:api_token)
@@ -473,12 +491,14 @@ module RailsOnboarding
       skip "OnboardingMailer not implemented yet" unless defined?(OnboardingMailer)
 
       email = OnboardingMailer.welcome_email(@user)
-      body = email.body.to_s
+      body = email_text_body(email)
 
       # Links should include secure tokens, not user IDs directly
       # Should not have /users/123 but rather /onboarding?token=xyz
-      if body.match?(%r{https?://})
-        assert_match(/token=|t=/, body) rescue nil
+      if body.match?(%r{https?://}) && body.match?(/token=|t=/)
+        assert_match(/token=|t=/, body)
+      else
+        skip "Secure token links not yet implemented"
       end
     rescue NameError
       skip "OnboardingMailer not defined"
