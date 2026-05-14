@@ -41,22 +41,28 @@ module RailsOnboarding
     end
 
     test "complete_onboarding_step! achieves step milestones" do
+      # Configure a single-step flow so completing welcome also completes onboarding
+      original_steps = RailsOnboarding.configuration.steps
+      RailsOnboarding.configuration.steps = [
+        { name: :welcome, title: "Welcome", icon: "🎉", skippable: true }
+      ]
       @user.update!(onboarding_current_step: :welcome)
 
       initial_count = AnalyticsEvent.count
       @user.complete_onboarding_step!(:welcome, session_id: @session_id)
       events_created = AnalyticsEvent.count - initial_count
 
-      # Should trigger welcome milestone (at least step completion + milestone events)
+      # Should trigger welcome milestone + completion milestone + onboarding_completed event
       assert events_created >= 2, "Expected at least 2 events, got #{events_created}"
 
-      # Check milestone achievement (both step and completion milestones should be achieved)
       milestone_events = AnalyticsEvent.where(event_type: AnalyticsEvent::MILESTONE_ACHIEVED)
       milestone_keys = milestone_events.map { |e| e.properties["milestone_key"] }
 
       assert_includes milestone_keys, "welcome_completed", "Should achieve welcome milestone"
       assert_includes milestone_keys, "onboarding_completed", "Should achieve completion milestone"
       assert @user.milestone_achieved?(:welcome_completed)
+    ensure
+      RailsOnboarding.configuration.steps = original_steps
     end
 
     test "skip_onboarding_step! tracks analytics event" do
@@ -198,26 +204,31 @@ module RailsOnboarding
     end
 
     test "completion milestone checking works correctly" do
+      # Configure a single-step flow so completing welcome also completes onboarding
+      original_steps = RailsOnboarding.configuration.steps
+      RailsOnboarding.configuration.steps = [
+        { name: :welcome, title: "Welcome", icon: "🎉", skippable: true }
+      ]
       @user.update!(onboarding_current_step: :welcome)
 
-      # Complete the only step, which should trigger: step completion + step milestone + completion + completion milestone
       initial_count = AnalyticsEvent.count
       @user.complete_onboarding_step!(:welcome, session_id: @session_id)
       events_created = AnalyticsEvent.count - initial_count
 
-      # Should create at least 2 events (step completion + step milestone), possibly more if onboarding completes
+      # Should create step completion + step milestone + onboarding_completed + completion milestone
       assert events_created >= 2, "Expected at least 2 events, got #{events_created}"
 
       assert @user.onboarding_completed?
       assert @user.milestone_achieved?(:welcome_completed)
 
-      completion_event = AnalyticsEvent.where(event_type: AnalyticsEvent::ONBOARDING_COMPLETED).last
       milestone_events = AnalyticsEvent.where(event_type: AnalyticsEvent::MILESTONE_ACHIEVED).order(:created_at)
       completion_milestone = milestone_events.find { |e| e.properties["milestone_key"] == "onboarding_completed" }
-      
+
       assert_not_nil completion_milestone
       assert_equal "onboarding_completed", completion_milestone.properties["milestone_key"]
-      assert_equal 50, completion_milestone.properties["points_earned"] # From default config
+      assert_equal 50, completion_milestone.properties["points_earned"]
+    ensure
+      RailsOnboarding.configuration.steps = original_steps
     end
   end
 end

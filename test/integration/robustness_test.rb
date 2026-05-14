@@ -2,6 +2,7 @@ require "test_helper"
 
 class RobustnessTest < ActionDispatch::IntegrationTest
   def setup
+    @original_configuration = RailsOnboarding.configuration
     RailsOnboarding.reset_configuration!
     RailsOnboarding.configure do |config|
       config.steps = [
@@ -16,6 +17,10 @@ class RobustnessTest < ActionDispatch::IntegrationTest
       onboarding_completed: false,
       onboarding_current_step: :profile
     )
+  end
+
+  def teardown
+    RailsOnboarding.instance_variable_set(:@configuration, @original_configuration)
   end
 
   # Error Recovery Tests

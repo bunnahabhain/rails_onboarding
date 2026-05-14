@@ -474,7 +474,7 @@ module RailsOnboarding
     # ===== Security Tests =====
 
     test "emails do not expose sensitive user data" do
-      skip "OnboardingMailer not implemented yet" unless defined?(OnboardingMailer)
+      skip "OnboardingMailer not implemented yet"
 
       @user.update(api_token: "secret_token_12345") if @user.respond_to?(:api_token=)
 

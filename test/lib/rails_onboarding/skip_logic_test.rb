@@ -3,6 +3,8 @@ require "test_helper"
 module RailsOnboarding
   class SkipLogicTest < ActiveSupport::TestCase
     def setup
+      @original_steps = RailsOnboarding.configuration.steps
+
       @user = User.create!(
         email: "test@example.com",
         onboarding_completed: false,
@@ -16,6 +18,10 @@ module RailsOnboarding
         { name: :optional, title: "Optional", skippable: true, skip_if: ->(user) { true } },
         { name: :complete, title: "Complete", skippable: true }
       ]
+    end
+
+    def teardown
+      RailsOnboarding.configuration.steps = @original_steps
     end
 
     test "should_skip_step? returns false for step without skip_if" do

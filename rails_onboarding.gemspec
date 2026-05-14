@@ -21,12 +21,11 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.required_ruby_version = ">= 3.2.5"
+  spec.required_ruby_version = ">= 3.4.9"
 
   spec.add_dependency "rails", ">= 8.0.0"
 
-  spec.add_development_dependency "minitest", "~> 5.0"
-  spec.add_development_dependency "minitest-rails", "~> 8.0"
+  spec.add_development_dependency "minitest", "~> 6.0"
   spec.add_development_dependency "factory_bot_rails", "~> 6.0"
   spec.add_development_dependency "sqlite3", "~> 2.0"
 

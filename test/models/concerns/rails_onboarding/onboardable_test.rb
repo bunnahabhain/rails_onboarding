@@ -3,6 +3,13 @@ require "test_helper"
 module RailsOnboarding
   class OnboardableTest < ActiveSupport::TestCase
     setup do
+      # Save original configuration values that will be modified
+      @original_milestones = RailsOnboarding.configuration.milestones
+      @original_steps = RailsOnboarding.configuration.steps
+      @original_feature_tooltips = RailsOnboarding.configuration.feature_tooltips
+      @original_enable_milestones = RailsOnboarding.configuration.enable_milestones
+      @original_enable_tooltips = RailsOnboarding.configuration.enable_tooltips
+
       # Configure steps, tooltips, and milestones for tests
       RailsOnboarding.configuration.steps = [
         { name: :welcome, title: "Welcome", icon: "1", skippable: true },
@@ -35,6 +42,14 @@ module RailsOnboarding
         milestones_achieved: [],
         milestone_points: 0
       )
+    end
+
+    teardown do
+      RailsOnboarding.configuration.milestones = @original_milestones
+      RailsOnboarding.configuration.steps = @original_steps
+      RailsOnboarding.configuration.feature_tooltips = @original_feature_tooltips
+      RailsOnboarding.configuration.enable_milestones = @original_enable_milestones
+      RailsOnboarding.configuration.enable_tooltips = @original_enable_tooltips
     end
 
     test "user includes onboardable concern" do

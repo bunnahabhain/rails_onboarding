@@ -142,7 +142,7 @@ module RailsOnboarding
       data = { controller: "rails-onboarding--#{controller_name}" }
 
       values.each do |key, value|
-        data["rails-onboarding--#{controller_name}-#{key}-value"] = value
+        data[:"rails-onboarding--#{controller_name}-#{key}-value"] = value
       end
 
       data
