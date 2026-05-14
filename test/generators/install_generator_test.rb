@@ -93,9 +93,10 @@ module RailsOnboarding
       FileUtils.mv(original_path, backup_path) if File.exist?(original_path)
 
       begin
-        assert_raises(RuntimeError, /Missing required template files/) do
+        error = assert_raises(RuntimeError) do
           run_generator
         end
+        assert_match(/Missing required template files/, error.message)
       ensure
         FileUtils.mv(backup_path, original_path) if File.exist?(backup_path)
       end
