@@ -61,12 +61,13 @@ RailsOnboarding::Engine.routes.draw do
       end
     end
 
-    # A/B test management
-    resources :ab_tests do
+    # A/B test management - tests are defined in the host app's initializer
+    # (RailsOnboarding.configuration.ab_tests), so only viewing and toggling
+    # them on/off is supported here, not creating or deleting them.
+    resources :ab_tests, only: [:index, :show] do
       member do
         post :start
         post :stop
-        post :declare_winner
         get :export
       end
     end

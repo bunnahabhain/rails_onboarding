@@ -64,10 +64,10 @@ module RailsOnboarding
       end
 
       def load_ab_test_data
-        return unless defined?(RailsOnboarding::AbTest)
+        ab_tests = RailsOnboarding.configuration.ab_tests || {}
 
-        @active_tests = RailsOnboarding::AbTest.where(status: 'active').count
-        @total_tests = RailsOnboarding::AbTest.count
+        @total_tests = ab_tests.size
+        @active_tests = ab_tests.count { |_name, config| config[:enabled] }
       rescue StandardError => e
         logger.error "Error loading A/B test data: #{e.message}"
         @ab_test_error = e.message

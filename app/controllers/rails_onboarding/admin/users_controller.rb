@@ -6,7 +6,9 @@ module RailsOnboarding
     # Manage and view user onboarding progress
     class UsersController < BaseController
       def index
-        @users = filtered_users.page(params[:page]).per(params[:per_page] || 25)
+        page = [params[:page].to_i, 1].max
+        per_page = [(params[:per_page] || 25).to_i, 1].max
+        @users = filtered_users.limit(per_page).offset((page - 1) * per_page)
         @stats = calculate_stats
       end
 
@@ -91,22 +93,22 @@ module RailsOnboarding
         if params[:search].present?
           search_term = "%#{params[:search]}%"
           users = if user_class.column_names.include?('email')
-            users.where("email LIKE ? OR id::text LIKE ?", search_term, search_term)
+            users.where("email LIKE ? OR CAST(id AS TEXT) LIKE ?", search_term, search_term)
           else
-            users.where("id::text LIKE ?", search_term)
+            users.where("CAST(id AS TEXT) LIKE ?", search_term)
           end
         end
 
         # Sort - sanitize column and direction to prevent SQL injection
-        ALLOWED_SORT_COLUMNS = %w[email created_at updated_at onboarding_current_step onboarding_completed_at].freeze
-        ALLOWED_DIRECTIONS = %w[asc desc].freeze
+        allowed_sort_columns = %w[email created_at updated_at onboarding_current_step onboarding_completed_at].freeze
+        allowed_directions = %w[asc desc].freeze
 
         sort_column = params[:sort] || 'created_at'
         sort_direction = params[:direction] || 'desc'
 
         # Sanitize inputs
-        sort_column = ALLOWED_SORT_COLUMNS.include?(sort_column) ? sort_column : 'created_at'
-        sort_direction = ALLOWED_DIRECTIONS.include?(sort_direction.downcase) ? sort_direction.downcase : 'desc'
+        sort_column = allowed_sort_columns.include?(sort_column) ? sort_column : 'created_at'
+        sort_direction = allowed_directions.include?(sort_direction.downcase) ? sort_direction.downcase : 'desc'
 
         users = users.order("#{user_class.table_name}.#{sort_column} #{sort_direction}")
 

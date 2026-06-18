@@ -9,30 +9,83 @@ module RailsOnboarding
 
       def setup
         @admin_user = User.create!(email: 'admin@example.com')
+        sign_in @admin_user
       end
 
       test "should list flows" do
-        skip "Implement based on your authentication system"
+        get admin_flows_path
+        assert_response :success
       end
 
       test "should create new flow" do
-        skip "Implement based on your authentication system"
+        assert_difference -> { RailsOnboarding::Flow.count }, 1 do
+          post admin_flows_path, params: {
+            flow: { name: 'Test Flow', description: 'A test flow',
+                     steps: [{ name: 'welcome', title: 'Welcome', icon: '👋', skippable: '1', order: '0' }] }
+          }
+        end
+
+        assert_redirected_to admin_flows_path
+        flow = RailsOnboarding::Flow.find_by(name: 'Test Flow')
+        assert_equal [{ 'name' => 'welcome', 'title' => 'Welcome', 'icon' => '👋', 'skippable' => '1', 'order' => '0' }], flow.steps
       end
 
       test "should update flow" do
-        skip "Implement based on your authentication system"
+        flow = RailsOnboarding::Flow.create!(name: 'Original', steps: [])
+
+        patch admin_flow_path(flow), params: { flow: { name: 'Renamed' } }
+
+        assert_redirected_to admin_flow_path(flow)
+        assert_equal 'Renamed', flow.reload.name
       end
 
       test "should delete flow" do
-        skip "Implement based on your authentication system"
+        flow = RailsOnboarding::Flow.create!(name: 'Disposable', steps: [])
+
+        assert_difference -> { RailsOnboarding::Flow.count }, -1 do
+          delete admin_flow_path(flow)
+        end
       end
 
-      test "should activate flow" do
-        skip "Implement based on your authentication system"
+      test "cannot delete the active flow" do
+        flow = RailsOnboarding::Flow.create!(name: 'Active Flow', steps: [], active: true)
+
+        assert_no_difference -> { RailsOnboarding::Flow.count } do
+          delete admin_flow_path(flow)
+        end
+      end
+
+      test "should activate flow and update configuration steps" do
+        old_active = RailsOnboarding::Flow.create!(name: 'Old', steps: [{ name: 'old_step' }], active: true)
+        new_flow = RailsOnboarding::Flow.create!(name: 'New', steps: [{ name: 'new_step' }], active: false)
+
+        post activate_admin_flow_path(new_flow)
+
+        assert_redirected_to admin_flows_path
+        assert_not old_active.reload.active?
+        assert new_flow.reload.active?
+        assert_equal [{ 'name' => 'new_step' }], RailsOnboarding.configuration.steps
+      end
+
+      test "activating a flow is visible without re-activating in another process" do
+        flow = RailsOnboarding::Flow.create!(name: 'Shared', steps: [{ name: 'shared_step' }], active: false)
+        RailsOnboarding::Flow.activate!(flow)
+
+        # Simulate a fresh process: nothing in this Configuration instance's
+        # memoized state was touched, only the database changed.
+        assert_equal [{ 'name' => 'shared_step' }], RailsOnboarding.configuration.steps
       end
 
       test "should duplicate flow" do
-        skip "Implement based on your authentication system"
+        flow = RailsOnboarding::Flow.create!(name: 'Source', steps: [{ name: 'a' }])
+
+        assert_difference -> { RailsOnboarding::Flow.count }, 1 do
+          post duplicate_admin_flow_path(flow)
+        end
+
+        copy = RailsOnboarding::Flow.find_by(name: 'Source (Copy)')
+        assert copy.present?
+        assert_not copy.active?
       end
     end
   end

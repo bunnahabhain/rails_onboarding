@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_27_041342) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_18_000000) do
   create_table "analytics_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "event_data"
@@ -33,6 +33,16 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_27_041342) do
     t.index ["session_id"], name: "index_rails_onboarding_analytics_events_on_session_id"
     t.index ["user_type", "user_id", "event_type"], name: "idx_on_user_type_user_id_event_type_4f884bc6aa"
     t.index ["user_type", "user_id"], name: "index_rails_onboarding_analytics_events_on_user"
+  end
+
+  create_table "rails_onboarding_flows", force: :cascade do |t|
+    t.boolean "active", default: false, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.text "steps", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_rails_onboarding_flows_on_active"
   end
 
   create_table "users", force: :cascade do |t|

@@ -1,33 +1,24 @@
 <div class="admin-ab-test-card">
   <div class="admin-ab-test-header">
-    <h3 class="admin-ab-test-title"><%= test.name %></h3>
-    <span class="admin-badge admin-badge-<%= test.status %>"><%= test.status.humanize %></span>
+    <h3 class="admin-ab-test-title"><%= test[:name] %></h3>
+    <span class="admin-badge admin-badge-<%= test[:enabled] ? 'active' : 'draft' %>">
+      <%= test[:enabled] ? 'Active' : 'Inactive' %>
+    </span>
   </div>
-
-  <p class="admin-ab-test-description"><%= test.description %></p>
 
   <div class="admin-ab-test-meta">
     <div class="admin-ab-test-meta-item">
-      <strong>Goal:</strong> <%= test.goal_metric.humanize %>
+      <strong>Variants:</strong> <%= test[:variants].join(', ') %>
     </div>
-    <div class="admin-ab-test-meta-item">
-      <strong>Variants:</strong> <%= test.variants.count %>
-    </div>
-    <% if test.started_at %>
-      <div class="admin-ab-test-meta-item">
-        <strong>Started:</strong> <%= time_ago_in_words(test.started_at) %> ago
-      </div>
-    <% end %>
   </div>
 
   <div class="admin-ab-test-actions">
-    <%= link_to "View Results", admin_ab_test_path(test), class: "admin-btn admin-btn-sm admin-btn-secondary" %>
-    <%= link_to "Edit", edit_admin_ab_test_path(test), class: "admin-btn admin-btn-sm admin-btn-secondary" %>
+    <%= link_to "View Results", admin_ab_test_path(test[:name]), class: "admin-btn admin-btn-sm admin-btn-secondary" %>
 
-    <% if test.status == 'draft' %>
-      <%= button_to "Start", start_admin_ab_test_path(test), method: :post, class: "admin-btn admin-btn-sm admin-btn-success" %>
-    <% elsif test.status == 'active' %>
-      <%= button_to "Stop", stop_admin_ab_test_path(test), method: :post, class: "admin-btn admin-btn-sm admin-btn-warning" %>
+    <% if test[:enabled] %>
+      <%= button_to "Stop", stop_admin_ab_test_path(test[:name]), method: :post, class: "admin-btn admin-btn-sm admin-btn-warning" %>
+    <% else %>
+      <%= button_to "Start", start_admin_ab_test_path(test[:name]), method: :post, class: "admin-btn admin-btn-sm admin-btn-success" %>
     <% end %>
   </div>
 </div>

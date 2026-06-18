@@ -1,0 +1,41 @@
+<% content_for :page_title, @test_name %>
+
+<% content_for :header_actions do %>
+  <%= link_to "← Back to A/B Tests", admin_ab_tests_path, class: "admin-btn admin-btn-secondary" %>
+
+  <% if @test_config[:enabled] %>
+    <%= button_to "Stop", stop_admin_ab_test_path(@test_name), method: :post, class: "admin-btn admin-btn-warning" %>
+  <% else %>
+    <%= button_to "Start", start_admin_ab_test_path(@test_name), method: :post, class: "admin-btn admin-btn-success" %>
+  <% end %>
+
+  <%= link_to "Export CSV", export_admin_ab_test_path(@test_name, format: :csv), class: "admin-btn admin-btn-secondary" %>
+<% end %>
+
+<div class="admin-card">
+  <div class="admin-card-header">
+    <h3 class="admin-card-title">Results by Variant</h3>
+  </div>
+  <div class="admin-card-body">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Variant</th>
+          <th>Participants</th>
+          <th>Completions</th>
+          <th>Conversion Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @results.each do |variant, data| %>
+          <tr>
+            <td><%= variant %></td>
+            <td><%= data[:participants] %></td>
+            <td><%= data[:completions] %></td>
+            <td><%= data[:conversion_rate] %>%</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

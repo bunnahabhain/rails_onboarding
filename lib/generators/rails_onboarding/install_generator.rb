@@ -35,6 +35,11 @@ module RailsOnboarding
                            "db/migrate/add_analytics_to_rails_onboarding.rb"
       end
 
+      def copy_flows_migration
+        migration_template "create_rails_onboarding_flows.rb",
+                           "db/migrate/create_rails_onboarding_flows.rb"
+      end
+
       def copy_initializer
         template "rails_onboarding.rb", "config/initializers/rails_onboarding.rb"
       end
@@ -58,6 +63,7 @@ module RailsOnboarding
         required_templates = [
           "add_onboarding_to_users.rb",
           "add_analytics_to_rails_onboarding.rb",
+          "create_rails_onboarding_flows.rb",
           "rails_onboarding.rb",
           "onboarding.css",
           "README"

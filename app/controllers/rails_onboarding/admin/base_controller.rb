@@ -54,21 +54,10 @@ module RailsOnboarding
       end
       helper_method :admin_user?
 
-      # Rescue from unauthorized access
-      rescue_from UnauthorizedError do |exception|
-        logger.warn "Unauthorized admin access: #{exception.message}"
-
-        respond_to do |format|
-          format.html do
-            flash[:alert] = "Access denied: #{exception.message}"
-            redirect_to main_app.root_path
-          end
-          format.json do
-            render json: { error: "Unauthorized access" }, status: :forbidden
-          end
-        end
-      end
-
+      # rescue_from handlers are checked most-specific-last-registered-first, so the
+      # generic StandardError handler must come before UnauthorizedError or it will
+      # swallow every UnauthorizedError too (it's a StandardError subclass) and the
+      # specific handler below becomes dead code.
       rescue_from StandardError do |exception|
         logger.error "Admin error: #{exception.message}"
         logger.error exception.backtrace.join("\n")
@@ -80,6 +69,21 @@ module RailsOnboarding
           end
           format.json do
             render json: { error: exception.message }, status: :internal_server_error
+          end
+        end
+      end
+
+      # Rescue from unauthorized access
+      rescue_from UnauthorizedError do |exception|
+        logger.warn "Unauthorized admin access: #{exception.message}"
+
+        respond_to do |format|
+          format.html do
+            flash[:alert] = "Access denied: #{exception.message}"
+            redirect_to main_app.root_path
+          end
+          format.json do
+            render json: { error: "Unauthorized access" }, status: :forbidden
           end
         end
       end

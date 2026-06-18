@@ -289,6 +289,16 @@ module RailsOnboarding
       end
     end
 
+    # Reads the active RailsOnboarding::Flow from the admin Flow Editor when one
+    # exists, falling back to the statically-configured steps otherwise. This
+    # keeps "activate a flow" a real, shared, durable change instead of a
+    # per-process global mutation - every process re-checks the database
+    # instead of caching a value that could go stale the moment another
+    # process (or another admin) activates a different flow.
+    def steps
+      active_flow_steps || @steps
+    end
+
     # Override setters to clear cache when configuration changes
     def steps=(value)
       clear_cache!
@@ -387,6 +397,15 @@ module RailsOnboarding
     end
 
     private
+
+    def active_flow_steps
+      return nil unless defined?(RailsOnboarding::Flow)
+      return nil unless RailsOnboarding::Flow.table_exists?
+
+      RailsOnboarding::Flow.active.first&.steps
+    rescue StandardError
+      nil
+    end
 
     def conditions_match?(milestone_conditions, trigger_conditions)
       return true if milestone_conditions.nil?
