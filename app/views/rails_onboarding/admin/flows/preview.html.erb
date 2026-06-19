@@ -1,0 +1,40 @@
+<div class="onboarding-step-wrapper">
+  <div class="admin-alert admin-alert-info" style="margin-bottom: 1.5rem;">
+    <strong>Preview Mode:</strong> "<%= @flow.name %>" - <%= @steps.length %> step<%= 's' unless @steps.length == 1 %>.
+    This is a read-only walkthrough; the buttons below don't affect any real onboarding progress.
+    <%= link_to "Back to flow", admin_flow_path(@flow), class: "admin-card-action" %>
+  </div>
+
+  <% if @steps.any? %>
+    <% @steps.each_with_index do |step, index| %>
+      <div class="onboarding-step-content">
+        <div class="step-header">
+          <% if step[:icon] %>
+            <span class="step-icon"><%= step[:icon] %></span>
+          <% end %>
+          <h2 class="step-title">
+            <%= step[:title] %>
+            <span class="admin-text-muted">(<%= index + 1 %> of <%= @steps.length %>)</span>
+          </h2>
+        </div>
+
+        <div class="step-body">
+          <% if step[:description].present? %>
+            <p class="step-description"><%= step[:description] %></p>
+          <% end %>
+
+          <p>
+            <code><%= step[:name] %></code>
+            <% if step[:skippable] %>
+              <span class="admin-badge admin-badge-warning">Skippable</span>
+            <% end %>
+          </p>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="onboarding-step-content">
+      <p class="admin-empty-state">This flow has no steps configured yet.</p>
+    </div>
+  <% end %>
+</div>

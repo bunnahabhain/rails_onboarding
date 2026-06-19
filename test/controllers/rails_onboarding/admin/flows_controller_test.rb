@@ -87,6 +87,26 @@ module RailsOnboarding
         assert copy.present?
         assert_not copy.active?
       end
+
+      test "should preview flow steps after a database round trip" do
+        flow = RailsOnboarding::Flow.create!(
+          name: 'Previewable',
+          steps: [{ name: 'welcome', title: 'Say Hello', icon: '👋', skippable: true }]
+        )
+        flow = RailsOnboarding::Flow.find(flow.id) # force a fresh read, not the in-memory object just saved
+
+        get preview_admin_flow_path(flow)
+
+        assert_response :success
+        assert_includes response.body, 'Say Hello'
+        assert_includes response.body, '👋'
+        assert_includes response.body, 'Skippable'
+      end
+
+      test "preview of an unknown flow redirects with an alert" do
+        get preview_admin_flow_path(id: 'does-not-exist')
+        assert_redirected_to admin_flows_path
+      end
     end
   end
 end
