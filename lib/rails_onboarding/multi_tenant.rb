@@ -8,6 +8,13 @@ module RailsOnboarding
         @organization_configurations ||= {}
       end
 
+      # Merged configuration is cached per organization ID so repeated lookups
+      # (every onboarding request) don't re-merge the same hash every time.
+      # Invalidated whenever that organization is reconfigured or cleared.
+      def merged_configuration_cache
+        @merged_configuration_cache ||= {}
+      end
+
       # Configure onboarding for a specific organization by ID
       #
       # @param organization_id [Integer, String] The organization ID
@@ -16,11 +23,13 @@ module RailsOnboarding
         config = OrganizationConfig.new(organization_id)
         yield config if block_given?
         organization_configurations[organization_id] = config.to_hash
+        merged_configuration_cache.delete(organization_id)
       end
 
       # Clear all organization configurations (useful for testing)
       def clear_all_configurations
         @organization_configurations = {}
+        @merged_configuration_cache = {}
       end
 
       # Get configuration for a specific tenant
@@ -32,9 +41,10 @@ module RailsOnboarding
 
         # Check if tenant is an ID (for organization_configurations lookup)
         if tenant.is_a?(Integer) || tenant.is_a?(String)
-          stored_config = organization_configurations[tenant]
-          return merge_configurations(default_configuration, stored_config) if stored_config
-          return default_configuration
+          return merged_configuration_cache[tenant] ||= begin
+            stored_config = organization_configurations[tenant]
+            stored_config ? merge_configurations(default_configuration, stored_config) : default_configuration
+          end
         end
 
         # Check if tenant has custom configuration
