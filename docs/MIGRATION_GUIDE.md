@@ -625,7 +625,7 @@ Test that previous version is working correctly.
 If you encounter issues during upgrade:
 
 1. **Check the Changelog**: [CHANGELOG.md](CHANGELOG.md)
-2. **Review Documentation**: [README.md](README.md)
+2. **Review Documentation**: [README.md](../README.md)
 3. **Search Issues**: [GitHub Issues](https://github.com/bunnahabhain/rails_onboarding/issues)
 4. **Ask for Help**: [GitHub Discussions](https://github.com/bunnahabhain/rails_onboarding/discussions)
 5. **Email Support**: david@davidsfolly.com

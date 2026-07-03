@@ -427,7 +427,7 @@ bundle exec rake jobs:work
 
 ## Additional Resources
 
-- [Main README](README.md)
+- [Main README](../README.md)
 - [Milestones Guide](MILESTONES_GUIDE.md)
 - [Analytics Guide](ANALYTICS_GUIDE.md)
 - [Advanced Features](ADVANCED_FEATURES.md)

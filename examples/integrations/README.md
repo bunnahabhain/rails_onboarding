@@ -234,14 +234,14 @@ end
 
 ## Additional Resources
 
-- [INTEGRATION_GUIDE.md](../../INTEGRATION_GUIDE.md) - Complete integration documentation
+- [INTEGRATION_GUIDE.md](../../docs/INTEGRATION_GUIDE.md) - Complete integration documentation
 - [README.md](../../README.md) - Main documentation
-- [API_DOCUMENTATION.md](../../API_DOCUMENTATION.md) - API reference
+- [API_DOCUMENTATION.md](../../docs/API_DOCUMENTATION.md) - API reference
 
 ## Support
 
 For questions or issues with integrations:
-- Review the main [INTEGRATION_GUIDE.md](../../INTEGRATION_GUIDE.md)
+- Review the main [INTEGRATION_GUIDE.md](../../docs/INTEGRATION_GUIDE.md)
 - Check test files for working examples
 - Open an issue on GitHub
 

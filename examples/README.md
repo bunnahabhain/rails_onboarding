@@ -751,8 +751,8 @@ end
 - **[Main README](../README.md)** - Full documentation
 - **[API Authentication Guide](../API_AUTHENTICATION_GUIDE.md)** - Secure API setup
 - **[Webhook Security Guide](../WEBHOOK_SECURITY_GUIDE.md)** - Webhook integration
-- **[Deployment Guide](../DEPLOYMENT_GUIDE.md)** - Production deployment
-- **[Troubleshooting Guide](../TROUBLESHOOTING.md)** - Common issues
+- **[Deployment Guide](../docs/DEPLOYMENT_GUIDE.md)** - Production deployment
+- **[Troubleshooting Guide](../docs/TROUBLESHOOTING.md)** - Common issues
 
 ## Contributing Examples
 

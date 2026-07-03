@@ -467,7 +467,7 @@ If you encounter issues during upgrade:
 
 1. **Check Documentation:**
    - [CHANGELOG.md](CHANGELOG.md)
-   - [README.md](README.md)
+   - [README.md](../README.md)
    - [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 2. **Search Issues:**

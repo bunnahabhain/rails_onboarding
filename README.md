@@ -825,7 +825,7 @@ bin/rails stimulus:manifest:update
 
 ## Upgrading
 
-See [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) for version upgrade instructions.
+See [MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md) for version upgrade instructions.
 
 ## Performance Considerations
 
@@ -884,13 +884,13 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 ## Documentation
 
-- [Advanced Features Guide](ADVANCED_FEATURES.md)
-- [Milestone System Guide](MILESTONES_GUIDE.md)
-- [Analytics Guide](ANALYTICS_GUIDE.md)
-- [Responsive Design Guide](RESPONSIVE_DESIGN.md)
-- [Performance & Scalability Guide](PERFORMANCE_GUIDE.md)
-- [API Documentation](API_DOCUMENTATION.md)
-- [Migration Guide](MIGRATION_GUIDE.md)
+- [Advanced Features Guide](docs/ADVANCED_FEATURES.md)
+- [Milestone System Guide](docs/MILESTONES_GUIDE.md)
+- [Analytics Guide](docs/ANALYTICS_GUIDE.md)
+- [Responsive Design Guide](docs/RESPONSIVE_DESIGN.md)
+- [Performance & Scalability Guide](docs/PERFORMANCE_GUIDE.md)
+- [API Documentation](docs/API_DOCUMENTATION.md)
+- [Migration Guide](docs/MIGRATION_GUIDE.md)
 
 ## Credits
 
@@ -909,4 +909,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
+See [CHANGELOG.md](docs/CHANGELOG.md) for a list of changes.

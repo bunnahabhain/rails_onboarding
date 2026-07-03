@@ -761,6 +761,7 @@ eb setenv RAILS_ENV=production WEBHOOK_SECRET_KEY=your_secret
 ### Docker
 
 **Dockerfile:**
+
 ```dockerfile
 FROM ruby:3.2.5
 
@@ -768,10 +769,10 @@ RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
 
 WORKDIR /app
 
-COPY Gemfile Gemfile.lock ./
+COPY ../Gemfile Gemfile.lock ./
 RUN bundle install
 
-COPY . .
+COPY .. .
 
 # Precompile assets
 RUN RAILS_ENV=production bundle exec rails assets:precompile

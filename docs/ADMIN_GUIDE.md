@@ -663,7 +663,7 @@ end
 
 For issues or questions:
 
-1. Check the [main README](README.md)
+1. Check the [main README](../README.md)
 2. Review the [GitHub Issues](https://github.com/yourusername/rails_onboarding/issues)
 3. Consult other guides:
    - [Analytics Guide](ANALYTICS_GUIDE.md)
