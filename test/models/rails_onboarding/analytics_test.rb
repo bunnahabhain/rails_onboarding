@@ -6,11 +6,11 @@ module RailsOnboarding
       @user1 = User.create!(email: "user1@example.com", created_at: 2.hours.ago)
       @user2 = User.create!(email: "user2@example.com", created_at: 1.hour.ago)
       @user3 = User.create!(email: "user3@example.com", created_at: 30.minutes.ago)
-      
+
       @yesterday = 1.day.ago
       @today = Time.current
       @date_range = @yesterday..@today
-      
+
       # Skip all tests if analytics table doesn't exist
       skip "Analytics table not available" unless RailsOnboarding::AnalyticsEvent.table_exists?
     end
@@ -19,10 +19,10 @@ module RailsOnboarding
       # User 1: Started and completed
       AnalyticsEvent.create!(user: @user1, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: @yesterday)
       AnalyticsEvent.create!(user: @user1, event_type: AnalyticsEvent::ONBOARDING_COMPLETED, occurred_at: @today)
-      
+
       # User 2: Started but not completed
       AnalyticsEvent.create!(user: @user2, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: @yesterday)
-      
+
       # User 3: Started and skipped
       AnalyticsEvent.create!(user: @user3, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: @yesterday)
       AnalyticsEvent.create!(user: @user3, event_type: AnalyticsEvent::ONBOARDING_SKIPPED, occurred_at: @today)
@@ -35,7 +35,7 @@ module RailsOnboarding
       # User 1: Started and completed
       AnalyticsEvent.create!(user: @user1, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: @yesterday)
       AnalyticsEvent.create!(user: @user1, event_type: AnalyticsEvent::ONBOARDING_COMPLETED, occurred_at: @today)
-      
+
       # User 2: Started and skipped
       AnalyticsEvent.create!(user: @user2, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: @yesterday)
       AnalyticsEvent.create!(user: @user2, event_type: AnalyticsEvent::ONBOARDING_SKIPPED, occurred_at: @today)
@@ -47,12 +47,12 @@ module RailsOnboarding
     test "average_completion_time calculates correctly" do
       # User 1: 60 seconds
       AnalyticsEvent.create!(
-        user: @user1, 
+        user: @user1,
         event_type: AnalyticsEvent::ONBOARDING_COMPLETED,
         properties: { completion_time_seconds: 60 },
         occurred_at: @today
       )
-      
+
       # User 2: 120 seconds
       AnalyticsEvent.create!(
         user: @user2,
@@ -65,13 +65,67 @@ module RailsOnboarding
       assert_equal 90.0, avg_time # (60 + 120) / 2
     end
 
+    test "average_completion_time excludes completions with no completion_time_seconds recorded" do
+      # completion_time is an optional argument to complete_onboarding! and is
+      # routinely nil in practice (e.g. complete_onboarding_step! never passes
+      # it) - it must not be treated as 0 and pull the average down.
+      AnalyticsEvent.create!(
+        user: @user1,
+        event_type: AnalyticsEvent::ONBOARDING_COMPLETED,
+        properties: { completion_time_seconds: 100 },
+        occurred_at: @today
+      )
+      AnalyticsEvent.create!(
+        user: @user2,
+        event_type: AnalyticsEvent::ONBOARDING_COMPLETED,
+        properties: {},
+        occurred_at: @today
+      )
+
+      avg_time = Analytics.average_completion_time(date_range: @date_range)
+      assert_equal 100.0, avg_time
+    end
+
+    test "average_step_completion_times calculates correctly per step" do
+      AnalyticsEvent.create!(
+        user: @user1,
+        event_type: AnalyticsEvent::ONBOARDING_STEP_COMPLETED,
+        properties: { step_name: "welcome", time_spent_seconds: 10 },
+        occurred_at: @today
+      )
+      AnalyticsEvent.create!(
+        user: @user2,
+        event_type: AnalyticsEvent::ONBOARDING_STEP_COMPLETED,
+        properties: { step_name: "welcome", time_spent_seconds: 20 },
+        occurred_at: @today
+      )
+      AnalyticsEvent.create!(
+        user: @user1,
+        event_type: AnalyticsEvent::ONBOARDING_STEP_COMPLETED,
+        properties: { step_name: "profile", time_spent_seconds: 5 },
+        occurred_at: @today
+      )
+      # No time_spent_seconds recorded - must not count as a real 0-second entry.
+      AnalyticsEvent.create!(
+        user: @user3,
+        event_type: AnalyticsEvent::ONBOARDING_STEP_COMPLETED,
+        properties: { step_name: "welcome" },
+        occurred_at: @today
+      )
+
+      times = Analytics.average_step_completion_times(date_range: @date_range)
+
+      assert_equal 15.0, times["welcome"] # (10 + 20) / 2
+      assert_equal 5.0, times["profile"]
+    end
+
     test "step_completion_rates calculates correctly" do
       # User 1: Started onboarding
       AnalyticsEvent.create!(user: @user1, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: @yesterday)
-      
+
       # User 2: Started onboarding
       AnalyticsEvent.create!(user: @user2, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: @yesterday)
-      
+
       # Both completed welcome step
       AnalyticsEvent.create!(
         user: @user1,
@@ -85,7 +139,7 @@ module RailsOnboarding
         properties: { step_name: "welcome" },
         occurred_at: @today
       )
-      
+
       # Only user 1 completed profile step
       AnalyticsEvent.create!(
         user: @user1,
@@ -109,7 +163,7 @@ module RailsOnboarding
           occurred_at: @today
         )
       end
-      
+
       # 1 tooltip clicked
       AnalyticsEvent.create!(
         user: @user1,
@@ -154,18 +208,18 @@ module RailsOnboarding
 
     test "daily_summary provides correct counts" do
       date = Date.current
-      
+
       # Create events for today
       AnalyticsEvent.create!(user: @user1, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: date.beginning_of_day)
       AnalyticsEvent.create!(user: @user1, event_type: AnalyticsEvent::ONBOARDING_COMPLETED, occurred_at: date.end_of_day)
       AnalyticsEvent.create!(user: @user2, event_type: AnalyticsEvent::TOOLTIP_SHOWN, occurred_at: date.noon)
       AnalyticsEvent.create!(user: @user2, event_type: AnalyticsEvent::MILESTONE_ACHIEVED, occurred_at: date.noon)
-      
+
       # Create event for yesterday (should not be included)
       AnalyticsEvent.create!(user: @user3, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: 1.day.ago)
 
       summary = Analytics.daily_summary(date: date)
-      
+
       assert_equal date, summary[:date]
       assert_equal 1, summary[:onboarding_started]
       assert_equal 1, summary[:onboarding_completed]
@@ -191,7 +245,7 @@ module RailsOnboarding
         properties: { tooltip_feature: "feature1" },
         occurred_at: @today
       )
-      
+
       # Feature 2: 1 shown, 0 clicked, 1 dismissed
       AnalyticsEvent.create!(
         user: @user2,
@@ -207,13 +261,13 @@ module RailsOnboarding
       )
 
       metrics = Analytics.tooltip_metrics_by_feature(date_range: @date_range)
-      
+
       feature1_metrics = metrics.find { |m| m[:feature] == "feature1" }
       assert_equal 2, feature1_metrics[:shown]
       assert_equal 1, feature1_metrics[:clicked]
       assert_equal 0, feature1_metrics[:dismissed]
       assert_equal 50.0, feature1_metrics[:engagement_rate]
-      
+
       feature2_metrics = metrics.find { |m| m[:feature] == "feature2" }
       assert_equal 1, feature2_metrics[:shown]
       assert_equal 0, feature2_metrics[:clicked]

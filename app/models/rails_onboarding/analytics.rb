@@ -6,43 +6,50 @@ module RailsOnboarding
 
     class << self
       # Summary methods for analytics reporting
-      
+
       def onboarding_completion_rate(date_range: nil)
         events = base_events_query(date_range)
-        
+
         started_count = events.by_event_type(AnalyticsEvent::ONBOARDING_STARTED).count
         return 0.0 if started_count.zero?
-        
+
         completed_count = events.by_event_type(AnalyticsEvent::ONBOARDING_COMPLETED).count
-        
+
         (completed_count.to_f / started_count * 100).round(2)
       end
 
       def onboarding_skip_rate(date_range: nil)
         events = base_events_query(date_range)
-        
+
         started_count = events.by_event_type(AnalyticsEvent::ONBOARDING_STARTED).count
         return 0.0 if started_count.zero?
-        
+
         skipped_count = events.by_event_type(AnalyticsEvent::ONBOARDING_SKIPPED).count
-        
+
         (skipped_count.to_f / started_count * 100).round(2)
       end
 
       def average_completion_time(date_range: nil)
         events = base_events_query(date_range)
-
         completion_events = events.by_event_type(AnalyticsEvent::ONBOARDING_COMPLETED)
-                                  .where("JSON_EXTRACT(properties, '$.completion_time_seconds') IS NOT NULL")
 
-        count = completion_events.count
-        return 0.0 if count.zero?
-
-        # Process in batches to prevent memory issues
+        # properties is serialized JSON stored in a plain text column, so
+        # filtering by a key inside it has to happen in Ruby, not SQL -
+        # JSON_EXTRACT is a MySQL/SQLite function name; PostgreSQL has no
+        # such function (it uses ->/->> on an actual json/jsonb column).
+        # Process in batches to prevent memory issues.
         total_time = 0.0
+        count = 0
+
         completion_events.find_each(batch_size: DEFAULT_PAGE_SIZE) do |event|
-          total_time += event.properties&.dig('completion_time_seconds').to_f
+          completion_time = event.properties&.dig("completion_time_seconds")
+          next if completion_time.nil?
+
+          total_time += completion_time.to_f
+          count += 1
         end
+
+        return 0.0 if count.zero?
 
         (total_time / count).round(2)
       end
@@ -55,7 +62,7 @@ module RailsOnboarding
         # Process in batches to prevent memory issues
         step_counts = Hash.new(0)
         step_events.find_each(batch_size: DEFAULT_PAGE_SIZE) do |event|
-          step_name = event.properties&.dig('step_name')
+          step_name = event.properties&.dig("step_name")
           step_counts[step_name] += 1 if step_name
         end
 
@@ -75,7 +82,7 @@ module RailsOnboarding
         # Process in batches to prevent memory issues
         step_skips = Hash.new(0)
         skip_events.find_each(batch_size: DEFAULT_PAGE_SIZE) do |event|
-          step_name = event.properties&.dig('step_name')
+          step_name = event.properties&.dig("step_name")
           step_skips[step_name] += 1 if step_name
         end
 
@@ -90,14 +97,17 @@ module RailsOnboarding
       def average_step_completion_times(date_range: nil)
         events = base_events_query(date_range)
 
+        # properties is serialized JSON stored in a plain text column, so
+        # filtering by a key inside it has to happen in Ruby, not SQL (see
+        # average_completion_time above) - the time_spent > 0 check below
+        # already excludes events with no time_spent_seconds recorded.
         step_events = events.by_event_type(AnalyticsEvent::ONBOARDING_STEP_COMPLETED)
-                           .where("JSON_EXTRACT(properties, '$.time_spent_seconds') IS NOT NULL")
 
         # Process in batches to prevent memory issues
         step_times = Hash.new { |h, k| h[k] = { total: 0.0, count: 0 } }
         step_events.find_each(batch_size: DEFAULT_PAGE_SIZE) do |event|
-          step_name = event.properties&.dig('step_name')
-          time_spent = event.properties&.dig('time_spent_seconds').to_f
+          step_name = event.properties&.dig("step_name")
+          time_spent = event.properties&.dig("time_spent_seconds").to_f
           if step_name && time_spent > 0
             step_times[step_name][:total] += time_spent
             step_times[step_name][:count] += 1
@@ -111,12 +121,12 @@ module RailsOnboarding
 
       def tooltip_engagement_rate(date_range: nil)
         events = base_events_query(date_range)
-        
+
         shown_count = events.by_event_type(AnalyticsEvent::TOOLTIP_SHOWN).count
         return 0.0 if shown_count.zero?
-        
+
         clicked_count = events.by_event_type(AnalyticsEvent::TOOLTIP_CLICKED).count
-        
+
         (clicked_count.to_f / shown_count * 100).round(2)
       end
 
@@ -132,7 +142,7 @@ module RailsOnboarding
         # Process in batches to prevent memory issues
         feature_metrics = Hash.new { |h, k| h[k] = { shown: 0, clicked: 0, dismissed: 0 } }
         tooltip_events.find_each(batch_size: DEFAULT_PAGE_SIZE) do |event|
-          feature = event.properties&.dig('tooltip_feature')
+          feature = event.properties&.dig("tooltip_feature")
           next unless feature
 
           case event.event_type
@@ -166,7 +176,7 @@ module RailsOnboarding
         # Process in batches to prevent memory issues
         milestone_counts = Hash.new(0)
         milestone_events.find_each(batch_size: DEFAULT_PAGE_SIZE) do |event|
-          milestone_key = event.properties&.dig('milestone_key')
+          milestone_key = event.properties&.dig("milestone_key")
           milestone_counts[milestone_key] += 1 if milestone_key
         end
 
@@ -187,7 +197,7 @@ module RailsOnboarding
         step_completed_events = events.by_event_type(AnalyticsEvent::ONBOARDING_STEP_COMPLETED)
         step_completion_counts = Hash.new(0)
         step_completed_events.find_each(batch_size: DEFAULT_PAGE_SIZE) do |event|
-          step_name = event.properties&.dig('step_name').to_s
+          step_name = event.properties&.dig("step_name").to_s
           step_completion_counts[step_name] += 1 if step_name.present?
         end
 
@@ -216,7 +226,7 @@ module RailsOnboarding
 
       def daily_summary(date: Date.current)
         date_range = date.beginning_of_day..date.end_of_day
-        
+
         {
           date: date,
           onboarding_started: base_events_query(date_range).by_event_type(AnalyticsEvent::ONBOARDING_STARTED).count,
@@ -232,7 +242,7 @@ module RailsOnboarding
 
       def base_events_query(date_range = nil)
         return AnalyticsEvent.none unless AnalyticsEvent.table_exists?
-        
+
         query = AnalyticsEvent.all
         query = query.by_date_range(date_range.begin, date_range.end) if date_range
         query
