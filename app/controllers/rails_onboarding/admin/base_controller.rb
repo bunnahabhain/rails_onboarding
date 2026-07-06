@@ -73,6 +73,25 @@ module RailsOnboarding
         end
       end
 
+      # NotImplementedError signals the host app hasn't configured admin
+      # authentication yet - it's raised by authenticate_admin! above with a
+      # message telling the developer exactly what to define. It's not a
+      # StandardError though, so the generic handler above never sees it and
+      # it would otherwise crash instead of surfacing that guidance.
+      rescue_from NotImplementedError do |exception|
+        logger.error "Admin setup error: #{exception.message}"
+
+        respond_to do |format|
+          format.html do
+            flash[:alert] = exception.message
+            redirect_to main_app.root_path
+          end
+          format.json do
+            render json: { error: exception.message }, status: :internal_server_error
+          end
+        end
+      end
+
       # Rescue from unauthorized access
       rescue_from UnauthorizedError do |exception|
         logger.warn "Unauthorized admin access: #{exception.message}"

@@ -211,10 +211,7 @@ module RailsOnboarding
     def authenticate_user!
       # This should be overridden by the host app
       # or use the host app's authentication
-      Rails.logger.debug "authenticate_user! - respond_to?(:current_user): #{respond_to?(:current_user, true)}"
-      Rails.logger.debug "authenticate_user! - current_user: #{current_user.inspect}"
       unless respond_to?(:current_user, true) && current_user.present?
-        Rails.logger.debug "authenticate_user! - REDIRECTING to root"
         redirect_to main_app.root_path
       end
     end
