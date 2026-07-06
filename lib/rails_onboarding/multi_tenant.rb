@@ -50,9 +50,9 @@ module RailsOnboarding
         # Check if tenant has custom configuration
         tenant_config = if tenant.respond_to?(:onboarding_configuration)
                           tenant.onboarding_configuration
-                        elsif tenant.respond_to?(:onboarding_config)
+        elsif tenant.respond_to?(:onboarding_config)
                           tenant.onboarding_config
-                        end
+        end
 
         return default_configuration unless tenant_config
 
@@ -111,19 +111,25 @@ module RailsOnboarding
         end
       end
 
-      # Apply tenant configuration to current context
+      # Apply tenant configuration to current context, for the duration of the
+      # block only. This does NOT touch RailsOnboarding.configuration itself -
+      # it sets a thread/fiber-local override (RailsOnboarding::Current) that
+      # Configuration's readers consult first, so concurrent requests for
+      # other tenants (or no tenant) are never affected, and everything is
+      # automatically cleared even if this method's own `ensure` never ran
+      # (Rails resets CurrentAttributes around every request and job).
       #
       # @param tenant [Object] The tenant object
       # @yield Block to execute with tenant configuration
       def with_tenant_configuration(tenant)
         return yield unless tenant
 
-        original_config = store_original_config
-        apply_tenant_config(tenant)
+        previous_overrides = RailsOnboarding::Current.tenant_overrides
+        RailsOnboarding::Current.tenant_overrides = tenant_config_overrides(tenant)
 
         yield
       ensure
-        restore_original_config(original_config) if original_config
+        RailsOnboarding::Current.tenant_overrides = previous_overrides
       end
 
       # Get organization ID for user
@@ -222,9 +228,9 @@ module RailsOnboarding
 
         parsed = if config_data.is_a?(String)
                    JSON.parse(config_data)
-                 else
+        else
                    config_data
-                 end
+        end
 
         parsed.deep_symbolize_keys
       rescue JSON::ParserError => e
@@ -243,32 +249,22 @@ module RailsOnboarding
         end
       end
 
-      def store_original_config
-        {
-          steps: RailsOnboarding.configuration.steps.dup,
-          feature_tooltips: RailsOnboarding.configuration.feature_tooltips.dup,
-          milestones: RailsOnboarding.configuration.milestones.dup,
-          enable_tooltips: RailsOnboarding.configuration.enable_tooltips,
-          enable_milestones: RailsOnboarding.configuration.enable_milestones
-        }
-      end
-
-      def apply_tenant_config(tenant)
+      # Builds the RailsOnboarding::Current override hash for +tenant+, only
+      # including keys that should actually override the process-wide config -
+      # mirrors the guards the old mutation-based implementation used, so a
+      # tenant config that hasn't customized a given setting still falls
+      # through to the global default instead of overriding it with nil/false.
+      def tenant_config_overrides(tenant)
         config = configuration_for(tenant)
+        overrides = {}
 
-        RailsOnboarding.configuration.steps = config[:steps] if config[:steps]
-        RailsOnboarding.configuration.feature_tooltips = config[:feature_tooltips] if config[:feature_tooltips]
-        RailsOnboarding.configuration.milestones = config[:milestones] if config[:milestones]
-        RailsOnboarding.configuration.enable_tooltips = config[:enable_tooltips] unless config[:enable_tooltips].nil?
-        RailsOnboarding.configuration.enable_milestones = config[:enable_milestones] unless config[:enable_milestones].nil?
-      end
+        overrides[:steps] = config[:steps] if config[:steps]
+        overrides[:feature_tooltips] = config[:feature_tooltips] if config[:feature_tooltips]
+        overrides[:milestones] = config[:milestones] if config[:milestones]
+        overrides[:enable_tooltips] = config[:enable_tooltips] unless config[:enable_tooltips].nil?
+        overrides[:enable_milestones] = config[:enable_milestones] unless config[:enable_milestones].nil?
 
-      def restore_original_config(original)
-        RailsOnboarding.configuration.steps = original[:steps]
-        RailsOnboarding.configuration.feature_tooltips = original[:feature_tooltips]
-        RailsOnboarding.configuration.milestones = original[:milestones]
-        RailsOnboarding.configuration.enable_tooltips = original[:enable_tooltips]
-        RailsOnboarding.configuration.enable_milestones = original[:enable_milestones]
+        overrides
       end
     end
   end

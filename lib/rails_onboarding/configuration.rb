@@ -1,4 +1,4 @@
-require_relative 'configuration_validator'
+require_relative "configuration_validator"
 
 module RailsOnboarding
   class Configuration
@@ -150,7 +150,7 @@ module RailsOnboarding
       @api_authentication_method = :token
       @background_jobs_enabled = false
       @background_jobs_queue = :default
-      @mailer_from = 'noreply@example.com'
+      @mailer_from = "noreply@example.com"
 
       # Rate limiting
       @rate_limiting_enabled = true
@@ -272,7 +272,7 @@ module RailsOnboarding
     end
 
     def milestones_for_trigger(trigger, conditions = {})
-      cache_key = [trigger, conditions].hash
+      cache_key = [ trigger, conditions ].hash
       @milestones_for_trigger_cache ||= {}
       @milestones_for_trigger_cache[cache_key] ||= milestones.select do |milestone|
         # Match on trigger
@@ -296,7 +296,7 @@ module RailsOnboarding
     # instead of caching a value that could go stale the moment another
     # process (or another admin) activates a different flow.
     def steps
-      active_flow_steps || @steps
+      active_flow_steps || tenant_override(:steps, @steps)
     end
 
     # Override setters to clear cache when configuration changes
@@ -305,9 +305,25 @@ module RailsOnboarding
       @steps = value
     end
 
+    def milestones
+      tenant_override(:milestones, @milestones)
+    end
+
     def milestones=(value)
       clear_cache!
       @milestones = value
+    end
+
+    def feature_tooltips
+      tenant_override(:feature_tooltips, @feature_tooltips)
+    end
+
+    def enable_tooltips
+      tenant_override(:enable_tooltips, @enable_tooltips)
+    end
+
+    def enable_milestones
+      tenant_override(:enable_milestones, @enable_milestones)
     end
 
     # Keep analytics_retention_days in sync with analytics_data_retention_days
@@ -397,6 +413,18 @@ module RailsOnboarding
     end
 
     private
+
+    # Reads a per-request tenant override for +key+, set by
+    # MultiTenant.with_tenant_configuration via RailsOnboarding::Current.
+    # Falls back to +default+ (the process-wide value) when no override is
+    # active for +key+, distinguishing an explicit `false` override from "no
+    # override at all".
+    def tenant_override(key, default)
+      overrides = RailsOnboarding::Current.tenant_overrides
+      return default unless overrides&.key?(key)
+
+      overrides[key]
+    end
 
     def active_flow_steps
       return nil unless defined?(RailsOnboarding::Flow)

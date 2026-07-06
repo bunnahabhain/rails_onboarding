@@ -1,6 +1,7 @@
 require "rails_onboarding/version"
 require "rails_onboarding/engine"
 require "rails_onboarding/deprecation"
+require "rails_onboarding/current"
 require "rails_onboarding/configuration_errors"
 require "rails_onboarding/configuration_validator"
 require "rails_onboarding/configuration"
