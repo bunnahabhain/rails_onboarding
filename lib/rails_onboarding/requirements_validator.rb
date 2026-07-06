@@ -98,12 +98,14 @@ module RailsOnboarding
           user_class_name = RailsOnboarding.configuration.user_class_name
           user_class = user_class_name.constantize
 
-          # Check for required methods
+          # Check for required behavioral methods (provided by the Onboardable concern).
+          # onboarding_completed? and onboarding_current_step are column-backed attribute
+          # methods instead - Rails generates those lazily on first instantiation, so
+          # instance_methods.include? can't reliably see them here; their underlying
+          # columns are already checked in validate_database_columns.
           required_methods = [
-            :should_see_onboarding?,
-            :onboarding_completed?,
-            :onboarding_current_step,
-            :mark_onboarding_complete!,
+            :needs_onboarding?,
+            :complete_onboarding!,
             :onboarding_progress_percentage
           ]
 
@@ -263,7 +265,7 @@ module RailsOnboarding
         end
 
         # Validate mailer configuration if emails are enabled
-        if config.enable_emails && !RailsOnboarding.action_mailer_configured?
+        if RailsOnboarding::BackgroundJobs.background_job_options[:enable_emails] && !RailsOnboarding.action_mailer_configured?
           results[:warnings] << "Emails enabled but ActionMailer not properly configured"
         end
       rescue => e

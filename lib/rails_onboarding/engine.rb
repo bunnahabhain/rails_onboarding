@@ -76,7 +76,11 @@ module RailsOnboarding
       Engine.setup_importmap_integration(app) if Engine.importmap_available?(app)
     end
 
-    private
+    # NOTE: everything below is internal to the engine, not part of its public API.
+    # It can't actually be marked `private` (bare `private` has no effect on `def self.x`
+    # methods, and `private_class_method` would break the initializers above: those run
+    # via `instance_exec` with the Rails::Railtie *instance* as `self`, not this class, so
+    # they must call these as `Engine.method_name(...)` with an explicit receiver).
 
     # Detect which asset pipeline is being used
     def self.detect_asset_pipeline(app)

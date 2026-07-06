@@ -39,7 +39,7 @@ module RailsOnboarding
       serialize :revealed_features, coder: JSON unless column_names.include?('revealed_features') && columns_hash['revealed_features'].type == :jsonb
 
       # Callback to check and reveal features
-      after_save :check_progressive_features, if: :onboarding_current_step_changed?
+      after_save :check_progressive_features, if: :saved_change_to_onboarding_current_step?
     end
 
     # Check if a feature has been revealed to the user
@@ -258,7 +258,7 @@ module RailsOnboarding
       event_type = feature[:event_type]
 
       if event_type
-        analytics_events.where(event_name: event_type).count >= min_events
+        analytics_events.where(event_type: event_type).count >= min_events
       else
         analytics_events.count >= min_events
       end

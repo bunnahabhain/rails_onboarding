@@ -1,4 +1,6 @@
 class AddOnboardingToUsers < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+  disable_ddl_transaction!
+
   def up
     add_column :users, :onboarding_completed, :boolean, default: false, null: false
     add_column :users, :onboarding_completed_at, :datetime
@@ -17,10 +19,12 @@ class AddOnboardingToUsers < ActiveRecord::Migration[<%= ActiveRecord::Migration
       add_column :users, :feature_tooltips_shown, :text, default: "{}"
     end
 
-    # Performance indexes
-    add_index :users, :onboarding_completed
-    add_index :users, :onboarding_current_step
-    add_index :users, [:onboarding_completed, :created_at], name: 'index_users_on_onboarding_status_and_created'
+    # Performance indexes. On PostgreSQL, build them concurrently so they
+    # don't hold a write lock on a large, live users table; other adapters
+    # don't support that algorithm, so fall back to a plain index there.
+    add_index :users, :onboarding_completed, **concurrent_index_options
+    add_index :users, :onboarding_current_step, **concurrent_index_options
+    add_index :users, [:onboarding_completed, :created_at], name: 'index_users_on_onboarding_status_and_created', **concurrent_index_options
   end
 
   def down
@@ -33,5 +37,15 @@ class AddOnboardingToUsers < ActiveRecord::Migration[<%= ActiveRecord::Migration
     remove_column :users, :onboarding_current_step if column_exists?(:users, :onboarding_current_step)
     remove_column :users, :onboarding_completed_at if column_exists?(:users, :onboarding_completed_at)
     remove_column :users, :onboarding_completed if column_exists?(:users, :onboarding_completed)
+  end
+
+  private
+
+  def concurrent_index_options
+    postgresql? ? { algorithm: :concurrently } : {}
+  end
+
+  def postgresql?
+    %w[postgresql postgis].include?(ActiveRecord::Base.connection.adapter_name.downcase)
   end
 end
