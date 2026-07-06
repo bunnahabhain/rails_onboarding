@@ -5,7 +5,7 @@ module RailsOnboarding
     def setup
       @user = User.create!(email: "test@example.com")
       @session_id = "test_session_123"
-      
+
       # Skip all tests if analytics table doesn't exist
       skip "Analytics table not available" unless RailsOnboarding::AnalyticsEvent.table_exists?
     end
@@ -135,12 +135,12 @@ module RailsOnboarding
 
         event = AnalyticsEvent.last
         expected_type = case action
-                       when 'shown' then AnalyticsEvent::TOOLTIP_SHOWN
-                       when 'clicked' then AnalyticsEvent::TOOLTIP_CLICKED
-                       when 'dismissed' then AnalyticsEvent::TOOLTIP_DISMISSED
-                       else 'tooltip_interaction'
-                       end
-        
+        when "shown" then AnalyticsEvent::TOOLTIP_SHOWN
+        when "clicked" then AnalyticsEvent::TOOLTIP_CLICKED
+        when "dismissed" then AnalyticsEvent::TOOLTIP_DISMISSED
+        else "tooltip_interaction"
+        end
+
         assert_equal expected_type, event.event_type
         assert_equal "test_feature", event.properties["tooltip_feature"]
         assert_equal action, event.properties["action"]
@@ -181,6 +181,50 @@ module RailsOnboarding
 
       event = AnalyticsEvent.last
       assert_nil event.session_id
+    end
+
+    # ===== Phantom-event regression tests =====
+    # Analytics tracking (and any milestone it triggers) must never fire for
+    # a state change that failed to persist - these force a save/update
+    # failure and confirm no event leaks through anyway.
+
+    test "achieve_milestone! does not track an event when the save fails" do
+      @user.define_singleton_method(:save!) { raise ActiveRecord::RecordInvalid, self }
+
+      assert_no_difference "AnalyticsEvent.count" do
+        assert_raises(ActiveRecord::RecordInvalid) do
+          @user.achieve_milestone!(:early_adopter, session_id: @session_id)
+        end
+      end
+    end
+
+    test "mark_tooltip_shown! does not track an event when the save fails" do
+      @user.define_singleton_method(:save!) { raise ActiveRecord::RecordInvalid, self }
+
+      assert_no_difference "AnalyticsEvent.count" do
+        assert_raises(ActiveRecord::RecordInvalid) do
+          @user.mark_tooltip_shown!("getting_started", session_id: @session_id)
+        end
+      end
+    end
+
+    test "complete_onboarding! does not track an event when the update fails" do
+      @user.define_singleton_method(:update!) { |*| raise ActiveRecord::RecordInvalid, self }
+
+      assert_no_difference "AnalyticsEvent.count" do
+        assert_raises(ActiveRecord::RecordInvalid) do
+          @user.complete_onboarding!(session_id: @session_id)
+        end
+      end
+    end
+
+    test "go_back! does not track an event when the update fails" do
+      @user.update!(onboarding_current_step: :profile)
+      @user.define_singleton_method(:update!) { |*| raise ActiveRecord::RecordInvalid, self }
+
+      assert_no_difference "AnalyticsEvent.count" do
+        assert_raises(ActiveRecord::RecordInvalid) { @user.go_back! }
+      end
     end
 
     test "step milestone checking works correctly" do

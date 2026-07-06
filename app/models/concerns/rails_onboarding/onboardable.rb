@@ -136,18 +136,6 @@ module RailsOnboarding
         return
       end
 
-      # Track step completion
-      AnalyticsEvent.track_step_completed(
-        user: self,
-        step_name: step_name,
-        step_index: current_index,
-        time_spent: time_spent,
-        session_id: session_id
-      )
-
-      # Check for milestone achievements
-      check_and_achieve_step_milestones(step_name, session_id: session_id)
-
       next_step = RailsOnboarding.configuration.steps[current_index + 1]
 
       if next_step
@@ -155,46 +143,51 @@ module RailsOnboarding
       else
         complete_onboarding!(session_id: session_id)
       end
+
+      # Track step completion and check for milestones only after the step
+      # change above has actually persisted - otherwise a failed save would
+      # still leave behind an analytics event (and possibly an awarded
+      # milestone) for a step completion that never happened.
+      AnalyticsEvent.track_step_completed(
+        user: self,
+        step_name: step_name,
+        step_index: current_index,
+        time_spent: time_spent,
+        session_id: session_id
+      )
+      check_and_achieve_step_milestones(step_name, session_id: session_id)
     end
 
     def complete_onboarding!(session_id: nil, completion_time: nil)
-      was_skipped = false
-      
-      # Track completion
-      AnalyticsEvent.track_onboarding_completed(
-        user: self,
-        completion_time: completion_time,
-        was_skipped: was_skipped,
-        session_id: session_id
-      )
-
-      # Check for completion milestone
-      check_and_achieve_completion_milestones(session_id: session_id)
-      
-      update!(
+      persist_and_track!(
         onboarding_completed: true,
         onboarding_completed_at: Time.current,
         onboarding_current_step: nil
-      )
+      ) do
+        AnalyticsEvent.track_onboarding_completed(
+          user: self,
+          completion_time: completion_time,
+          was_skipped: false,
+          session_id: session_id
+        )
+        check_and_achieve_completion_milestones(session_id: session_id)
+      end
     end
 
     def skip_onboarding!(session_id: nil)
-      was_skipped = true
-      
-      # Track skipping
-      AnalyticsEvent.track_onboarding_completed(
-        user: self,
-        completion_time: nil,
-        was_skipped: was_skipped,
-        session_id: session_id
-      )
-      
-      update!(
+      persist_and_track!(
         onboarding_completed: true,
         onboarding_completed_at: Time.current,
         onboarding_skipped: true,
         onboarding_current_step: nil
-      )
+      ) do
+        AnalyticsEvent.track_onboarding_completed(
+          user: self,
+          completion_time: nil,
+          was_skipped: true,
+          session_id: session_id
+        )
+      end
     end
 
     def reset_onboarding!
@@ -217,14 +210,6 @@ module RailsOnboarding
     end
 
     def mark_tooltip_shown!(feature, session_id: nil)
-      # Track tooltip shown
-      AnalyticsEvent.track_tooltip_interaction(
-        user: self,
-        tooltip_feature: feature,
-        action: 'shown',
-        session_id: session_id
-      )
-
       self.feature_tooltips_shown ||= {}
 
       # Trim old entries if approaching limit
@@ -233,7 +218,15 @@ module RailsOnboarding
       end
 
       self.feature_tooltips_shown[feature.to_s] = Time.current.iso8601
-      save!
+
+      persist_and_track! do
+        AnalyticsEvent.track_tooltip_interaction(
+          user: self,
+          tooltip_feature: feature,
+          action: "shown",
+          session_id: session_id
+        )
+      end
     end
 
     # Reset all tooltips (mark all as not shown)
@@ -264,7 +257,7 @@ module RailsOnboarding
         )
       end
 
-      milestones.map { |m| m.is_a?(Hash) ? m['key'] : m.to_s }
+      milestones.map { |m| m.is_a?(Hash) ? m["key"] : m.to_s }
     end
 
     def milestone_achieved?(milestone_key)
@@ -288,15 +281,15 @@ module RailsOnboarding
       milestones = milestones_achieved || []
       milestone = milestones.find do |m|
         if m.is_a?(Hash)
-          m['key'].to_s == milestone_key.to_s
+          m["key"].to_s == milestone_key.to_s
         else
           m.to_s == milestone_key.to_s
         end
       end
 
       # Return timestamp if available, otherwise return last_milestone_at as fallback
-      if milestone.is_a?(Hash) && milestone['achieved_at']
-        Time.parse(milestone['achieved_at'])
+      if milestone.is_a?(Hash) && milestone["achieved_at"]
+        Time.parse(milestone["achieved_at"])
       else
         last_milestone_at
       end
@@ -314,24 +307,24 @@ module RailsOnboarding
       points_earned = milestone_config[:points] || 0
       achieved_at = Time.current
 
-      # Track milestone achievement
-      AnalyticsEvent.track_milestone_achieved(
-        user: self,
-        milestone_key: milestone_key,
-        points_earned: points_earned,
-        session_id: session_id
-      )
-
       self.milestones_achieved ||= []
       # Store as hash with timestamp for new achievements
       self.milestones_achieved << {
-        'key' => milestone_key.to_s,
-        'achieved_at' => achieved_at.iso8601
+        "key" => milestone_key.to_s,
+        "achieved_at" => achieved_at.iso8601
       }
       self.milestone_points = (milestone_points || 0) + points_earned
       self.last_milestone_at = achieved_at
 
-      save!
+      persist_and_track! do
+        AnalyticsEvent.track_milestone_achieved(
+          user: self,
+          milestone_key: milestone_key,
+          points_earned: points_earned,
+          session_id: session_id
+        )
+      end
+
       milestone_config
     end
 
@@ -355,29 +348,20 @@ module RailsOnboarding
     def start_onboarding!(session_id: nil)
       return if onboarding_completed?
 
-      # Track onboarding start
-      AnalyticsEvent.track_onboarding_started(
-        user: self,
-        session_id: session_id
-      )
-
       # Set initial step if not already set
       if onboarding_current_step.nil? && RailsOnboarding.configuration.steps.any?
         update!(onboarding_current_step: RailsOnboarding.configuration.steps.first[:name])
       end
+
+      AnalyticsEvent.track_onboarding_started(
+        user: self,
+        session_id: session_id
+      )
     end
 
     def skip_onboarding_step!(step_name, session_id: nil)
       current_index = RailsOnboarding.configuration.step_index(step_name)
       return unless current_index
-
-      # Track step skip
-      AnalyticsEvent.track_step_skipped(
-        user: self,
-        step_name: step_name,
-        step_index: current_index,
-        session_id: session_id
-      )
 
       next_step = RailsOnboarding.configuration.steps[current_index + 1]
 
@@ -386,6 +370,13 @@ module RailsOnboarding
       else
         complete_onboarding!(session_id: session_id)
       end
+
+      AnalyticsEvent.track_step_skipped(
+        user: self,
+        step_name: step_name,
+        step_index: current_index,
+        session_id: session_id
+      )
     end
 
     # Rollback & Navigation Methods
@@ -408,20 +399,16 @@ module RailsOnboarding
       prev_step = previous_onboarding_step
       return false unless prev_step
 
-      # Track navigation
-      if defined?(AnalyticsEvent)
+      from_step = onboarding_current_step
+
+      persist_and_track!(onboarding_current_step: prev_step[:name]) do
         AnalyticsEvent.track_custom_event(
           user: self,
-          event_name: 'onboarding_step_back',
-          event_data: {
-            from_step: onboarding_current_step,
-            to_step: prev_step[:name]
-          },
+          event_name: "onboarding_step_back",
+          event_data: { from_step: from_step, to_step: prev_step[:name] },
           session_id: session_id
         )
       end
-
-      update!(onboarding_current_step: prev_step[:name])
       true
     end
 
@@ -429,39 +416,32 @@ module RailsOnboarding
       step = RailsOnboarding.configuration.step_by_name(step_name)
       return false unless step
 
-      # Track navigation
-      if defined?(AnalyticsEvent)
+      from_step = onboarding_current_step
+
+      persist_and_track!(onboarding_current_step: step_name) do
         AnalyticsEvent.track_custom_event(
           user: self,
-          event_name: 'onboarding_step_jump',
-          event_data: {
-            from_step: onboarding_current_step,
-            to_step: step_name
-          },
+          event_name: "onboarding_step_jump",
+          event_data: { from_step: from_step, to_step: step_name },
           session_id: session_id
         )
       end
-
-      update!(onboarding_current_step: step_name)
       true
     end
 
     def restart_onboarding!(session_id: nil)
-      # Track restart
-      if defined?(AnalyticsEvent)
-        AnalyticsEvent.track_custom_event(
-          user: self,
-          event_name: 'onboarding_restarted',
-          event_data: {
-            previous_step: onboarding_current_step,
-            was_completed: onboarding_completed
-          },
-          session_id: session_id
-        )
-      end
+      previous_step = onboarding_current_step
+      was_completed = onboarding_completed
 
       reset_onboarding!
       start_onboarding!(session_id: session_id)
+
+      AnalyticsEvent.track_custom_event(
+        user: self,
+        event_name: "onboarding_restarted",
+        event_data: { previous_step: previous_step, was_completed: was_completed },
+        session_id: session_id
+      )
     end
 
     # API-friendly aliases and helper methods
@@ -518,7 +498,7 @@ module RailsOnboarding
           title: config[:title],
           content: config[:content],
           target: config[:target],
-          position: config[:position] || 'top'
+          position: config[:position] || "top"
         }
       end
     end
@@ -547,7 +527,7 @@ module RailsOnboarding
       AnalyticsEvent.track_tooltip_interaction(
         user: self,
         tooltip_feature: tooltip_id,
-        action: 'dismissed',
+        action: "dismissed",
         session_id: session_id
       )
       true
@@ -562,6 +542,22 @@ module RailsOnboarding
     end
 
     private
+
+    # Persists +attributes+ (or just re-saves already-assigned attributes if
+    # none given), then runs the tracking block only after that succeeds.
+    # Analytics tracking (and, transitively, any milestone-achievement it
+    # triggers) must never fire for a state change that didn't actually get
+    # persisted - update!/save! raise on failure, so if that happens, this
+    # method never reaches the block.
+    def persist_and_track!(attributes = nil)
+      if attributes
+        update!(attributes)
+      else
+        save!
+      end
+
+      yield if block_given?
+    end
 
     # Validation methods for JSON field sizes
     def validate_tooltips_size
