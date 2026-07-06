@@ -1,13 +1,15 @@
-require_relative 'configuration_errors'
+require_relative "configuration_errors"
 
 module RailsOnboarding
   # Validates RailsOnboarding configuration to ensure all settings are valid
   class ConfigurationValidator
-    VALID_TRIGGERS = [:onboarding_step_completed, :onboarding_completed, :tooltip_shown,
-                      :tooltip_clicked, :custom].freeze
-    VALID_REDIRECT_TYPES = [Symbol, String, Proc].freeze
-    VALID_ONBOARDING_REQUIREMENTS = [:new_users, :all_users, Proc].freeze
-    VALID_API_AUTH_METHODS = [:token, :session, :custom].freeze
+    VALID_TRIGGERS = [ :onboarding_step_completed, :onboarding_completed, :tooltip_shown,
+                      :tooltip_clicked, :custom ].freeze
+    VALID_REDIRECT_TYPES = [ Symbol, String, Proc ].freeze
+    VALID_ONBOARDING_REQUIREMENTS = [ :new_users, :all_users, Proc ].freeze
+    VALID_API_AUTH_METHODS = [ :token, :session, :custom ].freeze
+    VALID_REVEAL_CONDITIONS = [ :time_based, :action_based, :step_based, :milestone_based, :engagement_based ].freeze
+    NAME_FORMAT = /\A[a-z_][a-z0-9_]*\z/i
 
     attr_reader :config, :errors
 
@@ -50,23 +52,23 @@ module RailsOnboarding
     end
 
     def validate_types
-      validate_type(:user_class_name, [String], "user_class_name must be a String")
-      validate_type(:include_host_styles, [TrueClass, FalseClass], "include_host_styles must be a Boolean")
-      validate_type(:enable_tooltips, [TrueClass, FalseClass], "enable_tooltips must be a Boolean")
-      validate_type(:enable_milestones, [TrueClass, FalseClass], "enable_milestones must be a Boolean")
-      validate_type(:enable_analytics, [TrueClass, FalseClass], "enable_analytics must be a Boolean")
-      validate_type(:steps, [Array], "steps must be an Array")
-      validate_type(:milestones, [Array], "milestones must be an Array")
-      validate_type(:feature_tooltips, [Hash], "feature_tooltips must be a Hash")
+      validate_type(:user_class_name, [ String ], "user_class_name must be a String")
+      validate_type(:include_host_styles, [ TrueClass, FalseClass ], "include_host_styles must be a Boolean")
+      validate_type(:enable_tooltips, [ TrueClass, FalseClass ], "enable_tooltips must be a Boolean")
+      validate_type(:enable_milestones, [ TrueClass, FalseClass ], "enable_milestones must be a Boolean")
+      validate_type(:enable_analytics, [ TrueClass, FalseClass ], "enable_analytics must be a Boolean")
+      validate_type(:steps, [ Array ], "steps must be an Array")
+      validate_type(:milestones, [ Array ], "milestones must be an Array")
+      validate_type(:feature_tooltips, [ Hash ], "feature_tooltips must be a Hash")
 
       # Numeric validations
       if config.analytics_data_retention_days
-        validate_type(:analytics_data_retention_days, [Integer], "analytics_data_retention_days must be an Integer")
+        validate_type(:analytics_data_retention_days, [ Integer ], "analytics_data_retention_days must be an Integer")
         validate_positive(:analytics_data_retention_days, "analytics_data_retention_days must be positive")
       end
 
       if config.analytics_session_timeout_minutes
-        validate_type(:analytics_session_timeout_minutes, [Integer], "analytics_session_timeout_minutes must be an Integer")
+        validate_type(:analytics_session_timeout_minutes, [ Integer ], "analytics_session_timeout_minutes must be an Integer")
         validate_positive(:analytics_session_timeout_minutes, "analytics_session_timeout_minutes must be positive")
       end
 
@@ -80,7 +82,7 @@ module RailsOnboarding
 
       # API mode validations
       if config.api_mode_enabled
-        validate_type(:api_mode_enabled, [TrueClass, FalseClass], "api_mode_enabled must be a Boolean")
+        validate_type(:api_mode_enabled, [ TrueClass, FalseClass ], "api_mode_enabled must be a Boolean")
         unless VALID_API_AUTH_METHODS.include?(config.api_authentication_method)
           errors << InvalidTypeError.new(
             "api_authentication_method must be one of: #{VALID_API_AUTH_METHODS.join(', ')}"
@@ -97,56 +99,20 @@ module RailsOnboarding
         return
       end
 
-      step_names = []
-
-      config.steps.each_with_index do |step, index|
-        # Validate step is a hash
-        unless step.is_a?(Hash)
-          errors << InvalidStepError.new("Step at index #{index} must be a Hash")
-          next
-        end
-
-        # Validate required fields
-        unless step[:name]
-          errors << InvalidStepError.new("Step at index #{index} is missing required :name field")
-          next
-        end
-
-        # Validate name is a symbol or string
-        unless step[:name].is_a?(Symbol) || step[:name].is_a?(String)
-          errors << InvalidStepError.new(
-            "Step at index #{index} has invalid name type. Must be Symbol or String, got #{step[:name].class}"
-          )
-          next
-        end
-
-        # Validate name format (alphanumeric and underscores only)
-        step_name = step[:name].to_s
-        unless step_name.match?(/\A[a-z_][a-z0-9_]*\z/i)
-          errors << InvalidStepError.new(
-            "Step '#{step_name}' has invalid format. Use alphanumeric characters and underscores only, starting with a letter or underscore"
-          )
-        end
-
-        # Check for uniqueness
-        if step_names.include?(step[:name].to_sym)
-          errors << InvalidStepError.new("Duplicate step name found: '#{step[:name]}'")
-        end
-        step_names << step[:name].to_sym
-
-        # Validate optional fields
-        if step[:title] && !step[:title].is_a?(String)
-          errors << InvalidStepError.new("Step '#{step[:name]}' has invalid :title type. Must be a String")
-        end
-
-        if step[:icon] && !step[:icon].is_a?(String)
-          errors << InvalidStepError.new("Step '#{step[:name]}' has invalid :icon type. Must be a String")
-        end
-
-        if step.key?(:skippable) && ![TrueClass, FalseClass].include?(step[:skippable].class)
-          errors << InvalidStepError.new("Step '#{step[:name]}' has invalid :skippable type. Must be a Boolean")
-        end
-      end
+      validate_named_collection(
+        config.steps,
+        error_class: InvalidStepError,
+        label: "Step",
+        identifier_field: :name,
+        identifier_type: [ Symbol, String ],
+        duplicate_label: "step name",
+        format_description: "Use alphanumeric characters and underscores only, starting with a letter or underscore",
+        fields: [
+          { name: :title, type: String },
+          { name: :icon, type: String },
+          { name: :skippable, type: [ TrueClass, FalseClass ] }
+        ]
+      )
     end
 
     def validate_milestones
@@ -154,89 +120,41 @@ module RailsOnboarding
       return unless config.milestones.is_a?(Array)
       return if config.milestones.empty? # Empty milestones array is valid
 
-      milestone_keys = []
-
-      config.milestones.each_with_index do |milestone, index|
-        # Validate milestone is a hash
-        unless milestone.is_a?(Hash)
-          errors << InvalidMilestoneError.new("Milestone at index #{index} must be a Hash")
-          next
-        end
-
-        # Validate required fields
-        unless milestone[:key]
-          errors << InvalidMilestoneError.new("Milestone at index #{index} is missing required :key field")
-          next
-        end
-
-        unless milestone[:trigger]
-          errors << InvalidMilestoneError.new("Milestone '#{milestone[:key]}' is missing required :trigger field")
-          next
-        end
-
-        # Validate key uniqueness
-        if milestone_keys.include?(milestone[:key].to_sym)
-          errors << InvalidMilestoneError.new("Duplicate milestone key found: '#{milestone[:key]}'")
-        end
-        milestone_keys << milestone[:key].to_sym
-
-        # Validate key format
-        milestone_key = milestone[:key].to_s
-        unless milestone_key.match?(/\A[a-z_][a-z0-9_]*\z/i)
+      validate_named_collection(
+        config.milestones,
+        error_class: InvalidMilestoneError,
+        label: "Milestone",
+        identifier_field: :key,
+        duplicate_label: "milestone key",
+        format_description: "Use alphanumeric characters and underscores only",
+        fields: [
+          { name: :trigger, required: true },
+          { name: :points, type: Integer },
+          { name: :title, type: String },
+          { name: :description, type: String },
+          { name: :conditions, type: Hash }
+        ]
+      ) do |milestone, key|
+        # Cross-field and value-range checks that a generic field schema
+        # can't express - kept bespoke per collection.
+        if milestone[:trigger] && !VALID_TRIGGERS.include?(milestone[:trigger].to_sym)
           errors << InvalidMilestoneError.new(
-            "Milestone key '#{milestone_key}' has invalid format. Use alphanumeric characters and underscores only"
-          )
-        end
-
-        # Validate trigger
-        unless VALID_TRIGGERS.include?(milestone[:trigger].to_sym)
-          errors << InvalidMilestoneError.new(
-            "Milestone '#{milestone[:key]}' has invalid trigger '#{milestone[:trigger]}'. " \
+            "Milestone '#{key}' has invalid trigger '#{milestone[:trigger]}'. " \
             "Valid triggers: #{VALID_TRIGGERS.join(', ')}"
           )
         end
 
-        # Validate points
-        if milestone[:points]
-          unless milestone[:points].is_a?(Integer)
-            errors << InvalidMilestoneError.new(
-              "Milestone '#{milestone[:key]}' has invalid :points type. Must be an Integer"
-            )
-          end
-
-          if milestone[:points].is_a?(Integer) && milestone[:points] < 0
-            errors << InvalidMilestoneError.new(
-              "Milestone '#{milestone[:key]}' has negative points. Points must be non-negative"
-            )
-          end
-        end
-
-        # Validate title and description if present
-        if milestone[:title] && !milestone[:title].is_a?(String)
+        if milestone[:points].is_a?(Integer) && milestone[:points].negative?
           errors << InvalidMilestoneError.new(
-            "Milestone '#{milestone[:key]}' has invalid :title type. Must be a String"
+            "Milestone '#{key}' has negative points. Points must be non-negative"
           )
         end
 
-        if milestone[:description] && !milestone[:description].is_a?(String)
-          errors << InvalidMilestoneError.new(
-            "Milestone '#{milestone[:key]}' has invalid :description type. Must be a String"
-          )
-        end
-
-        # Validate conditions if present
-        if milestone[:conditions] && !milestone[:conditions].is_a?(Hash)
-          errors << InvalidMilestoneError.new(
-            "Milestone '#{milestone[:key]}' has invalid :conditions type. Must be a Hash"
-          )
-        end
-
-        # Validate step-based conditions reference valid steps
         if milestone[:conditions].is_a?(Hash) && milestone[:conditions][:step]
           step_name = milestone[:conditions][:step]
           unless config.step_by_name(step_name)
             errors << InvalidMilestoneError.new(
-              "Milestone '#{milestone[:key]}' references undefined step '#{step_name}' in conditions"
+              "Milestone '#{key}' references undefined step '#{step_name}' in conditions"
             )
           end
         end
@@ -259,14 +177,14 @@ module RailsOnboarding
       end
 
       # If it's a symbol, validate it looks like a valid path helper
-      if value.is_a?(Symbol) && !value.to_s.end_with?('_path', '_url')
+      if value.is_a?(Symbol) && !value.to_s.end_with?("_path", "_url")
         errors << InvalidRedirectPathError.new(
           "#{field_name} symbol '#{value}' should end with '_path' or '_url' (e.g., :root_path, :dashboard_path)"
         )
       end
 
       # If it's a string, validate it starts with /
-      if value.is_a?(String) && !value.start_with?('/')
+      if value.is_a?(String) && !value.start_with?("/")
         errors << InvalidRedirectPathError.new(
           "#{field_name} string '#{value}' should be an absolute path starting with '/'"
         )
@@ -285,21 +203,19 @@ module RailsOnboarding
           next
         end
 
-        # Validate text is present
+        # :text has a combined required+type message ("must have a :text
+        # field of type String"), unlike every other field here, so it's
+        # kept as its own check rather than going through validate_item_fields.
         unless tooltip[:text].is_a?(String)
           errors << InvalidTypeError.new(
             "Tooltip '#{key}' must have a :text field of type String"
           )
         end
 
-        # Validate delay if present
-        if tooltip[:delay] && !tooltip[:delay].is_a?(Integer)
-          errors << InvalidTypeError.new(
-            "Tooltip '#{key}' has invalid :delay type. Must be an Integer (milliseconds)"
-          )
-        end
+        validate_item_fields(tooltip, "Tooltip '#{key}'", InvalidTypeError, [
+          { name: :delay, type: Integer }
+        ])
 
-        # Validate position if present
         if tooltip[:position]
           valid_positions = %w[top bottom left right]
           unless valid_positions.include?(tooltip[:position].to_s)
@@ -367,44 +283,34 @@ module RailsOnboarding
       return unless config.progressive_disclosure_enabled
       return unless config.progressive_features.is_a?(Array)
 
-      valid_reveal_conditions = [:time_based, :action_based, :step_based, :milestone_based, :engagement_based]
+      validate_named_collection(
+        config.progressive_features,
+        error_class: InvalidTypeError,
+        label: "Progressive feature",
+        identifier_field: :key
+      ) do |feature, key|
+        next unless feature[:reveal_condition]
 
-      config.progressive_features.each_with_index do |feature, index|
-        unless feature.is_a?(Hash)
+        unless VALID_REVEAL_CONDITIONS.include?(feature[:reveal_condition])
           errors << InvalidTypeError.new(
-            "Progressive feature at index #{index} must be a Hash"
+            "Progressive feature '#{key}' has invalid :reveal_condition. " \
+            "Valid conditions: #{VALID_REVEAL_CONDITIONS.join(', ')}"
           )
-          next
         end
 
-        unless feature[:key]
+        # Validate time_based features have delay
+        if feature[:reveal_condition] == :time_based && !feature[:delay].is_a?(Integer)
           errors << InvalidTypeError.new(
-            "Progressive feature at index #{index} is missing required :key field"
+            "Progressive feature '#{key}' with :time_based condition must have :delay (Integer in seconds)"
           )
         end
 
-        if feature[:reveal_condition]
-          unless valid_reveal_conditions.include?(feature[:reveal_condition])
+        # Validate step_based features reference valid steps
+        if feature[:reveal_condition] == :step_based && feature[:after_step]
+          unless config.step_by_name(feature[:after_step])
             errors << InvalidTypeError.new(
-              "Progressive feature '#{feature[:key]}' has invalid :reveal_condition. " \
-              "Valid conditions: #{valid_reveal_conditions.join(', ')}"
+              "Progressive feature '#{key}' references undefined step '#{feature[:after_step]}'"
             )
-          end
-
-          # Validate time_based features have delay
-          if feature[:reveal_condition] == :time_based && !feature[:delay].is_a?(Integer)
-            errors << InvalidTypeError.new(
-              "Progressive feature '#{feature[:key]}' with :time_based condition must have :delay (Integer in seconds)"
-            )
-          end
-
-          # Validate step_based features reference valid steps
-          if feature[:reveal_condition] == :step_based && feature[:after_step]
-            unless config.step_by_name(feature[:after_step])
-              errors << InvalidTypeError.new(
-                "Progressive feature '#{feature[:key]}' references undefined step '#{feature[:after_step]}'"
-              )
-            end
           end
         end
       end
@@ -449,6 +355,97 @@ module RailsOnboarding
       value = config.send(field)
       if value && value.is_a?(Integer) && value <= 0
         errors << InvalidTypeError.new(message)
+      end
+    end
+
+    # Shared engine behind validate_steps/validate_milestones/
+    # validate_progressive_features: they all iterate an Array of Hashes,
+    # each identified by one field (:name/:key), and each with its own mix
+    # of required/optional fields - only the identifier's uniqueness/format
+    # rules and the field list differ, plus whatever bespoke cross-field
+    # checks the caller needs (yielded per item).
+    #
+    # @param items [Array] the configured collection (steps, milestones, ...)
+    # @param error_class [Class] error class to raise for problems found
+    # @param label [String] human label used in messages, e.g. "Step"
+    # @param identifier_field [Symbol] the field that identifies each item
+    # @param identifier_type [Array<Class>, nil] allowed types for the
+    #   identifier's value, if it should be type-checked
+    # @param duplicate_label [String, nil] enables a uniqueness check on the
+    #   identifier, e.g. "step name"
+    # @param format_description [String, nil] enables a name-format check on
+    #   the identifier (alphanumeric/underscore), described in the message
+    # @param fields [Array<Hash>] field schema: {name:, type:, required:}
+    # @yield [item, identifier] for bespoke, collection-specific checks once
+    #   the item has passed the structural checks above
+    def validate_named_collection(items, error_class:, label:, identifier_field:, identifier_type: nil,
+                                   duplicate_label: nil, format_description: nil, fields: [])
+      return unless items.is_a?(Array)
+
+      seen_identifiers = []
+
+      items.each_with_index do |item, index|
+        unless item.is_a?(Hash)
+          errors << error_class.new("#{label} at index #{index} must be a Hash")
+          next
+        end
+
+        identifier = item[identifier_field]
+        unless identifier
+          errors << error_class.new("#{label} at index #{index} is missing required :#{identifier_field} field")
+          next
+        end
+
+        if identifier_type && !identifier_type.any? { |type| identifier.is_a?(type) }
+          errors << error_class.new(
+            "#{label} at index #{index} has invalid #{identifier_field} type. " \
+            "Must be #{identifier_type.map(&:name).join(' or ')}, got #{identifier.class}"
+          )
+          next
+        end
+
+        item_label = "#{label} '#{identifier}'"
+
+        if duplicate_label
+          if seen_identifiers.include?(identifier.to_sym)
+            errors << error_class.new("Duplicate #{duplicate_label} found: '#{identifier}'")
+          end
+          seen_identifiers << identifier.to_sym
+        end
+
+        if format_description && !identifier.to_s.match?(NAME_FORMAT)
+          errors << error_class.new("#{item_label} has invalid format. #{format_description}")
+        end
+
+        validate_item_fields(item, item_label, error_class, fields)
+
+        yield item, identifier if block_given?
+      end
+    end
+
+    # Checks a schema of {name:, type:, required:} field rules against a
+    # single Hash item, reporting a missing-required-field or wrong-type
+    # error per field as appropriate.
+    def validate_item_fields(item, item_label, error_class, fields)
+      fields.each do |field|
+        value = item[field[:name]]
+
+        if field[:required] && value.nil?
+          errors << error_class.new("#{item_label} is missing required :#{field[:name]} field")
+          next
+        end
+
+        next if value.nil?
+
+        expected_types = Array(field[:type])
+        next if expected_types.empty?
+
+        unless expected_types.any? { |type| value.is_a?(type) }
+          errors << error_class.new(
+            "#{item_label} has invalid :#{field[:name]} type. " \
+            "Expected #{expected_types.map(&:name).join(' or ')}, got #{value.class}"
+          )
+        end
       end
     end
 
