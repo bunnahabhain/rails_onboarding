@@ -1,5 +1,7 @@
 module RailsOnboarding
   class OnboardingController < ApplicationController
+    include RailsOnboarding::RateLimitable
+
     before_action :authenticate_user!
     before_action :check_onboarding_status, except: [ :complete, :skip, :restart ]
     before_action :set_step
@@ -327,9 +329,9 @@ module RailsOnboarding
 
       error_message = if Rails.env.production?
                         "An unexpected error occurred. Please try again or contact support."
-                      else
+      else
                         "Error: #{exception.message}"
-                      end
+      end
 
       # Simple redirect for all error cases
       redirect_to onboarding_path, alert: error_message

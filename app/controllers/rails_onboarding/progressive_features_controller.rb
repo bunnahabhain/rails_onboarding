@@ -4,8 +4,10 @@ module RailsOnboarding
   # Controller for managing progressive feature disclosure
   # Handles revealing and tracking progressive features
   class ProgressiveFeaturesController < ApplicationController
+    include RailsOnboarding::RateLimitable
+
     before_action :authenticate_user!
-    before_action :set_feature, only: [:reveal, :dismiss]
+    before_action :set_feature, only: [ :reveal, :dismiss ]
 
     # GET /progressive_features
     # List all progressive features and their status
@@ -64,7 +66,7 @@ module RailsOnboarding
       # Track dismissal in analytics
       if current_user.respond_to?(:track_analytics_event)
         current_user.track_analytics_event(
-          'feature_dismissed',
+          "feature_dismissed",
           feature_key: @feature[:key].to_s
         )
       end
@@ -113,7 +115,7 @@ module RailsOnboarding
             flash[:error] = "Feature not found"
             redirect_to root_path
           end
-          format.json { render json: { error: 'Feature not found' }, status: :not_found }
+          format.json { render json: { error: "Feature not found" }, status: :not_found }
         end
       end
     end
@@ -124,8 +126,8 @@ module RailsOnboarding
       return if defined?(current_user) && current_user
 
       respond_to do |format|
-        format.html { redirect_to main_app.root_path, alert: 'Please sign in' }
-        format.json { render json: { error: 'Unauthorized' }, status: :unauthorized }
+        format.html { redirect_to main_app.root_path, alert: "Please sign in" }
+        format.json { render json: { error: "Unauthorized" }, status: :unauthorized }
       end
     end
   end

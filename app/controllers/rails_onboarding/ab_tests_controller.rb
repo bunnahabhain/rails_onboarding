@@ -4,7 +4,9 @@ module RailsOnboarding
   # Controller for managing A/B tests and viewing results
   # Provides endpoints for test management and analytics
   class AbTestsController < ApplicationController
-    before_action :set_ab_test, only: [:show, :results, :toggle]
+    include RailsOnboarding::RateLimitable
+
+    before_action :set_ab_test, only: [ :show, :results, :toggle ]
 
     # GET /ab_tests
     # List all configured A/B tests
@@ -67,7 +69,7 @@ module RailsOnboarding
         user.assign_variant(test_name, variant)
         render json: { success: true, variant: variant }
       else
-        render json: { success: false, error: 'User not found or AbTestable not included' }, status: :unprocessable_entity
+        render json: { success: false, error: "User not found or AbTestable not included" }, status: :unprocessable_entity
       end
     end
 
@@ -81,7 +83,7 @@ module RailsOnboarding
       unless raw_test_name =~ /\A[a-zA-Z0-9_-]+\z/
         respond_to do |format|
           format.html { redirect_to ab_tests_path, alert: "Invalid test name format" }
-          format.json { render json: { error: 'Invalid test name format' }, status: :bad_request }
+          format.json { render json: { error: "Invalid test name format" }, status: :bad_request }
         end
         return
       end
@@ -92,7 +94,7 @@ module RailsOnboarding
       unless @test_config
         respond_to do |format|
           format.html { redirect_to ab_tests_path, alert: "A/B test not found: #{@test_name}" }
-          format.json { render json: { error: 'Test not found' }, status: :not_found }
+          format.json { render json: { error: "Test not found" }, status: :not_found }
         end
       end
     end

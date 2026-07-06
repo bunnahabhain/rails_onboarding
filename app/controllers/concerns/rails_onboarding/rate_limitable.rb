@@ -37,9 +37,9 @@ module RailsOnboarding
       )
 
       # Set rate limit headers
-      response.set_header('X-RateLimit-Limit', limit.to_s)
-      response.set_header('X-RateLimit-Remaining', (limit - count - 1).to_s)
-      response.set_header('X-RateLimit-Reset', rate_limit_reset_time.to_i.to_s)
+      response.set_header("X-RateLimit-Limit", limit.to_s)
+      response.set_header("X-RateLimit-Remaining", (limit - count - 1).to_s)
+      response.set_header("X-RateLimit-Reset", rate_limit_reset_time.to_i.to_s)
     end
 
     # Generate cache key for rate limiting
@@ -79,23 +79,25 @@ module RailsOnboarding
     # Response when rate limit is exceeded
     def rate_limit_exceeded_response
       retry_after = (rate_limit_reset_time - Time.current).to_i
+      message = "Too many requests. Please retry after #{retry_after} seconds."
 
-      response.set_header('Retry-After', retry_after.to_s)
-      response.set_header('X-RateLimit-Limit', rate_limit_per_period.to_s)
-      response.set_header('X-RateLimit-Remaining', '0')
-      response.set_header('X-RateLimit-Reset', rate_limit_reset_time.to_i.to_s)
+      response.set_header("Retry-After", retry_after.to_s)
+      response.set_header("X-RateLimit-Limit", rate_limit_per_period.to_s)
+      response.set_header("X-RateLimit-Remaining", "0")
+      response.set_header("X-RateLimit-Reset", rate_limit_reset_time.to_i.to_s)
 
       if respond_to?(:render_api_error)
-        render_api_error(
-          "Rate limit exceeded. Please retry after #{retry_after} seconds.",
-          status: :too_many_requests
-        )
-      else
-        render json: {
-          error: "Rate limit exceeded",
-          retry_after: retry_after,
-          message: "Too many requests. Please retry after #{retry_after} seconds."
-        }, status: :too_many_requests
+        render_api_error(message, status: :too_many_requests)
+        return
+      end
+
+      # These controllers are HTML/Turbo-driven, not JSON APIs, so a plain
+      # `render json:` here would hand a browser a raw JSON body instead of
+      # a page. Respond appropriately to what was actually requested.
+      respond_to do |format|
+        format.html { redirect_back fallback_location: main_app.root_path, alert: message }
+        format.json { render json: { error: "Rate limit exceeded", retry_after: retry_after, message: message }, status: :too_many_requests }
+        format.any { head :too_many_requests }
       end
     end
   end

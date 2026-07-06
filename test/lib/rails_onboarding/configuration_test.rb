@@ -23,6 +23,9 @@ module RailsOnboarding
       assert_equal :root_path, config.redirect_after_skip
       assert config.enable_tooltips
       assert_not config.enable_milestones
+      # Opt-in: defaulting this on would start enforcing a request limit on
+      # every host app that upgrades without them ever having asked for it.
+      assert_not config.rate_limiting_enabled
     end
 
     test "can configure user_class_name" do

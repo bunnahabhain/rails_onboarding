@@ -1,5 +1,7 @@
 module RailsOnboarding
   class MilestonesController < ApplicationController
+    include RailsOnboarding::RateLimitable
+
     before_action :authenticate_user!
     before_action :check_milestones_enabled
 
@@ -62,7 +64,7 @@ module RailsOnboarding
     def progress
       render json: {
         points: current_user.milestone_points || 0,
-        achieved: current_user.milestones_achieved.map { |m| m['key'] || m[:key] }.compact
+        achieved: current_user.milestones_achieved.map { |m| m["key"] || m[:key] }.compact
       }
     end
 

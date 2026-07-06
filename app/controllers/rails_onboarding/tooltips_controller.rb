@@ -1,5 +1,7 @@
 module RailsOnboarding
   class TooltipsController < ApplicationController
+    include RailsOnboarding::RateLimitable
+
     before_action :authenticate_user!
 
     # POST /tooltips/dismiss
@@ -23,7 +25,7 @@ module RailsOnboarding
 
         # Track dismissal event
         if current_user.respond_to?(:track_tooltip_interaction!)
-          current_user.track_tooltip_interaction!(tooltip_id, 'dismissed')
+          current_user.track_tooltip_interaction!(tooltip_id, "dismissed")
         end
         render json: { success: true }
       else
