@@ -1,59 +1,53 @@
 require_relative "configuration_validator"
+require_relative "configuration/steps"
+require_relative "configuration/milestones"
+require_relative "configuration/tooltips"
+require_relative "configuration/analytics"
+require_relative "configuration/ab_testing"
+require_relative "configuration/personalization"
+require_relative "configuration/progressive_disclosure"
+require_relative "configuration/integrations"
+require_relative "configuration/rate_limiting"
+require_relative "configuration/templates"
 
 module RailsOnboarding
+  # Every reader/writer here is part of this gem's public configuration DSL
+  # (host apps set these in a RailsOnboarding.configure block), so none of
+  # them can change shape without breaking every existing installation. The
+  # ~40 settings are grouped by feature into the modules under
+  # configuration/ - each one owns its own defaults and any logic specific
+  # to it, so a change to (say) A/B testing only touches
+  # configuration/ab_testing.rb instead of this whole file. What's left
+  # here is identity/branding settings with no logic of their own, plus the
+  # infrastructure the feature modules share (tenant overrides, the derived-
+  # lookup cache, and the validator).
   class Configuration
+    include Steps
+    include Milestones
+    include Tooltips
+    include Analytics
+    include AbTesting
+    include Personalization
+    include ProgressiveDisclosure
+    include Integrations
+    include RateLimiting
+    include Templates
+
     attr_accessor :user_class_name,
                   :include_host_styles,
                   :redirect_after_completion,
                   :redirect_after_skip,
-                  :steps,
-                  :feature_tooltips,
-                  :enable_tooltips,
-                  :enable_milestones,
-                  :milestones,
-                  :onboarding_required_for,
                   :custom_css_path,
                   :custom_js_path,
-                  :enable_analytics,
-                  :analytics_data_retention_days,
-                  :analytics_retention_days,
-                  :analytics_session_timeout_minutes,
                   :welcome_heading,
                   :welcome_subheading,
-                  :welcome_features,
-                  :ab_tests,
-                  :enable_ab_testing,
-                  :personalization_enabled,
-                  :user_type_method,
-                  :personalized_flows,
-                  :progressive_disclosure_enabled,
-                  :progressive_features,
-                  :onboarding_templates,
-                  :devise_integration_enabled,
-                  :redirect_unconfirmed_to_onboarding,
-                  :turbo_streams_enabled,
-                  :turbo_morphing_enabled,
-                  :api_mode_enabled,
-                  :api_authentication_method,
-                  :background_jobs_enabled,
-                  :background_jobs_queue,
-                  :mailer_from,
-                  :rate_limiting_enabled,
-                  :rate_limit_per_period,
-                  :rate_limit_period
+                  :welcome_features
 
     def initialize
       @user_class_name = "User"
       @include_host_styles = true  # Default to including host app css
       @redirect_after_completion = :root_path
       @redirect_after_skip = :root_path
-      @enable_tooltips = true
-      @enable_milestones = false
-      @enable_analytics = true
-      @analytics_data_retention_days = 365 # Keep analytics data for 1 year
-      @analytics_retention_days = 365 # Alias for analytics_data_retention_days
-      @analytics_session_timeout_minutes = 30 # Consider session ended after 30 minutes of inactivity
-      @onboarding_required_for = :new_users # :new_users, :all_users, or a Proc
       @welcome_heading = "We're excited to have you here!"
       @welcome_subheading = "Now, let's take a few moments to get you set up and familiar with a few things you need to know to get started."
       @welcome_features = [
@@ -62,156 +56,16 @@ module RailsOnboarding
         { icon: "🔍", text: "Explore key features" }
       ]
 
-      # Default steps - can be customized
-      @steps = [
-        {
-          name: :welcome,
-          title: "Welcome",
-          icon: "🎉",
-          skippable: true
-        },
-        {
-          name: :profile,
-          title: "Setup Profile",
-          icon: "👤",
-          skippable: false
-        },
-        {
-          name: :first_action,
-          title: "First Action",
-          icon: "🚀",
-          skippable: false
-        },
-        {
-          name: :explore,
-          title: "Explore Features",
-          icon: "🔍",
-          skippable: true
-        }
-      ]
-
-      @feature_tooltips = {
-        "getting_started" => {
-          text: "Click here to get started!",
-          delay: 1000,
-          position: "bottom"
-        }
-      }
-
-      # Default milestones - can be customized
-      @milestones = [
-        {
-          key: :welcome_completed,
-          title: "Welcome Aboard!",
-          description: "You completed the welcome step",
-          icon: "🎉",
-          points: 10,
-          trigger: :onboarding_step_completed,
-          conditions: { step: :welcome }
-        },
-        {
-          key: :onboarding_completed,
-          title: "Onboarding Champion",
-          description: "You completed the entire onboarding flow",
-          icon: "🏆",
-          points: 50,
-          trigger: :onboarding_completed
-        },
-        {
-          key: :early_adopter,
-          title: "Early Adopter",
-          description: "You joined within the first hour",
-          icon: "⚡",
-          points: 100,
-          trigger: :custom,
-          conditions: { early_adopter: true }
-        }
-      ]
-
-      # A/B Testing configuration
-      @enable_ab_testing = false
-      @ab_tests = {}
-
-      # Personalization configuration
-      @personalization_enabled = false
-      @user_type_method = :user_type # Method to call on user to determine their type
-      @personalized_flows = {}
-
-      # Progressive disclosure configuration
-      @progressive_disclosure_enabled = false
-      @progressive_features = []
-
-      # Integration & Compatibility options
-      @devise_integration_enabled = true
-      @redirect_unconfirmed_to_onboarding = false
-      @turbo_streams_enabled = true
-      @turbo_morphing_enabled = false
-      @api_mode_enabled = false
-      @api_authentication_method = :token
-      @background_jobs_enabled = false
-      @background_jobs_queue = :default
-      @mailer_from = "noreply@example.com"
-
-      # Rate limiting (RailsOnboarding::RateLimitable) - opt-in. Defaulting
-      # this on would start enforcing a request limit on every host app that
-      # upgrades without them ever having asked for it.
-      @rate_limiting_enabled = false
-      @rate_limit_per_period = 60  # Number of requests allowed per period
-      @rate_limit_period = 60      # Period in seconds (60 seconds = 1 minute)
-
-      # Onboarding templates
-      @onboarding_templates = {
-        saas: {
-          name: "SaaS Application",
-          steps: [
-            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
-            { name: :account_setup, title: "Account Setup", icon: "👤", skippable: false },
-            { name: :team_invite, title: "Invite Team", icon: "👥", skippable: true },
-            { name: :first_project, title: "Create Project", icon: "📁", skippable: false },
-            { name: :integration, title: "Connect Tools", icon: "🔌", skippable: true }
-          ]
-        },
-        ecommerce: {
-          name: "E-commerce Platform",
-          steps: [
-            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
-            { name: :store_setup, title: "Setup Store", icon: "🏪", skippable: false },
-            { name: :first_product, title: "Add Product", icon: "📦", skippable: false },
-            { name: :payment_setup, title: "Payment Setup", icon: "💳", skippable: false },
-            { name: :launch, title: "Launch Store", icon: "🚀", skippable: false }
-          ]
-        },
-        marketplace: {
-          name: "Marketplace",
-          steps: [
-            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
-            { name: :profile_setup, title: "Create Profile", icon: "👤", skippable: false },
-            { name: :verification, title: "Verify Account", icon: "✅", skippable: false },
-            { name: :first_listing, title: "Create Listing", icon: "📝", skippable: false },
-            { name: :explore, title: "Explore", icon: "🔍", skippable: true }
-          ]
-        },
-        community: {
-          name: "Community Platform",
-          steps: [
-            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
-            { name: :profile, title: "Setup Profile", icon: "👤", skippable: false },
-            { name: :interests, title: "Choose Interests", icon: "❤️", skippable: true },
-            { name: :first_post, title: "Create Post", icon: "✍️", skippable: false },
-            { name: :connect, title: "Connect", icon: "🤝", skippable: true }
-          ]
-        },
-        education: {
-          name: "Educational Platform",
-          steps: [
-            { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
-            { name: :student_setup, title: "Student Info", icon: "🎓", skippable: false },
-            { name: :course_selection, title: "Choose Courses", icon: "📚", skippable: false },
-            { name: :first_lesson, title: "First Lesson", icon: "📖", skippable: false },
-            { name: :study_plan, title: "Study Plan", icon: "📅", skippable: true }
-          ]
-        }
-      }
+      initialize_steps
+      initialize_milestones
+      initialize_tooltips
+      initialize_analytics
+      initialize_ab_testing
+      initialize_personalization
+      initialize_progressive_disclosure
+      initialize_integrations
+      initialize_rate_limiting
+      initialize_templates
     end
 
     # Validate the current configuration
@@ -242,103 +96,6 @@ module RailsOnboarding
       @user_class ||= @user_class_name.constantize
     end
 
-    def total_steps
-      @total_steps ||= steps.size
-    end
-
-    def step_by_name(name)
-      return nil if name.nil?
-
-      @step_by_name_cache ||= {}
-      @step_by_name_cache[name.to_sym] ||= steps.find do |s|
-        next false unless s.is_a?(Hash) && s[:name]
-        s[:name].to_sym == name.to_sym
-      end
-    end
-
-    def step_index(name)
-      return nil if name.nil?
-
-      @step_index_cache ||= {}
-      @step_index_cache[name.to_sym] ||= steps.find_index do |s|
-        next false unless s.is_a?(Hash) && s[:name]
-        s[:name].to_sym == name.to_sym
-      end
-    end
-
-    def milestone_by_key(key)
-      return nil if key.nil?
-
-      @milestone_by_key_cache ||= {}
-      @milestone_by_key_cache[key.to_sym] ||= milestones.find { |m| m[:key].to_sym == key.to_sym }
-    end
-
-    def milestones_for_trigger(trigger, conditions = {})
-      cache_key = [ trigger, conditions ].hash
-      @milestones_for_trigger_cache ||= {}
-      @milestones_for_trigger_cache[cache_key] ||= milestones.select do |milestone|
-        # Match on trigger
-        next false unless milestone[:trigger] == trigger.to_sym
-
-        # If no conditions are provided, match all milestones with this trigger
-        next true if conditions.empty?
-
-        # If milestone has no conditions, but we're providing conditions, don't match
-        next false if milestone[:conditions].nil?
-
-        # Both have conditions, check if they match
-        conditions_match?(milestone[:conditions], conditions)
-      end
-    end
-
-    # Reads the active RailsOnboarding::Flow from the admin Flow Editor when one
-    # exists, falling back to the statically-configured steps otherwise. This
-    # keeps "activate a flow" a real, shared, durable change instead of a
-    # per-process global mutation - every process re-checks the database
-    # instead of caching a value that could go stale the moment another
-    # process (or another admin) activates a different flow.
-    def steps
-      active_flow_steps || tenant_override(:steps, @steps)
-    end
-
-    # Override setters to clear cache when configuration changes
-    def steps=(value)
-      clear_cache!
-      @steps = value
-    end
-
-    def milestones
-      tenant_override(:milestones, @milestones)
-    end
-
-    def milestones=(value)
-      clear_cache!
-      @milestones = value
-    end
-
-    def feature_tooltips
-      tenant_override(:feature_tooltips, @feature_tooltips)
-    end
-
-    def enable_tooltips
-      tenant_override(:enable_tooltips, @enable_tooltips)
-    end
-
-    def enable_milestones
-      tenant_override(:enable_milestones, @enable_milestones)
-    end
-
-    # Keep analytics_retention_days in sync with analytics_data_retention_days
-    def analytics_retention_days=(value)
-      @analytics_retention_days = value
-      @analytics_data_retention_days = value
-    end
-
-    def analytics_data_retention_days=(value)
-      @analytics_data_retention_days = value
-      @analytics_retention_days = value
-    end
-
     # Clear all cached lookups - call this when configuration changes
     def clear_cache!
       @user_class = nil
@@ -348,70 +105,6 @@ module RailsOnboarding
       @milestone_by_key_cache = nil
       @milestones_for_trigger_cache = nil
       @validator = nil
-    end
-
-    # Get a specific A/B test configuration
-    #
-    # @param test_name [Symbol, String] The name of the test
-    # @return [Hash, nil] The test configuration or nil
-    def ab_test(test_name)
-      return nil unless enable_ab_testing
-      ab_tests[test_name.to_sym]
-    end
-
-    # Get a personalized flow for a user type
-    #
-    # @param user_type [Symbol, String] The user type
-    # @return [Array, nil] The personalized steps or nil
-    def personalized_flow(user_type)
-      return nil unless personalization_enabled
-      personalized_flows[user_type.to_sym]
-    end
-
-    # Get an onboarding template by key
-    #
-    # @param template_key [Symbol, String] The template key
-    # @return [Hash, nil] The template configuration or nil
-    def template(template_key)
-      onboarding_templates[template_key.to_sym]
-    end
-
-    # Apply a template to the current configuration
-    #
-    # @param template_key [Symbol, String] The template key to apply
-    # @return [Boolean] True if template was applied successfully
-    def apply_template(template_key)
-      template = onboarding_templates[template_key.to_sym]
-      return false unless template
-
-      @steps = template[:steps]
-      true
-    end
-
-    # Check if a feature should be shown based on progressive disclosure
-    #
-    # @param feature_key [Symbol, String] The feature key
-    # @param user [Object] The user object
-    # @return [Boolean] True if feature should be shown
-    def show_progressive_feature?(feature_key, user)
-      return true unless progressive_disclosure_enabled
-
-      feature = progressive_features.find { |f| f[:key] == feature_key.to_sym }
-      return true unless feature
-
-      # Check if feature meets its reveal conditions
-      case feature[:reveal_condition]
-      when :time_based
-        user.created_at + feature[:delay].seconds <= Time.current
-      when :action_based
-        user.send(feature[:check_method]) if user.respond_to?(feature[:check_method])
-      when :step_based
-        step_index(user.onboarding_current_step) >= step_index(feature[:after_step])
-      else
-        true
-      end
-    rescue StandardError
-      true # Default to showing feature if check fails
     end
 
     private
@@ -426,24 +119,6 @@ module RailsOnboarding
       return default unless overrides&.key?(key)
 
       overrides[key]
-    end
-
-    def active_flow_steps
-      return nil unless defined?(RailsOnboarding::Flow)
-      return nil unless RailsOnboarding::Flow.table_exists?
-
-      RailsOnboarding::Flow.active.first&.steps
-    rescue StandardError
-      nil
-    end
-
-    def conditions_match?(milestone_conditions, trigger_conditions)
-      return true if milestone_conditions.nil?
-
-      milestone_conditions.all? do |key, value|
-        trigger_conditions[key] == value || trigger_conditions[key.to_s] == value ||
-        trigger_conditions[key.to_sym] == value
-      end
     end
   end
 end
