@@ -4,10 +4,14 @@ module RailsOnboarding
     before_action :check_onboarding_status, except: [ :complete, :skip, :restart ]
     before_action :set_step
 
-    # Error handling for common scenarios
-    rescue_from ActiveRecord::RecordInvalid, with: :handle_validation_error
-    rescue_from ActiveRecord::RecordNotFound, with: :handle_not_found
+    # Error handling for common scenarios.
+    # rescue_from handlers are checked most-specific-last-registered-first, so
+    # the generic StandardError handler must come first or it will swallow
+    # RecordInvalid/RecordNotFound too (they're both StandardError subclasses)
+    # and the specific handlers below become dead code.
     rescue_from StandardError, with: :handle_standard_error
+    rescue_from ActiveRecord::RecordNotFound, with: :handle_not_found
+    rescue_from ActiveRecord::RecordInvalid, with: :handle_validation_error
 
     def show
       unless @current_step
@@ -19,13 +23,8 @@ module RailsOnboarding
           return
         end
 
-        begin
-          current_user.update!(onboarding_current_step: first_step[:name])
-          @current_step = current_user.current_onboarding_step
-        rescue ActiveRecord::RecordInvalid => e
-          handle_validation_error(e)
-          return
-        end
+        current_user.update!(onboarding_current_step: first_step[:name])
+        @current_step = current_user.current_onboarding_step
       end
 
       # Reset invalid step to first step
@@ -54,10 +53,6 @@ module RailsOnboarding
       else
         render :step
       end
-    rescue => e
-      Rails.logger.error "Error in show action: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      handle_standard_error(e)
     end
 
     def next
@@ -75,32 +70,74 @@ module RailsOnboarding
         return
       end
 
-      begin
-        if params[:step_data].present?
-          # Process any step-specific data
-          process_step_data(@current_step[:name], params[:step_data])
-        end
+      if params[:step_data].present?
+        # Process any step-specific data
+        process_step_data(@current_step[:name], params[:step_data])
+      end
 
-        # Award milestones for completing this step
-        awarded_milestones = []
+      # Award milestones for completing this step
+      awarded_milestones = []
+      if defined?(RailsOnboarding::MilestoneService)
+        awarded_milestones = RailsOnboarding::MilestoneService.check_onboarding_step_milestones(
+          current_user,
+          @current_step[:name]
+        ) || []
+      end
+
+      current_user.complete_onboarding_step!(@current_step[:name])
+
+      if current_user.onboarding_completed?
+        # Award completion milestones
         if defined?(RailsOnboarding::MilestoneService)
-          awarded_milestones = RailsOnboarding::MilestoneService.check_onboarding_step_milestones(
-            current_user,
-            @current_step[:name]
-          ) || []
+          completion_milestones = RailsOnboarding::MilestoneService.check_onboarding_completion_milestones(current_user) || []
+          awarded_milestones.concat(completion_milestones)
         end
 
-        current_user.complete_onboarding_step!(@current_step[:name])
-
-        if current_user.onboarding_completed?
-          # Award completion milestones
-          if defined?(RailsOnboarding::MilestoneService)
-            completion_milestones = RailsOnboarding::MilestoneService.check_onboarding_completion_milestones(current_user) || []
-            awarded_milestones.concat(completion_milestones)
+        respond_to do |format|
+          format.html { redirect_to_after_completion(awarded_milestones) }
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.action(
+              :redirect,
+              main_app.send(RailsOnboarding.configuration.redirect_after_completion)
+            )
           end
+        end
+      else
+        respond_to do |format|
+          format.html { redirect_to onboarding_path(awarded_milestones: awarded_milestones.map { |m| m[:key] }) }
+          format.turbo_stream { render :next }
+        end
+      end
+    end
 
+    def complete
+      completion_milestones = []
+      if defined?(RailsOnboarding::MilestoneService)
+        completion_milestones = RailsOnboarding::MilestoneService.check_onboarding_completion_milestones(current_user) || []
+      end
+
+      current_user.complete_onboarding!
+
+      respond_to do |format|
+        format.html { redirect_to_after_completion(completion_milestones) }
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.action(
+            :redirect,
+            main_app.send(RailsOnboarding.configuration.redirect_after_completion)
+          )
+        end
+      end
+    end
+
+    def skip
+      if params[:skip_all] == "true"
+        current_user.skip_onboarding!
+        redirect_to_after_skip
+      elsif @current_step && @current_step[:skippable]
+        current_user.skip_onboarding_step!(@current_step[:name])
+        if current_user.onboarding_completed?
           respond_to do |format|
-            format.html { redirect_to_after_completion(awarded_milestones) }
+            format.html { redirect_to_after_completion }
             format.turbo_stream do
               render turbo_stream: turbo_stream.action(
                 :redirect,
@@ -110,158 +147,60 @@ module RailsOnboarding
           end
         else
           respond_to do |format|
-            format.html { redirect_to onboarding_path(awarded_milestones: awarded_milestones.map { |m| m[:key] }) }
-            format.turbo_stream { render :next }
+            format.html { redirect_to onboarding_path }
+            format.turbo_stream { render :skip }
           end
         end
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error("Onboarding step validation failed: #{e.message}")
+      else
         respond_to do |format|
-          format.html { redirect_to onboarding_path, alert: "Failed to complete step: #{e.message}" }
+          format.html do
+            redirect_to onboarding_path, alert: "This step cannot be skipped."
+          end
           format.turbo_stream do
             render turbo_stream: turbo_stream.replace(
               "flash-messages",
               partial: "rails_onboarding/shared/flash",
-              locals: { alert: "Failed to complete step: #{e.message}" }
+              locals: { alert: "This step cannot be skipped." }
             ), status: :unprocessable_entity
           end
         end
-      rescue => e
-        handle_standard_error(e)
-      end
-    end
-
-    def complete
-      begin
-        completion_milestones = []
-        if defined?(RailsOnboarding::MilestoneService)
-          completion_milestones = RailsOnboarding::MilestoneService.check_onboarding_completion_milestones(current_user) || []
-        end
-
-        current_user.complete_onboarding!
-
-        respond_to do |format|
-          format.html { redirect_to_after_completion(completion_milestones) }
-          format.turbo_stream do
-            render turbo_stream: turbo_stream.action(
-              :redirect,
-              main_app.send(RailsOnboarding.configuration.redirect_after_completion)
-            )
-          end
-        end
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error("Failed to complete onboarding: #{e.message}")
-        respond_to do |format|
-          format.html { redirect_to onboarding_path, alert: "Failed to complete onboarding: #{e.message}" }
-          format.turbo_stream do
-            render turbo_stream: turbo_stream.replace(
-              "flash-messages",
-              partial: "rails_onboarding/shared/flash",
-              locals: { alert: "Failed to complete onboarding: #{e.message}" }
-            ), status: :unprocessable_entity
-          end
-        end
-      rescue => e
-        handle_standard_error(e)
-      end
-    end
-
-    def skip
-      begin
-        if params[:skip_all] == "true"
-          current_user.skip_onboarding!
-          redirect_to_after_skip
-        elsif @current_step && @current_step[:skippable]
-          current_user.skip_onboarding_step!(@current_step[:name])
-          if current_user.onboarding_completed?
-            respond_to do |format|
-              format.html { redirect_to_after_completion }
-              format.turbo_stream do
-                render turbo_stream: turbo_stream.action(
-                  :redirect,
-                  main_app.send(RailsOnboarding.configuration.redirect_after_completion)
-                )
-              end
-            end
-          else
-            respond_to do |format|
-              format.html { redirect_to onboarding_path }
-              format.turbo_stream { render :skip }
-            end
-          end
-        else
-          respond_to do |format|
-            format.html do
-              redirect_to onboarding_path, alert: "This step cannot be skipped."
-            end
-            format.turbo_stream do
-              render turbo_stream: turbo_stream.replace(
-                "flash-messages",
-                partial: "rails_onboarding/shared/flash",
-                locals: { alert: "This step cannot be skipped." }
-              ), status: :unprocessable_entity
-            end
-          end
-        end
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error("Failed to skip onboarding: #{e.message}")
-        respond_to do |format|
-          format.html { redirect_to onboarding_path, alert: "Failed to skip: #{e.message}" }
-          format.turbo_stream do
-            render turbo_stream: turbo_stream.replace(
-              "flash-messages",
-              partial: "rails_onboarding/shared/flash",
-              locals: { alert: "Failed to skip: #{e.message}" }
-            ), status: :unprocessable_entity
-          end
-        end
-      rescue => e
-        handle_standard_error(e)
       end
     end
 
     def back
-      begin
-        unless current_user.can_go_back?
-          respond_to do |format|
-            format.html { redirect_to onboarding_path, alert: "Cannot go back from the first step." }
-            format.turbo_stream do
-              render turbo_stream: turbo_stream.replace(
-                "flash-messages",
-                partial: "rails_onboarding/shared/flash",
-                locals: { alert: "Cannot go back from the first step." }
-              ), status: :unprocessable_entity
-            end
-          end
-          return
-        end
-
-        session_id = RailsOnboarding::SessionManager.session_id(current_user, session)
-        current_user.go_back!(session_id: session_id)
-
+      unless current_user.can_go_back?
         respond_to do |format|
-          format.html { redirect_to onboarding_path }
-          format.turbo_stream { render :back }
+          format.html { redirect_to onboarding_path, alert: "Cannot go back from the first step." }
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.replace(
+              "flash-messages",
+              partial: "rails_onboarding/shared/flash",
+              locals: { alert: "Cannot go back from the first step." }
+            ), status: :unprocessable_entity
+          end
         end
-      rescue => e
-        handle_standard_error(e)
+        return
+      end
+
+      session_id = RailsOnboarding::SessionManager.session_id(current_user, session)
+      current_user.go_back!(session_id: session_id)
+
+      respond_to do |format|
+        format.html { redirect_to onboarding_path }
+        format.turbo_stream { render :back }
       end
     end
 
     def restart
-      begin
-        session_id = RailsOnboarding::SessionManager.session_id(current_user, session)
-        current_user.restart_onboarding!(session_id: session_id)
-        RailsOnboarding::SessionManager.clear_session(current_user, session)
+      session_id = RailsOnboarding::SessionManager.session_id(current_user, session)
+      current_user.restart_onboarding!(session_id: session_id)
+      RailsOnboarding::SessionManager.clear_session(current_user, session)
 
-        respond_to do |format|
-          format.html { redirect_to onboarding_path, notice: "Onboarding has been restarted." }
-          format.turbo_stream do
-            render turbo_stream: turbo_stream.action(:redirect, onboarding_path)
-          end
+      respond_to do |format|
+        format.html { redirect_to onboarding_path, notice: "Onboarding has been restarted." }
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.action(:redirect, onboarding_path)
         end
-      rescue => e
-        handle_standard_error(e)
       end
     end
 

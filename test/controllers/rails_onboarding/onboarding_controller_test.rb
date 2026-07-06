@@ -12,6 +12,17 @@ module RailsOnboarding
         onboarding_skipped: false
       )
       sign_in @user
+      @stubbed_user_methods = []
+    end
+
+    teardown do
+      @stubbed_user_methods.each do |method_name|
+        User.class_eval do
+          remove_method method_name
+          alias_method method_name, :"__original_#{method_name}"
+          remove_method :"__original_#{method_name}"
+        end
+      end
     end
 
     test "should show onboarding page" do
@@ -28,7 +39,10 @@ module RailsOnboarding
 
     test "should advance to next step" do
       post next_onboarding_url
-      assert_redirected_to onboarding_url
+      # Completing the "welcome" step awards the "welcome_completed" milestone
+      # (see the default milestones in RailsOnboarding.configuration), which
+      # the controller appends to the redirect URL.
+      assert_redirected_to onboarding_url(awarded_milestones: [ "welcome_completed" ])
       @user.reload
 
       expected_step = RailsOnboarding.configuration.steps[1][:name].to_s
@@ -110,5 +124,67 @@ module RailsOnboarding
     #   assert_response :success
     #   assert_match /turbo-stream/, response.content_type
     # end
+
+    # ===== Shared error handling (rescue_from) =====
+    # These actions no longer rescue ActiveRecord::RecordInvalid/StandardError
+    # inline - they rely entirely on the class-level rescue_from handlers.
+    # These tests force each of those exceptions to prove the shared handlers
+    # actually fire for every action, not just the ones that used to have
+    # their own inline rescue.
+    #
+    # current_user reloads the user fresh from the database on every request
+    # (see test/dummy/app/controllers/application_controller.rb), so a
+    # singleton method on @user wouldn't reach it - the method has to be
+    # patched onto the User class itself, and restored afterward.
+
+    def stub_user_method(method_name, &implementation)
+      User.class_eval do
+        alias_method :"__original_#{method_name}", method_name
+        define_method(method_name, &implementation)
+      end
+      @stubbed_user_methods << method_name
+    end
+
+    test "next surfaces a validation failure via the shared handler" do
+      stub_user_method(:complete_onboarding_step!) do |*|
+        errors.add(:base, "something went wrong")
+        raise ActiveRecord::RecordInvalid, self
+      end
+      post next_onboarding_url
+      assert_redirected_to onboarding_url
+      follow_redirect!
+      assert_match(/Unable to save changes: something went wrong/, flash[:alert] || response.body)
+    end
+
+    test "complete surfaces a validation failure via the shared handler" do
+      stub_user_method(:complete_onboarding!) do |*|
+        errors.add(:base, "cannot complete")
+        raise ActiveRecord::RecordInvalid, self
+      end
+      post complete_onboarding_url
+      assert_redirected_to onboarding_url
+      follow_redirect!
+      assert_match(/Unable to save changes: cannot complete/, flash[:alert] || response.body)
+    end
+
+    test "skip surfaces a validation failure via the shared handler" do
+      stub_user_method(:skip_onboarding!) do |*|
+        errors.add(:base, "cannot skip")
+        raise ActiveRecord::RecordInvalid, self
+      end
+      post skip_onboarding_url, params: { skip_all: "true" }
+      assert_redirected_to onboarding_url
+      follow_redirect!
+      assert_match(/Unable to save changes: cannot skip/, flash[:alert] || response.body)
+    end
+
+    test "back surfaces an unexpected error via the shared standard error handler" do
+      @user.update(onboarding_current_step: "profile")
+      stub_user_method(:go_back!) { |*| raise "boom" }
+      post back_onboarding_url
+      assert_redirected_to onboarding_url
+      follow_redirect!
+      assert_match(/boom/, flash[:alert] || response.body)
+    end
   end
 end
