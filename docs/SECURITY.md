@@ -101,6 +101,27 @@ RailsOnboarding.configure do |config|
 end
 ```
 
+**Sending the token:**
+
+The token is read only from request headers, never from a query parameter — a
+token in the URL leaks into server and proxy access logs, browser history, and
+the `Referer` header sent to third-party sites. Send it as:
+
+```
+Authorization: Bearer <token>
+```
+
+or, for clients that can't set `Authorization`, the `X-API-Token` header.
+
+**Storing the token:**
+
+Prefer storing a **digest** of the token rather than the raw value, so a
+database or backup leak doesn't hand out working credentials. Keep only a
+digest column, hash the incoming token the same way, and look it up with a
+`find_by_api_token` class method (see below) — the raw token is shown to the
+user once at creation and never persisted. The plaintext `api_token` column
+above is the simplest path, not the most secure one.
+
 **Custom Authentication:**
 
 You can implement custom token authentication:

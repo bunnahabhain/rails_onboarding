@@ -275,18 +275,17 @@ module RailsOnboarding
       }
     end
 
-    # Extract API token from request
+    # Extract the API token from the request. Tokens are only read from
+    # request headers, never from query parameters: a token in the URL leaks
+    # into server and proxy access logs, browser history, and the Referer
+    # header sent to third parties.
     def extract_api_token
-      # Check Authorization header
-      if request.headers['Authorization'].present?
-        request.headers['Authorization'].split(' ').last
-      # Check query parameter
-      elsif params[:api_token].present?
-        params[:api_token]
-      # Check custom header
-      elsif request.headers['X-API-Token'].present?
-        request.headers['X-API-Token']
-      end
+      authorization = request.headers['Authorization']
+      # Authorization: Bearer <token> (also tolerates a bare token value)
+      return authorization.split(' ').last if authorization.present?
+
+      # Custom header for clients that can't set Authorization
+      request.headers['X-API-Token'].presence
     end
 
     # Authenticate user with token
