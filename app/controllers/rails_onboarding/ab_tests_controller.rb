@@ -4,7 +4,18 @@ module RailsOnboarding
   # Controller for managing A/B tests and viewing results
   # Provides endpoints for test management and analytics
   class AbTestsController < ApplicationController
+    include RailsOnboarding::AdminAuthorization
     include RailsOnboarding::RateLimitable
+
+    # These actions view A/B test results and flip tests on/off, and
+    # assign_variant writes onto arbitrary user records - admin-only, same gate
+    # as the Admin dashboard. No StandardError handler here, so the two
+    # specific rescues need no ordering guard.
+    before_action :authenticate_admin!
+    before_action :verify_admin_authorization!
+
+    rescue_from UnauthorizedError, with: :handle_admin_unauthorized
+    rescue_from NotImplementedError, with: :handle_admin_not_implemented
 
     before_action :set_ab_test, only: [ :show, :results, :toggle ]
 

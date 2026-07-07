@@ -4,6 +4,17 @@ module RailsOnboarding
   # Controller for managing onboarding templates
   # Provides pre-built flows for common use cases
   class TemplatesController < ApplicationController
+    include RailsOnboarding::AdminAuthorization
+
+    # apply/create_custom mutate the process-wide RailsOnboarding
+    # configuration (the onboarding flow every user sees), so this whole
+    # controller is admin-only - the same gate as the Admin dashboard.
+    before_action :authenticate_admin!
+    before_action :verify_admin_authorization!
+
+    rescue_from UnauthorizedError, with: :handle_admin_unauthorized
+    rescue_from NotImplementedError, with: :handle_admin_not_implemented
+
     # GET /templates
     # List all available onboarding templates
     def index
