@@ -112,6 +112,29 @@ class MilestoneServiceTest < ActiveSupport::TestCase
     assert_equal 0, awarded.length
   end
 
+  test "claim_if_eligible awards a custom milestone when the user qualifies" do
+    @user.created_at = 30.minutes.ago
+
+    awarded = RailsOnboarding::MilestoneService.claim_if_eligible(@user, :early_adopter)
+
+    assert awarded
+    assert_equal :early_adopter, awarded[:key]
+    assert @user.milestone_achieved?(:early_adopter)
+    assert_equal 100, @user.total_milestone_points
+  end
+
+  test "claim_if_eligible refuses a custom milestone the user has not earned" do
+    # Outside the early-adopter window, so the server-side check must deny it
+    # even though the client asked for it directly.
+    @user.created_at = 2.hours.ago
+
+    awarded = RailsOnboarding::MilestoneService.claim_if_eligible(@user, :early_adopter)
+
+    assert_nil awarded
+    assert_not @user.milestone_achieved?(:early_adopter)
+    assert_equal 0, @user.total_milestone_points
+  end
+
   private
 
   def create_test_user

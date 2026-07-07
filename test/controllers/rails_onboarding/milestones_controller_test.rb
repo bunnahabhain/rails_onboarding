@@ -16,13 +16,15 @@ module RailsOnboarding
       @original_milestones_setting = RailsOnboarding.configuration.enable_milestones
       RailsOnboarding.configuration.enable_milestones = true
 
-      # Add test milestones
+      # Add test milestones. These are awarded on onboarding completion, so a
+      # client can only claim them once the user has actually completed it -
+      # the tests that expect an award mark the user completed first.
       @original_milestones = RailsOnboarding.configuration.milestones.dup
       RailsOnboarding.configuration.milestones = @original_milestones + [
-        { key: :first_action_completed, title: "First Action", points: 50 },
-        { key: :duplicate_test, title: "Duplicate Test", points: 25 },
-        { key: :celebration_test, title: "Celebration Test", points: 30 },
-        { key: :profile_completed, title: "Profile Complete", points: 20 }
+        { key: :first_action_completed, title: "First Action", points: 50, trigger: :onboarding_completed },
+        { key: :duplicate_test, title: "Duplicate Test", points: 25, trigger: :onboarding_completed },
+        { key: :celebration_test, title: "Celebration Test", points: 30, trigger: :onboarding_completed },
+        { key: :profile_completed, title: "Profile Complete", points: 20, trigger: :onboarding_completed }
       ]
     end
 
@@ -64,7 +66,9 @@ module RailsOnboarding
       assert_equal true, json_response["achieved"]
     end
 
-    test "should trigger milestone" do
+    test "should trigger milestone when the user is eligible" do
+      @user.update!(onboarding_completed: true)
+
       assert_difference "@user.reload.milestone_points", 50 do
         post trigger_milestones_url, params: {
           milestone_id: "first_action_completed"
@@ -74,7 +78,34 @@ module RailsOnboarding
       assert_response :success
     end
 
+    test "should not award a milestone the user has not earned" do
+      # The user has NOT completed onboarding, so is not eligible for this
+      # milestone. A raw claim must not grant it.
+      assert_no_difference "@user.reload.milestone_points" do
+        post trigger_milestones_url, params: {
+          milestone_id: "first_action_completed"
+        }, as: :json
+      end
+
+      assert_response :forbidden
+      json_response = JSON.parse(response.body)
+      assert_equal false, json_response["success"]
+      assert_not @user.reload.milestone_achieved?("first_action_completed")
+    end
+
+    test "achieve endpoint denies a milestone the user has not earned" do
+      assert_no_difference "@user.reload.milestone_points" do
+        post achieve_milestones_url, params: {
+          milestone_key: "first_action_completed"
+        }, as: :json
+      end
+
+      assert_response :forbidden
+      assert_not @user.reload.milestone_achieved?("first_action_completed")
+    end
+
     test "should not trigger same milestone twice" do
+      @user.update!(onboarding_completed: true)
       milestone_id = "duplicate_test"
 
       # First trigger
@@ -103,6 +134,8 @@ module RailsOnboarding
     end
 
     test "should celebrate milestone achievement" do
+      @user.update!(onboarding_completed: true)
+
       post trigger_milestones_url, params: {
         milestone_id: "celebration_test"
       }, as: :json

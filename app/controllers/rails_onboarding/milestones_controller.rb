@@ -38,8 +38,7 @@ module RailsOnboarding
     end
 
     def achieve
-      milestone_key = params[:milestone_key]
-      milestone = current_user.achieve_milestone!(milestone_key)
+      milestone = MilestoneService.claim_if_eligible(current_user, params[:milestone_key])
 
       if milestone
         render json: {
@@ -52,7 +51,7 @@ module RailsOnboarding
         render json: {
           success: false,
           error: "Milestone could not be achieved"
-        }
+        }, status: :forbidden
       end
     end
 
@@ -87,8 +86,8 @@ module RailsOnboarding
         return
       end
 
-      # Award the milestone
-      milestone = current_user.achieve_milestone!(milestone_id)
+      # Award the milestone only if the user actually qualifies for it
+      milestone = MilestoneService.claim_if_eligible(current_user, milestone_id)
 
       if milestone
         render json: {
@@ -100,8 +99,8 @@ module RailsOnboarding
       else
         render json: {
           success: false,
-          error: "Milestone could not be triggered"
-        }, status: :unprocessable_entity
+          error: "You are not eligible for this milestone yet"
+        }, status: :forbidden
       end
     end
 
