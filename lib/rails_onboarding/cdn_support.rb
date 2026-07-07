@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "erb"
+
 module RailsOnboarding
   # CDN Support module for serving assets from a CDN
   #
@@ -117,10 +119,10 @@ module RailsOnboarding
 
       tag_options[:crossorigin] = crossorigin if crossorigin
 
-      tags = ["<link #{tag_options.map { |k, v| "#{k}=\"#{v}\"" }.join(' ')} />"]
+      tags = ["<link #{cdn_tag_attributes(tag_options)} />"]
 
       if preload
-        tags.unshift("<link rel=\"preload\" href=\"#{url}\" as=\"style\" />")
+        tags.unshift("<link #{cdn_tag_attributes(rel: 'preload', href: url, as: 'style')} />")
       end
 
       tags.join("\n").html_safe
@@ -146,10 +148,10 @@ module RailsOnboarding
       tag_options[:defer] = 'defer' if defer && !async
       tag_options[:async] = 'async' if async
 
-      tags = ["<script #{tag_options.map { |k, v| "#{k}=\"#{v}\"" }.join(' ')}></script>"]
+      tags = ["<script #{cdn_tag_attributes(tag_options)}></script>"]
 
       if preload
-        tags.unshift("<link rel=\"preload\" href=\"#{url}\" as=\"script\" />")
+        tags.unshift("<link #{cdn_tag_attributes(rel: 'preload', href: url, as: 'script')} />")
       end
 
       tags.join("\n").html_safe
@@ -161,12 +163,21 @@ module RailsOnboarding
     def cdn_resource_hints
       return '' unless CdnSupport.cdn_enabled?
 
-      cdn_host = CdnSupport.cdn_host
+      cdn_host = ERB::Util.html_escape(CdnSupport.cdn_host)
       <<~HTML.html_safe
         <!-- DNS Prefetch and Preconnect for CDN -->
         <link rel="dns-prefetch" href="#{cdn_host}" />
         <link rel="preconnect" href="#{cdn_host}" crossorigin />
       HTML
+    end
+
+    # Render tag attributes with every value HTML-escaped, so a CDN host or
+    # asset path containing a quote or angle bracket can't break out of the
+    # attribute it's placed in. Used in place of ActionView's tag helpers
+    # because these methods are also called as CdnSupport module functions,
+    # outside any view context where `tag`/`content_tag` would be available.
+    def cdn_tag_attributes(attributes)
+      attributes.map { |key, value| "#{key}=\"#{ERB::Util.html_escape(value)}\"" }.join(' ')
     end
 
     # Configure CDN headers for optimal caching

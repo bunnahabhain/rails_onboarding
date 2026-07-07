@@ -273,5 +273,43 @@ module RailsOnboarding
       # Reset
       Rails.env = @original_env
     end
+
+    # Output escaping
+
+    test 'stylesheet_link_tag_with_cdn escapes a host that tries to break out of the attribute' do
+      Rails.env = 'production'
+      CdnSupport.cdn_host = 'https://evil.example.com/"><script>alert(1)</script>'
+
+      tag = CdnSupport.stylesheet_link_tag_with_cdn('app.css')
+
+      refute_includes tag, '"><script>'
+      assert_includes tag, '&lt;script&gt;'
+
+      Rails.env = @original_env
+    end
+
+    test 'javascript_include_tag_with_cdn escapes a host that tries to break out of the attribute' do
+      Rails.env = 'production'
+      CdnSupport.cdn_host = 'https://evil.example.com/"></script><script>alert(1)</script>'
+
+      tag = CdnSupport.javascript_include_tag_with_cdn('app.js')
+
+      refute_includes tag, '"></script><script>'
+      assert_includes tag, '&lt;/script&gt;'
+
+      Rails.env = @original_env
+    end
+
+    test 'cdn_resource_hints escapes a host that tries to break out of the attribute' do
+      Rails.env = 'production'
+      CdnSupport.cdn_host = 'https://evil.example.com/"><script>alert(1)</script>'
+
+      hints = CdnSupport.cdn_resource_hints
+
+      refute_includes hints, '"><script>'
+      assert_includes hints, '&lt;script&gt;'
+
+      Rails.env = @original_env
+    end
   end
 end

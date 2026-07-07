@@ -262,7 +262,7 @@ class OnboardingNotifications
   class MilestoneAchievedNotification < Noticed::Base
     deliver_by :database
     deliver_by :email
-    deliver_by :push_notification if: :mobile_device?
+    deliver_by :push_notification, if: :mobile_device?
 
     param :milestone_id
     param :title
