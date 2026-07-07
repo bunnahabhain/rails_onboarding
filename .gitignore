@@ -1,4 +1,5 @@
 /.bundle/
+/.claude/settings.local.json
 /doc/
 /log/*.log*
 /pkg/
