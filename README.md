@@ -54,23 +54,27 @@ Run the installation generator:
 rails generate rails_onboarding:install
 ```
 
+> **Prerequisite:** A `User` model must already exist at `app/models/user.rb`. The generator checks for it and stops with an error if it's missing. Create one first (for example `rails generate model User email:string`) if you don't have it yet.
+
 This will:
 - Create an initializer at `config/initializers/rails_onboarding.rb`
-- Generate a migration for adding onboarding fields to your User model
-- Mount the engine in your routes
-- Create sample view templates
+- Generate three migrations: onboarding fields on your `User` model, the analytics event tables, and the onboarding flows table
+- Mount the engine in your routes at `/onboarding`
+- Add a customizable stylesheet at `app/assets/stylesheets/rails_onboarding_custom.css`
 
-Run the migration:
+Run the migrations:
 
 ```bash
 rails db:migrate
 ```
 
+The `User` migration adds `onboarding_completed`, `onboarding_completed_at`, `onboarding_current_step`, `onboarding_skipped`, and `feature_tooltips_shown` (stored as `jsonb` on PostgreSQL, `json` on MySQL/MariaDB, and serialized `text` elsewhere), along with the indexes needed to query onboarding state efficiently. On PostgreSQL these indexes are built concurrently so the migration won't lock a large, live `users` table.
+
 ## Requirements
 
 This gem requires:
-1. **Rails 7.0+** (Rails 8.0+ recommended for Turbo/Stimulus support)
-2. **Ruby 3.0+** (Ruby 3.2+ recommended)
+1. **Rails 8.0+** (enforced by the gemspec)
+2. **Ruby 3.4.9+** (enforced by the gemspec)
 3. An `ApplicationController` class
 4. A `current_user` method available in your controllers
 5. Authentication system (Devise, custom, etc.)
@@ -79,41 +83,28 @@ This gem requires:
 
 | Rails Version | Ruby Version | rails_onboarding | Status | Notes |
 |--------------|--------------|------------------|--------|-------|
-| 8.0.x        | 3.2.5+       | 0.1.0+          | ✅ Fully Supported | Recommended configuration |
-| 8.0.x        | 3.1.x        | 0.1.0+          | ✅ Supported | |
-| 8.0.x        | 3.0.x        | 0.1.0+          | ⚠️ Compatible | Ruby 3.2+ recommended |
-| 7.2.x        | 3.2.5+       | 0.1.0+          | ✅ Supported | |
-| 7.2.x        | 3.1.x        | 0.1.0+          | ✅ Supported | |
-| 7.2.x        | 3.0.x        | 0.1.0+          | ⚠️ Compatible | Ruby 3.2+ recommended |
-| 7.1.x        | 3.2.5+       | 0.1.0+          | ✅ Supported | |
-| 7.1.x        | 3.1.x        | 0.1.0+          | ✅ Supported | |
-| 7.1.x        | 3.0.x        | 0.1.0+          | ⚠️ Compatible | Ruby 3.2+ recommended |
-| 7.0.x        | 3.2.5+       | 0.1.0+          | ✅ Supported | |
-| 7.0.x        | 3.1.x        | 0.1.0+          | ✅ Supported | |
-| 7.0.x        | 3.0.x        | 0.1.0+          | ⚠️ Compatible | Ruby 3.2+ recommended |
-| 6.1.x        | 2.7.x        | -               | ❌ Not Supported | Upgrade to Rails 7.0+ |
-| < 6.1        | -            | -               | ❌ Not Supported | Upgrade to Rails 7.0+ |
+| 8.0.x        | 3.4.9+       | 0.1.0+          | ✅ Supported | Minimum required by the gemspec |
+| < 8.0        | -            | -               | ❌ Not Supported | Rails 8.0+ required |
+| any          | < 3.4.9      | -               | ❌ Not Supported | Ruby 3.4.9+ required |
 
 **Legend:**
-- ✅ **Fully Supported**: Active development and testing
-- ✅ **Supported**: Compatible and tested
-- ⚠️ **Compatible**: Should work but not actively tested
-- ❌ **Not Supported**: Will not work or untested
+- ✅ **Supported**: Meets the gemspec's version constraints
+- ❌ **Not Supported**: Will not install (blocked by the gemspec's version constraints)
 
-**Feature Compatibility:**
+**Feature/Toolchain Compatibility (Rails 8.0+):**
 
-| Feature | Rails 7.0+ | Rails 8.0+ | Notes |
-|---------|-----------|-----------|-------|
-| Core Onboarding | ✅ | ✅ | All versions |
-| Turbo Integration | ✅ | ✅ | Enhanced in Rails 8 |
-| Stimulus Controllers | ✅ | ✅ | Enhanced in Rails 8 |
-| Importmap | ✅ | ✅ | Native support |
-| Asset Pipeline (Sprockets) | ✅ | ✅ | |
-| Propshaft | ✅ | ✅ | |
-| ESBuild/Webpack | ✅ | ✅ | Via jsbundling-rails |
-| PostgreSQL | ✅ | ✅ | Recommended for JSONB |
-| MySQL | ✅ | ✅ | JSON field support |
-| SQLite | ✅ | ✅ | Development/testing only |
+| Feature | Supported | Notes |
+|---------|-----------|-------|
+| Core Onboarding | ✅ | |
+| Turbo Integration | ✅ | Via turbo-rails |
+| Stimulus Controllers | ✅ | Via stimulus-rails |
+| Importmap | ✅ | Native support |
+| Asset Pipeline (Sprockets) | ✅ | |
+| Propshaft | ✅ | |
+| ESBuild/Webpack | ✅ | Via jsbundling-rails |
+| PostgreSQL | ✅ | Recommended for JSONB |
+| MySQL/MariaDB | ✅ | JSON field support |
+| SQLite | ✅ | Development/testing only |
 
 ### Dependencies
 
@@ -126,8 +117,7 @@ These dependencies are automatically installed with the gem:
 | Gem | Version | Purpose |
 |-----|---------|---------|
 | rails | >= 8.0.0 | Core Rails framework |
-
-**Note:** While the gemspec specifies Rails >= 8.0.0, the gem is compatible with Rails 7.0+ as shown in the compatibility matrix above. For Rails 7.x support, you may need to adjust the version constraint in your Gemfile.
+| csv | (latest) | Admin CSV exports (no longer a Ruby default gem as of Ruby 3.4) |
 
 #### Optional Dependencies
 
