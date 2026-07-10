@@ -18,6 +18,19 @@ module RailsOnboarding
       cleanup_destination
     end
 
+    test "migrations get distinct sequential version numbers" do
+      run_generator
+
+      files = Dir.glob(File.join(destination_root, "db/migrate/*.rb")).sort
+      versions = files.map { |f| File.basename(f).split("_").first }
+
+      assert_equal 3, versions.length
+      assert_equal versions.uniq.length, versions.length,
+        "duplicate migration timestamps found: #{versions.inspect}"
+      assert_equal versions.sort, versions,
+        "migration versions should be in ascending order: #{versions.inspect}"
+    end
+
     test "generator runs successfully with valid environment" do
       run_generator
 
