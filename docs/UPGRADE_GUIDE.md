@@ -554,7 +554,7 @@ Currently no LTS releases. Will be announced when established.
 
 | Rails Onboarding | Rails     | Ruby    |
 |------------------|-----------|---------|
-| 0.1.x            | >= 8.0.0  | >= 3.2.5|
+| 0.1.x            | >= 8.0.0  | >= 3.4.9|
 
 ## Rollback Strategy
 

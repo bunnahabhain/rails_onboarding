@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Integration & Compatibility
 - Devise integration for authentication
-- Full Turbo/Stimulus compatibility for Rails 7+
+- Full Turbo/Stimulus compatibility for Rails 8+
 - Background job support for emails and notifications
 - Complete integration examples with tests
 
@@ -94,7 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 - Rails >= 8.0.0
-- Ruby >= 3.2.5
+- Ruby >= 3.4.9
+- csv (runtime; no longer a Ruby default gem as of Ruby 3.4)
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 

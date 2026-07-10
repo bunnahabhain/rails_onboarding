@@ -21,7 +21,7 @@ Before deploying to production, verify:
 ### Required Components
 
 - [ ] Rails >= 8.0.0
-- [ ] Ruby >= 3.2.5
+- [ ] Ruby >= 3.4.9
 - [ ] Database with JSON/JSONB support (PostgreSQL recommended)
 - [ ] Redis (optional, for caching and background jobs)
 - [ ] SSL certificate for HTTPS
@@ -763,7 +763,7 @@ eb setenv RAILS_ENV=production WEBHOOK_SECRET_KEY=your_secret
 **Dockerfile:**
 
 ```dockerfile
-FROM ruby:3.2.5
+FROM ruby:3.4
 
 RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
 

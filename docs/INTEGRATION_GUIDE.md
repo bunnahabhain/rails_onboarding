@@ -77,7 +77,7 @@ When a user signs in or signs up through Devise, the integration:
 
 ## Turbo & Stimulus Compatibility
 
-Full support for Rails 7+ Hotwire stack with Turbo and Stimulus.
+Full support for the Rails 8+ Hotwire stack with Turbo and Stimulus.
 
 ### Features
 
