@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-10
+
+### Fixed
+
+- Install generator's `next_migration_number` no longer generates duplicate
+  timestamps when creating multiple migrations in the same second, which
+  caused `ActiveRecord::DuplicateMigrationVersionError` on `db:migrate`.
+
 ## [0.1.0] - 2025-11-18
 
 ### Added
@@ -99,5 +107,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/bunnahabhain/rails_onboarding/releases/tag/v0.1.0
