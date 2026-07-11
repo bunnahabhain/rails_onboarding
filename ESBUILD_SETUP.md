@@ -13,10 +13,32 @@ cp path/to/rails_onboarding/app/assets/javascripts/rails_onboarding/* app/javasc
 
 Or manually create these files in `app/javascript/controllers/rails_onboarding/`:
 
+**Core Controllers:**
 - `onboarding_controller.js`
 - `progress_controller.js`
 - `navigation_controller.js`
+
+**Tooltip System:**
 - `tooltip_controller.js`
+- `tooltip_scheduler_controller.js`
+
+**Tour & Guides:**
+- `tour_controller.js`
+- `progressive_disclosure_controller.js`
+
+**Milestone System:**
+- `milestone_celebration_controller.js`
+- `milestone_dashboard_controller.js`
+- `milestone_detail_controller.js`
+
+**Admin Interface** (only needed if you use the admin dashboard):
+- `admin/chart_controller.js`
+- `admin/filter_controller.js`
+- `admin/flash_controller.js`
+- `admin/flow_editor_controller.js`
+
+If you don't use the admin dashboard, you can skip copying, importing, and
+registering the four `admin/*` controllers throughout this guide.
 
 ## 2. Register Controllers in Application
 
@@ -36,12 +58,32 @@ import OnboardingController from "./rails_onboarding/onboarding_controller"
 import ProgressController from "./rails_onboarding/progress_controller"
 import NavigationController from "./rails_onboarding/navigation_controller"
 import TooltipController from "./rails_onboarding/tooltip_controller"
+import TooltipSchedulerController from "./rails_onboarding/tooltip_scheduler_controller"
+import TourController from "./rails_onboarding/tour_controller"
+import ProgressiveDisclosureController from "./rails_onboarding/progressive_disclosure_controller"
+import MilestoneCelebrationController from "./rails_onboarding/milestone_celebration_controller"
+import MilestoneDashboardController from "./rails_onboarding/milestone_dashboard_controller"
+import MilestoneDetailController from "./rails_onboarding/milestone_detail_controller"
+import AdminChartController from "./rails_onboarding/admin/chart_controller"
+import AdminFilterController from "./rails_onboarding/admin/filter_controller"
+import AdminFlashController from "./rails_onboarding/admin/flash_controller"
+import AdminFlowEditorController from "./rails_onboarding/admin/flow_editor_controller"
 
 // Register Rails Onboarding controllers
 application.register("onboarding", OnboardingController)
 application.register("progress", ProgressController)
 application.register("navigation", NavigationController)
 application.register("tooltip", TooltipController)
+application.register("tooltip-scheduler", TooltipSchedulerController)
+application.register("tour", TourController)
+application.register("progressive-disclosure", ProgressiveDisclosureController)
+application.register("milestone-celebration", MilestoneCelebrationController)
+application.register("milestone-dashboard", MilestoneDashboardController)
+application.register("milestone-detail", MilestoneDetailController)
+application.register("admin--chart", AdminChartController)
+application.register("admin--filter", AdminFilterController)
+application.register("admin--flash", AdminFlashController)
+application.register("admin--flow-editor", AdminFlowEditorController)
 ```
 
 **Alternative approach** - Create a separate file `app/javascript/controllers/rails_onboarding.js`:
@@ -54,12 +96,32 @@ import OnboardingController from "./rails_onboarding/onboarding_controller"
 import ProgressController from "./rails_onboarding/progress_controller"
 import NavigationController from "./rails_onboarding/navigation_controller"
 import TooltipController from "./rails_onboarding/tooltip_controller"
+import TooltipSchedulerController from "./rails_onboarding/tooltip_scheduler_controller"
+import TourController from "./rails_onboarding/tour_controller"
+import ProgressiveDisclosureController from "./rails_onboarding/progressive_disclosure_controller"
+import MilestoneCelebrationController from "./rails_onboarding/milestone_celebration_controller"
+import MilestoneDashboardController from "./rails_onboarding/milestone_dashboard_controller"
+import MilestoneDetailController from "./rails_onboarding/milestone_detail_controller"
+import AdminChartController from "./rails_onboarding/admin/chart_controller"
+import AdminFilterController from "./rails_onboarding/admin/filter_controller"
+import AdminFlashController from "./rails_onboarding/admin/flash_controller"
+import AdminFlowEditorController from "./rails_onboarding/admin/flow_editor_controller"
 
 // Register Rails Onboarding controllers
 application.register("onboarding", OnboardingController)
 application.register("progress", ProgressController)
 application.register("navigation", NavigationController)
 application.register("tooltip", TooltipController)
+application.register("tooltip-scheduler", TooltipSchedulerController)
+application.register("tour", TourController)
+application.register("progressive-disclosure", ProgressiveDisclosureController)
+application.register("milestone-celebration", MilestoneCelebrationController)
+application.register("milestone-dashboard", MilestoneDashboardController)
+application.register("milestone-detail", MilestoneDetailController)
+application.register("admin--chart", AdminChartController)
+application.register("admin--filter", AdminFilterController)
+application.register("admin--flash", AdminFlashController)
+application.register("admin--flow-editor", AdminFlowEditorController)
 ```
 
 Then import this in your `app/javascript/controllers/index.js`:
