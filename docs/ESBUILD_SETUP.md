@@ -1,6 +1,6 @@
 # Rails Onboarding - ESBuild Setup Guide
 
-Since your LOLOL app uses ESBuild for JavaScript bundling, you'll need to manually include the Rails Onboarding JavaScript files in your application.
+If your app uses ESBuild for JavaScript bundling, you'll need to manually include the Rails Onboarding JavaScript files in your application.
 
 ## 1. Copy JavaScript Controllers
 
@@ -155,17 +155,17 @@ Create `config/initializers/rails_onboarding.rb`:
 ```ruby
 RailsOnboarding.configure do |config|
   config.user_class_name = 'User'
-  config.redirect_after_completion = :dashboard_path
-  config.redirect_after_skip = :dashboard_path
+  config.redirect_after_completion = :root_path
+  config.redirect_after_skip = :root_path
   config.enable_tooltips = true
   config.enable_milestones = true
   config.onboarding_required_for = :new_users
   
-  # Customize steps for your LOLOL app
+  # Customize steps for your app
   config.steps = [
     {
       name: :welcome,
-      title: 'Welcome to LOLOL',
+      title: 'Welcome',
       icon: '🎉',
       skippable: true
     },
@@ -177,7 +177,7 @@ RailsOnboarding.configure do |config|
     },
     {
       name: :first_action,
-      title: 'Create Your First List',
+      title: 'Try Your First Action',
       icon: '📝',
       skippable: false
     },
