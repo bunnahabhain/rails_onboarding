@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-10
+
+### Fixed
+
+- Removed leftover references to the original host app ("LOLOL") from the
+  generated `config/initializers/rails_onboarding.rb`, the onboarding step
+  navigation help text, and the ESBuild setup guide. The generated
+  initializer now uses generic defaults (e.g. `:root_path` instead of an
+  app-specific `:dashboard_path`) and includes guidance comments explaining
+  each configuration option.
+
 ## [0.1.1] - 2026-07-10
 
 ### Fixed
@@ -107,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/bunnahabhain/rails_onboarding/releases/tag/v0.1.0
