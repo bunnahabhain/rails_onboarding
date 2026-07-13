@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-07-13
+
+### Fixed
+
+- Fixed `db:migrate` failing on MySQL/MariaDB with "BLOB, TEXT, GEOMETRY or
+  JSON column 'milestones_achieved' can't have a default value".
+  `add_milestone_tracking_to_users` set a literal `default: "[]"` on a
+  `:text` column, which MySQL/MariaDB reject outright. Dropped the DB-level
+  default - `Onboardable` already treats a nil `milestones_achieved` as an
+  empty array in Ruby, so nothing else needed to change. Added a test that
+  statically scans all migration templates for this class of bug.
+
 ## [0.1.3] - 2026-07-13
 
 ### Fixed
@@ -156,7 +168,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.0...v0.1.1
