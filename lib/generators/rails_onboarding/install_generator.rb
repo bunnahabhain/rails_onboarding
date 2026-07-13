@@ -45,6 +45,21 @@ module RailsOnboarding
                            "db/migrate/create_rails_onboarding_flows.rb"
       end
 
+      def copy_milestone_tracking_migration
+        migration_template "add_milestone_tracking_to_users.rb",
+                           "db/migrate/add_milestone_tracking_to_users.rb"
+      end
+
+      def copy_onboarding_indexes_migration
+        migration_template "add_onboarding_indexes.rb",
+                           "db/migrate/add_onboarding_indexes.rb"
+      end
+
+      def copy_robustness_fields_migration
+        migration_template "add_robustness_fields_to_users.rb.tt",
+                           "db/migrate/add_robustness_fields_to_users.rb"
+      end
+
       def copy_initializer
         template "rails_onboarding.rb", "config/initializers/rails_onboarding.rb"
       end
@@ -69,6 +84,9 @@ module RailsOnboarding
           "add_onboarding_to_users.rb",
           "add_analytics_to_rails_onboarding.rb",
           "create_rails_onboarding_flows.rb",
+          "add_milestone_tracking_to_users.rb",
+          "add_onboarding_indexes.rb",
+          "add_robustness_fields_to_users.rb.tt",
           "rails_onboarding.rb",
           "onboarding.css",
           "README"

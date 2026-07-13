@@ -24,7 +24,7 @@ module RailsOnboarding
       files = Dir.glob(File.join(destination_root, "db/migrate/*.rb")).sort
       versions = files.map { |f| File.basename(f).split("_").first }
 
-      assert_equal 3, versions.length
+      assert_equal 6, versions.length
       assert_equal versions.uniq.length, versions.length,
         "duplicate migration timestamps found: #{versions.inspect}"
       assert_equal versions.sort, versions,
@@ -37,6 +37,10 @@ module RailsOnboarding
       # Verify migrations were created
       assert_migration "db/migrate/add_onboarding_to_users.rb"
       assert_migration "db/migrate/add_analytics_to_rails_onboarding.rb"
+      assert_migration "db/migrate/create_rails_onboarding_flows.rb"
+      assert_migration "db/migrate/add_milestone_tracking_to_users.rb"
+      assert_migration "db/migrate/add_onboarding_indexes.rb"
+      assert_migration "db/migrate/add_robustness_fields_to_users.rb"
     end
 
     test "creates onboarding migration with correct content" do
@@ -199,6 +203,47 @@ module RailsOnboarding
         assert_match(/t\.index :occurred_at/, content)
         assert_match(/t\.index :session_id/, content)
         assert_match(/t\.index \[:user_type, :user_id, :event_type\]/, content)
+      end
+    end
+
+    test "creates milestone tracking migration with correct content" do
+      run_generator
+
+      migration_file = migration_file_name("db/migrate/add_milestone_tracking_to_users.rb")
+      assert_file migration_file do |content|
+        assert_match(/class AddMilestoneTrackingToUsers/, content)
+        assert_match(/def up/, content)
+        assert_match(/def down/, content)
+        assert_match(/add_column :users, :milestones_achieved/, content)
+        assert_match(/add_column :users, :milestone_points/, content)
+        assert_match(/add_column :users, :last_milestone_at/, content)
+        assert_match(/remove_column :users, :milestones_achieved/, content)
+      end
+    end
+
+    test "creates onboarding indexes migration with correct content" do
+      run_generator
+
+      migration_file = migration_file_name("db/migrate/add_onboarding_indexes.rb")
+      assert_file migration_file do |content|
+        assert_match(/class AddOnboardingIndexes/, content)
+        assert_match(/def up/, content)
+        assert_match(/def down/, content)
+        assert_match(/add_index :users, :onboarding_completed/, content)
+      end
+    end
+
+    test "creates robustness fields migration with correct content" do
+      run_generator
+
+      migration_file = migration_file_name("db/migrate/add_robustness_fields_to_users.rb")
+      assert_file migration_file do |content|
+        assert_match(/class AddRobustnessFieldsToUsers/, content)
+        assert_match(/def up/, content)
+        assert_match(/def down/, content)
+        assert_match(/add_column :users, :onboarding_errors/, content)
+        assert_match(/add_column :users, :onboarding_failed_actions/, content)
+        assert_match(/add_column :users, :onboarding_session_data/, content)
       end
     end
 

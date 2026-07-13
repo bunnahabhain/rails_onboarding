@@ -46,6 +46,10 @@ module RailsOnboarding
       required_methods = %w[
         copy_migration
         copy_analytics_migration
+        copy_flows_migration
+        copy_milestone_tracking_migration
+        copy_onboarding_indexes_migration
+        copy_robustness_fields_migration
         copy_initializer
         add_route
         copy_stylesheets
