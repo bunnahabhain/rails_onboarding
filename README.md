@@ -58,14 +58,14 @@ rails generate rails_onboarding:install
 
 This will:
 - Create an initializer at `config/initializers/rails_onboarding.rb`
-- Generate three migrations: onboarding fields on your `User` model, the analytics event tables, and the onboarding flows table
+- Generate six migrations: onboarding fields on your `User` model, the analytics event tables, the onboarding flows table, milestone tracking fields, performance indexes, and robustness/error-recovery fields
 - Mount the engine in your routes at `/onboarding`
 - Add a customizable stylesheet at `app/assets/stylesheets/rails_onboarding_custom.css`
 
 Run the migrations:
 
 ```bash
-rails db:migrate
+bin/rails db:migrate
 ```
 
 The `User` migration adds `onboarding_completed`, `onboarding_completed_at`, `onboarding_current_step`, `onboarding_skipped`, and `feature_tooltips_shown` (stored as `jsonb` on PostgreSQL, `json` on MySQL/MariaDB, and serialized `text` elsewhere), along with the indexes needed to query onboarding state efficiently. On PostgreSQL these indexes are built concurrently so the migration won't lock a large, live `users` table.
@@ -240,14 +240,22 @@ end
 
 ### 3. Protect Your Controllers
 
-Add onboarding requirement to controllers:
+`RailsOnboarding::ControllerHelpers` is included into `ActionController::Base`
+automatically by the engine, giving every controller a `needs_onboarding?`
+predicate (it already accounts for XHR/JSON requests, the onboarding page
+itself, and per-action skips - see below). The gem doesn't redirect for you;
+wire up a `before_action` in your own `ApplicationController`:
 
 ```ruby
 # app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
-  include RailsOnboarding::ControllerHelpers
+  before_action :redirect_to_onboarding_if_needed
 
-  before_action :require_onboarding
+  private
+
+  def redirect_to_onboarding_if_needed
+    redirect_to onboarding_path if needs_onboarding?
+  end
 end
 ```
 
@@ -255,7 +263,7 @@ Skip onboarding for specific actions:
 
 ```ruby
 class ProfilesController < ApplicationController
-  skip_onboarding_requirement only: [:edit, :update]
+  skip_onboarding_check only: [:edit, :update] # or except: [...]
 
   def edit
     # Users can access this during onboarding
@@ -784,26 +792,34 @@ current_user.update(locale: 'es')
 
 Ensure you have:
 1. Included the concern in your User model
-2. Run the migration
-3. Added `before_action :require_onboarding` to controllers
+2. Run the migrations
+3. Added a `before_action` that redirects when `needs_onboarding?` is true (see [Protect Your Controllers](#3-protect-your-controllers) - the gem doesn't add this callback for you)
 4. Configured at least one step
 
 ### Assets not loading
 
-For Asset Pipeline:
+The engine's CSS and JS aren't included in your layout automatically - add
+this regardless of asset pipeline (works for Propshaft, Sprockets, and
+Importmap, since all three serve named assets through these helpers):
 
-```ruby
-# app/assets/config/manifest.js
+```erb
+<%= stylesheet_link_tag "rails_onboarding/application" %>
+<%= javascript_include_tag "rails_onboarding/application", defer: true %>
+```
+
+If you're on Sprockets, you can alternatively link them via the manifest:
+
+```js
+// app/assets/config/manifest.js
 //= link rails_onboarding/application.css
 //= link rails_onboarding/application.js
 ```
 
-For Propshaft/Importmap:
-
-```ruby
-# config/importmap.rb
-pin "rails_onboarding", to: "rails_onboarding/application.js"
-```
+If you're on Importmap, the engine's `config/importmap.rb` pins are drawn
+into your app's importmap automatically - you don't need to pin anything
+yourself. You do still need to import and register the Stimulus controllers
+you use (see [Asset Loading Guide](docs/ASSET_LOADING_GUIDE.md)), since
+pinning a module only makes it loadable, not registered with Stimulus.
 
 ### Stimulus controllers not working
 

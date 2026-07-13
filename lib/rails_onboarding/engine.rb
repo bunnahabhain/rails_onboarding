@@ -174,7 +174,12 @@ module RailsOnboarding
       begin
         importmap_path = root.join("config", "importmap.rb")
         if File.exist?(importmap_path)
-          app.config.importmap.paths << importmap_path
+          # importmap-rails draws app.config.importmap.paths into app.importmap
+          # during its own "importmap" initializer, which has already run by the
+          # time this after_initialize hook fires - appending to that array here
+          # would be a no-op. Draw directly into the live map instead so the
+          # engine's pins actually get registered.
+          app.importmap.draw(importmap_path)
           Rails.logger.info "RailsOnboarding: Importmap integration enabled"
         end
       rescue => e

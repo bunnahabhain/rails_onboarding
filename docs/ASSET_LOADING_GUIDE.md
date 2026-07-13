@@ -186,23 +186,12 @@ This ensures styles only apply within onboarding contexts.
 
 ### Stimulus Controllers
 
-The gem provides multiple Stimulus controllers that can be used in two ways:
+The gem provides multiple Stimulus controllers. Registering them is a manual
+step in every asset pipeline - pinning or adding an asset path only makes a
+controller's JavaScript *loadable*, it doesn't register it with your
+Stimulus `Application` instance.
 
-#### Automatic Registration (Recommended)
-
-The engine automatically registers controllers when Stimulus is available:
-
-```html
-<!-- In your host application views -->
-<div data-controller="rails-onboarding--tooltip"
-     data-rails-onboarding--tooltip-content-value="Welcome!">
-  Hover me
-</div>
-```
-
-#### Manual Registration
-
-If you need manual control:
+#### Manual Registration (required)
 
 ```javascript
 // app/javascript/controllers/index.js
@@ -216,6 +205,21 @@ const application = Application.start()
 application.register("onboarding", OnboardingController)
 application.register("tooltip", TooltipController)
 ```
+
+Only register the controllers you actually use in your views - see
+[Available Controllers](#available-controllers) below for the full list and
+what each one is for.
+
+#### Manifest-based discovery (Sprockets/Propshaft + stimulus-rails)
+
+If your app uses `stimulus-rails`, adding the engine's JS directory to
+`config.stimulus.paths` (which the engine does automatically) lets
+`bin/rails stimulus:manifest:update` discover these controllers and add them
+to `app/javascript/controllers/index.js` for you. Run that command after
+installing the gem, then check the generated `index.js` - you still need to
+verify the identifiers it picked (typically derived from the filename, e.g.
+`tooltip_controller.js` &rarr; `tooltip`) match what the gem's views expect
+before relying on it.
 
 ### Available Controllers
 

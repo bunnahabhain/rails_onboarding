@@ -5,7 +5,7 @@ Rails Onboarding has been installed!
 Next steps:
 
 1. Run the migrations:
-   rails db:migrate
+   bin/rails db:migrate
 
 2. Add the Onboardable concern to your User model:
 
@@ -16,27 +16,62 @@ Next steps:
      # your existing code...
    end
 
-3. Configure onboarding in config/initializers/rails_onboarding.rb
+3. Review config/initializers/rails_onboarding.rb - in particular, make sure
+   redirect_after_completion / redirect_after_skip point at routes that
+   actually exist in your app (they default to :root_path).
 
-4. Set up JavaScript controllers (see ESBUILD_SETUP.md for details):
-   - Copy JavaScript files to app/javascript/controllers/rails_onboarding/
-   - Register controllers in app/javascript/controllers/index.js
+4. Load the CSS and JS in your layout. This works whether you're on
+   Propshaft, Sprockets, or Importmap (Rails 8's defaults):
 
-5. Include CSS in your application:
-   Add to app/assets/stylesheets/application.css:
-   /*
-    *= require rails_onboarding/application
-    */
+   # app/views/layouts/application.html.erb
+   <%= stylesheet_link_tag "rails_onboarding/application" %>
+   <%= javascript_include_tag "rails_onboarding/application", defer: true %>
 
-6. Add onboarding check to your ApplicationController (optional):
+   If you're on Importmap, that's enough to load the tooltip/tour helpers
+   (RailsOnboarding.showTooltip, etc.), but the Stimulus controllers still
+   need to be registered explicitly - add to app/javascript/controllers/index.js:
 
+     import OnboardingController from "rails_onboarding/onboarding_controller"
+     import ProgressController from "rails_onboarding/progress_controller"
+     import NavigationController from "rails_onboarding/navigation_controller"
+     import TooltipController from "rails_onboarding/tooltip_controller"
+
+     application.register("onboarding", OnboardingController)
+     application.register("progress", ProgressController)
+     application.register("navigation", NavigationController)
+     application.register("tooltip", TooltipController)
+
+   (These four cover the core onboarding flow. See the README's Asset
+   Loading section for the full controller list, including milestones,
+   tours, and the admin dashboard.)
+
+   If you're on ESBuild/Webpack/Vite instead, see ESBUILD_SETUP.md in the
+   gem's repository (github.com/bunnahabhain/rails_onboarding) for how to
+   copy and register the controllers manually.
+
+5. Require a `current_user` method in your controllers (from Devise or your
+   own auth) - RailsOnboarding reads it to know who's onboarding. Then wire
+   up the redirect yourself; the gem gives you the predicate, not the
+   before_action:
+
+   # app/controllers/application_controller.rb
    class ApplicationController < ActionController::Base
-     # Enable automatic onboarding redirect
-     enable_onboarding_check except: [:show, :edit] # customize as needed
+     before_action :redirect_to_onboarding_if_needed
+
+     private
+
+     def redirect_to_onboarding_if_needed
+       redirect_to onboarding_path if needs_onboarding?
+     end
    end
 
-7. Visit /onboarding to test your setup!
+   Skip specific actions/controllers with:
 
-For more details, check the Rails Onboarding documentation.
+     skip_onboarding_check only: [:edit, :update]   # or except: [...]
+
+6. Visit /onboarding to test your setup!
+
+For more details, see the README at
+https://github.com/bunnahabhain/rails_onboarding
 
 ===============================================================================
