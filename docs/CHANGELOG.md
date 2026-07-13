@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-13
+
+### Fixed
+
+- The install generator now actually wires up the `add_milestone_tracking_to_users`,
+  `add_onboarding_indexes`, and `add_robustness_fields_to_users` migration
+  templates. They existed in the gem since the milestones system was added
+  but were never invoked, so `rails generate rails_onboarding:install`
+  silently skipped them - the generator now creates six migrations instead
+  of three.
+- Fixed a duplicate index name in `add_onboarding_indexes` that collided
+  with an index already created by `add_analytics_to_rails_onboarding` for
+  a different column set, which made `db:migrate` fail with "index already
+  exists" on every fresh install. Added a regression test that runs the
+  generated migrations against a real database, up and down.
+- Fixed the engine's Importmap integration: it appended the engine's pins
+  to `config.importmap.paths` inside `config.after_initialize`, but
+  importmap-rails had already drawn that array into the live map earlier
+  in boot, so the append was a no-op and none of the gem's Stimulus
+  controllers were ever registered. Verified all 15 controller pins now
+  register correctly.
+- Corrected the "protect your controllers" instructions in both the
+  generated README and the main README: they referenced
+  `before_action :require_onboarding` and `skip_onboarding_requirement`,
+  neither of which exist. The real API is `needs_onboarding?` (a
+  predicate you call from your own `before_action`) and
+  `skip_onboarding_check`.
+- Replaced the generated README's Sprockets-only CSS include snippet,
+  which Propshaft (Rails 8's default asset pipeline) silently ignores,
+  with `stylesheet_link_tag`/`javascript_include_tag`, verified against a
+  fresh Propshaft app.
+- Removed the generated README's reference to `ESBUILD_SETUP.md`, which
+  the gemspec doesn't ship to installed apps; it now links to the GitHub
+  repository instead.
+- Moved `ESBUILD_SETUP.md` to the project root (it's installation
+  documentation and belongs next to `README.md`) and updated it to list
+  all 14 Stimulus controllers the gem ships, not just the original 4.
+
 ## [0.1.2] - 2026-07-10
 
 ### Fixed
@@ -118,7 +156,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/bunnahabhain/rails_onboarding/releases/tag/v0.1.0
