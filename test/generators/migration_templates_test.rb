@@ -223,6 +223,38 @@ module RailsOnboarding
       end
     end
 
+    test "text/blob/json columns never get an unconditional literal default" do
+      # MySQL/MariaDB reject a literal DEFAULT on TEXT/BLOB/JSON columns
+      # ("BLOB, TEXT, GEOMETRY or JSON column can't have a default value").
+      # add_onboarding_to_users.rb works around this correctly by branching
+      # on adapter_name and only setting a default for PostgreSQL/SQLite,
+      # not MySQL/MariaDB - add_milestone_tracking_to_users.rb missed that
+      # and broke db:migrate on every MySQL install until fixed. This test
+      # guards against reintroducing an unconditional default of that kind.
+      migration_files = Dir.glob(File.join(@template_dir, "*.rb*"))
+        .reject { |f| f.end_with?("rails_onboarding.rb") }
+
+      migration_files.each do |file|
+        content = File.read(file)
+        basename = File.basename(file)
+        lines = content.lines
+
+        lines.each_with_index do |line, index|
+          next unless line =~ /add_column\s+\S+,\s*:\w+,\s*:(text|blob|json)\b/
+          next unless line.include?("default:")
+
+          surrounding = lines[[index - 15, 0].max..index].join
+          guarded = surrounding.match?(/mysql/i)
+
+          assert guarded,
+            "#{basename}:#{index + 1} sets a literal default on a text/blob/json column " \
+            "with no MySQL-excluding guard nearby: #{line.strip.inspect}. " \
+            "See add_onboarding_to_users.rb's adapter-branched feature_tooltips_shown " \
+            "for the pattern to follow."
+        end
+      end
+    end
+
     test "down methods remove items in reverse order of up methods" do
       # This is a guideline check - down methods should generally
       # remove indexes before columns

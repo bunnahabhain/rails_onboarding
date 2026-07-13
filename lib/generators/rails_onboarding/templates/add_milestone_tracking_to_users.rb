@@ -2,7 +2,11 @@ class AddMilestoneTrackingToUsers < ActiveRecord::Migration[<%= ActiveRecord::Mi
   disable_ddl_transaction!
 
   def up
-    add_column :users, :milestones_achieved, :text, default: "[]"
+    # No DB-level default: MySQL/MariaDB reject a literal DEFAULT on
+    # TEXT/BLOB/JSON columns. Onboardable already treats a nil
+    # milestones_achieved as an empty array in Ruby (see onboardable.rb),
+    # so there's nothing to work around adapter-by-adapter here.
+    add_column :users, :milestones_achieved, :text
     add_column :users, :milestone_points, :integer, default: 0
     add_column :users, :last_milestone_at, :datetime
 
