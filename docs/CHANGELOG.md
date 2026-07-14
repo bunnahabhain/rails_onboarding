@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-07-14
+
+### Fixed
+
+- Fixed CSS silently missing on Propshaft (Rails 8's default asset
+  pipeline, including with cssbundling-rails): `application.css` bundles
+  the gem's other stylesheets (tooltips, tour, milestones, mobile, flash
+  messages, utilities, accessibility, progressive disclosure) via
+  Sprockets `require` directives, which Propshaft doesn't process. Every
+  doc and the engine's own onboarding layout only linked
+  `rails_onboarding/application`, so most of the gem's styling never
+  loaded on Propshaft - including on the engine's own `/onboarding`
+  pages, not just host app integration. Fixed the layout to link every
+  partial when Propshaft is detected, and updated `ESBUILD_SETUP.md`,
+  `README.md`, `docs/ASSET_LOADING_GUIDE.md`, and the generator's printed
+  post-install README with Propshaft-specific instructions.
+- Reworked `ESBUILD_SETUP.md`'s Stimulus registration steps: copying
+  controllers into a `rails_onboarding/` subfolder made
+  `stimulus:manifest:update` derive prefixed identifiers
+  (`rails_onboarding--onboarding`) that don't match the flat identifiers
+  the gem's views render (`onboarding`, `tooltip`, etc). Controllers now
+  get copied flat into `app/javascript/controllers/` so manifest-based
+  auto-registration actually works instead of silently registering under
+  the wrong name.
+
 ## [0.1.4] - 2026-07-13
 
 ### Fixed
@@ -168,7 +193,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.1...v0.1.2
