@@ -62,13 +62,36 @@ When using Propshaft, the engine:
 - No precompilation configuration needed
 - Assets are served directly
 
+Propshaft has no bundling-directive processor, so `application.css`'s
+internal Sprockets `require` comments do nothing here - it only contains its
+own base styles/tokens. The gem's other stylesheets (tooltips, tours,
+milestones, mobile responsiveness, admin UI, flash messages, accessibility,
+progressive disclosure) need their own `stylesheet_link_tag` each, or
+they'll silently never load.
+
 **Host Application Integration:**
 
 ```erb
 <!-- app/views/layouts/application.html.erb -->
 <%= stylesheet_link_tag "rails_onboarding/application" %>
+<%= stylesheet_link_tag "rails_onboarding/tooltips" %>
+<%= stylesheet_link_tag "rails_onboarding/utilities" %>
+<%= stylesheet_link_tag "rails_onboarding/accessibility" %>
+<%= stylesheet_link_tag "rails_onboarding/milestones" %>
+<%= stylesheet_link_tag "rails_onboarding/tour" %>
+<%= stylesheet_link_tag "rails_onboarding/flash_messages" %>
+<%= stylesheet_link_tag "rails_onboarding/progressive_disclosure" %>
+<%= stylesheet_link_tag "rails_onboarding/admin" %>
+<%= stylesheet_link_tag "rails_onboarding/mobile" %>
 <%= javascript_include_tag "rails_onboarding/application" %>
 ```
+
+Keep `application` first (it defines the `--onboarding-*` custom properties
+the rest use) and `mobile` last (its media-query overrides need to win
+cascade ties). Skip `admin` if you don't use the admin dashboard. This
+applies whether or not you also use cssbundling-rails for your own styles -
+these tags are served by Propshaft directly and don't go through your build
+pipeline.
 
 ### Importmap
 
@@ -89,9 +112,13 @@ pin_all_from "app/assets/javascripts/rails_onboarding", under: "rails_onboarding
 
 ```erb
 <!-- app/views/layouts/application.html.erb -->
-<%= stylesheet_link_tag "rails_onboarding/application" %>
 <!-- JavaScript loaded via importmap automatically -->
 ```
+
+Importmap only covers JavaScript. CSS loading depends on whichever asset
+pipeline handles stylesheets underneath (Propshaft or Sprockets - see those
+sections above for the tags you need; on Propshaft that's one
+`stylesheet_link_tag` per gem stylesheet, not just `application`).
 
 ### Modern Bundlers (ESBuild, Webpack, Vite)
 
@@ -289,7 +316,11 @@ This ensures engine views are accessible from anywhere in your application.
    # Should include paths to rails_onboarding assets
    ```
 
-3. Check your layout includes the assets:
+3. Check your layout includes the assets. On Sprockets, one tag each is
+   enough; on Propshaft you need one `stylesheet_link_tag` per gem
+   stylesheet (see the [Propshaft](#propshaft) section above) - a single
+   `rails_onboarding/application` tag on Propshaft only gets you the base
+   styles, not tooltips/tour/milestones/mobile/etc.
    ```erb
    <%= stylesheet_link_tag "rails_onboarding/application" %>
    <%= javascript_include_tag "rails_onboarding/application" %>
@@ -366,7 +397,7 @@ This ensures engine views are accessible from anywhere in your application.
 
 ### Asset Precompilation
 
-Ensure all Rails Onboarding assets are precompiled:
+**Sprockets** needs the gem's entry points added to the precompile list:
 
 ```ruby
 # config/initializers/assets.rb
@@ -377,6 +408,12 @@ Rails.application.config.assets.precompile += %w[
 ```
 
 The engine handles this automatically for Sprockets, but verify in production logs.
+
+**Propshaft** has no precompile list - it serves every file under its
+configured load paths automatically, including the engine's. There's
+nothing to add here; just make sure every `stylesheet_link_tag` from the
+[Propshaft](#propshaft) section is in your layout, since those are what
+determine what actually loads, in both development and production.
 
 ### CDN Integration
 

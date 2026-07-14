@@ -798,22 +798,50 @@ Ensure you have:
 
 ### Assets not loading
 
-The engine's CSS and JS aren't included in your layout automatically - add
-this regardless of asset pipeline (works for Propshaft, Sprockets, and
-Importmap, since all three serve named assets through these helpers):
+The engine's CSS and JS aren't included in your layout automatically.
+
+**On Sprockets**, `rails_onboarding/application.css` bundles all of the
+gem's stylesheets itself via internal `require` directives, so one tag is
+enough:
 
 ```erb
 <%= stylesheet_link_tag "rails_onboarding/application" %>
 <%= javascript_include_tag "rails_onboarding/application", defer: true %>
 ```
 
-If you're on Sprockets, you can alternatively link them via the manifest:
+You can alternatively link them via the manifest:
 
 ```js
 // app/assets/config/manifest.js
 //= link rails_onboarding/application.css
 //= link rails_onboarding/application.js
 ```
+
+**On Propshaft** (Rails 8's default, including with cssbundling-rails),
+there's no bundling directive processor - `application.css`'s internal
+`require` directives are inert comments, so it only contains its own base
+styles/tokens. Link every stylesheet individually or you'll silently be
+missing tooltips, tours, milestones, mobile responsiveness, and more:
+
+```erb
+<%= stylesheet_link_tag "rails_onboarding/application" %>
+<%= stylesheet_link_tag "rails_onboarding/tooltips" %>
+<%= stylesheet_link_tag "rails_onboarding/utilities" %>
+<%= stylesheet_link_tag "rails_onboarding/accessibility" %>
+<%= stylesheet_link_tag "rails_onboarding/milestones" %>
+<%= stylesheet_link_tag "rails_onboarding/tour" %>
+<%= stylesheet_link_tag "rails_onboarding/flash_messages" %>
+<%= stylesheet_link_tag "rails_onboarding/progressive_disclosure" %>
+<%= stylesheet_link_tag "rails_onboarding/admin" %>
+<%= stylesheet_link_tag "rails_onboarding/mobile" %>
+<%= javascript_include_tag "rails_onboarding/application", defer: true %>
+```
+
+Keep `application` first (it defines the `--onboarding-*` custom properties
+the rest use) and `mobile` last (its media-query overrides need to win
+cascade ties). Skip `admin` if you don't use the admin dashboard. This is
+unrelated to cssbundling-rails - these tags bypass your JS/CSS build
+pipeline and are served by Propshaft directly.
 
 If you're on Importmap, the engine's `config/importmap.rb` pins are drawn
 into your app's importmap automatically - you don't need to pin anything

@@ -20,14 +20,37 @@ Next steps:
    redirect_after_completion / redirect_after_skip point at routes that
    actually exist in your app (they default to :root_path).
 
-4. Load the CSS and JS in your layout. This works whether you're on
-   Propshaft, Sprockets, or Importmap (Rails 8's defaults):
+4. Load the CSS and JS in your layout.
+
+   On Sprockets, rails_onboarding/application.css bundles all of the gem's
+   stylesheets itself, so one tag is enough:
 
    # app/views/layouts/application.html.erb
    <%= stylesheet_link_tag "rails_onboarding/application" %>
    <%= javascript_include_tag "rails_onboarding/application", defer: true %>
 
-   If you're on Importmap, that's enough to load the tooltip/tour helpers
+   On Propshaft (Rails 8's default, including with cssbundling-rails),
+   there's no bundling step, so application.css only contains its own base
+   styles - you need one tag per gem stylesheet or tooltips/tours/
+   milestones/mobile responsiveness/etc. will silently never load:
+
+   # app/views/layouts/application.html.erb
+   <%= stylesheet_link_tag "rails_onboarding/application" %>
+   <%= stylesheet_link_tag "rails_onboarding/tooltips" %>
+   <%= stylesheet_link_tag "rails_onboarding/utilities" %>
+   <%= stylesheet_link_tag "rails_onboarding/accessibility" %>
+   <%= stylesheet_link_tag "rails_onboarding/milestones" %>
+   <%= stylesheet_link_tag "rails_onboarding/tour" %>
+   <%= stylesheet_link_tag "rails_onboarding/flash_messages" %>
+   <%= stylesheet_link_tag "rails_onboarding/progressive_disclosure" %>
+   <%= stylesheet_link_tag "rails_onboarding/admin" %>
+   <%= stylesheet_link_tag "rails_onboarding/mobile" %>
+   <%= javascript_include_tag "rails_onboarding/application", defer: true %>
+
+   (Keep application first and mobile last; skip admin if you don't use the
+   admin dashboard.)
+
+   If you're on Importmap, the tags above are enough to load the tooltip/tour helpers
    (RailsOnboarding.showTooltip, etc.), but the Stimulus controllers still
    need to be registered explicitly - add to app/javascript/controllers/index.js:
 

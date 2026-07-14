@@ -8,6 +8,19 @@
   <%= yield :head %>
 
   <%= stylesheet_link_tag "rails_onboarding/application", media: "screen" %>
+  <% if defined?(Propshaft) %>
+    <%# Propshaft doesn't process application.css's Sprockets `require`
+        directives, so each stylesheet needs its own tag or it silently
+        never loads (tooltips, tour, milestones, mobile, etc). %>
+    <%= stylesheet_link_tag "rails_onboarding/tooltips", media: "screen" %>
+    <%= stylesheet_link_tag "rails_onboarding/utilities", media: "screen" %>
+    <%= stylesheet_link_tag "rails_onboarding/accessibility", media: "screen" %>
+    <%= stylesheet_link_tag "rails_onboarding/milestones", media: "screen" %>
+    <%= stylesheet_link_tag "rails_onboarding/tour", media: "screen" %>
+    <%= stylesheet_link_tag "rails_onboarding/flash_messages", media: "screen" %>
+    <%= stylesheet_link_tag "rails_onboarding/progressive_disclosure", media: "screen" %>
+    <%= stylesheet_link_tag "rails_onboarding/mobile", media: "screen" %>
+  <% end %>
 
   <% if RailsOnboarding.configuration.include_host_styles %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload", media: "screen" %>

@@ -4,14 +4,21 @@ If your app uses ESBuild for JavaScript bundling, you'll need to manually includ
 
 ## 1. Copy JavaScript Controllers
 
-Copy the following files from the gem to your app's JavaScript directory:
+Copy the following files from the gem **directly into** `app/javascript/controllers/`
+(no subfolder). This matters: Stimulus derives each controller's identifier
+from its path under the controllers root, using `--` for subfolders, and the
+gem's views expect the flat identifiers below - nesting these under a
+`rails_onboarding/` subfolder produces prefixed identifiers
+(`rails_onboarding--onboarding`) that won't match and will silently fail to
+connect.
 
 ```bash
 # From your Rails app root:
-cp path/to/rails_onboarding/app/assets/javascripts/rails_onboarding/* app/javascript/controllers/rails_onboarding/
+cp path/to/rails_onboarding/app/assets/javascripts/rails_onboarding/*.js app/javascript/controllers/
+cp path/to/rails_onboarding/app/assets/javascripts/rails_onboarding/admin/*.js app/javascript/controllers/admin/
 ```
 
-Or manually create these files in `app/javascript/controllers/rails_onboarding/`:
+Or manually create these files in `app/javascript/controllers/`:
 
 **Core Controllers:**
 - `onboarding_controller.js`
@@ -31,45 +38,77 @@ Or manually create these files in `app/javascript/controllers/rails_onboarding/`
 - `milestone_dashboard_controller.js`
 - `milestone_detail_controller.js`
 
-**Admin Interface** (only needed if you use the admin dashboard):
+**Admin Interface** (only needed if you use the admin dashboard; in
+`app/javascript/controllers/admin/`):
 - `admin/chart_controller.js`
 - `admin/filter_controller.js`
 - `admin/flash_controller.js`
 - `admin/flow_editor_controller.js`
 
-If you don't use the admin dashboard, you can skip copying, importing, and
-registering the four `admin/*` controllers throughout this guide.
+If you don't use the admin dashboard, you can skip copying the four
+`admin/*` controllers.
+
+Since these land alongside your own app's controllers, watch for filename
+collisions with anything you already have (e.g. an existing
+`navigation_controller.js` or `flash_controller.js`) - rename on either side
+if that happens, and update the corresponding `data-controller` usage.
 
 ## 2. Register Controllers in Application
 
-Add to your `app/javascript/controllers/index.js`:
+If your app uses `stimulus-rails` (check for the auto-generated header
+comment at the top of `app/javascript/controllers/index.js`), you don't need
+to hand-write any imports. Just run:
+
+```bash
+./bin/rails stimulus:manifest:update
+```
+
+This scans `app/javascript/controllers/` and rewrites `index.js` with the
+correct imports and `application.register(...)` calls for every controller
+it finds, including the ones you just copied in Step 1. Open `index.js`
+afterward and confirm the registered names match what the gem's views use:
+
+| File | Expected identifier |
+| --- | --- |
+| `onboarding_controller.js` | `onboarding` |
+| `progress_controller.js` | `progress` |
+| `navigation_controller.js` | `navigation` |
+| `tooltip_controller.js` | `tooltip` |
+| `tooltip_scheduler_controller.js` | `tooltip-scheduler` |
+| `tour_controller.js` | `tour` |
+| `progressive_disclosure_controller.js` | `progressive-disclosure` |
+| `milestone_celebration_controller.js` | `milestone-celebration` |
+| `milestone_dashboard_controller.js` | `milestone-dashboard` |
+| `milestone_detail_controller.js` | `milestone-detail` |
+| `admin/chart_controller.js` | `admin--chart` |
+| `admin/filter_controller.js` | `admin--filter` |
+| `admin/flash_controller.js` | `admin--flash` |
+| `admin/flow_editor_controller.js` | `admin--flow-editor` |
+
+### Alternative: register manually
+
+If you're not using `stimulus-rails`' manifest management (no auto-generated
+header comment in `index.js`), add this to
+`app/javascript/controllers/index.js` yourself:
 
 ```javascript
-// Import and register all your controllers from the importmap under controllers/*
-
 import { application } from "controllers/application"
 
-// Eager load all controllers defined in the import map under controllers/**/*_controller
-import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
-eagerLoadControllersFrom("controllers", application)
+import OnboardingController from "./onboarding_controller"
+import ProgressController from "./progress_controller"
+import NavigationController from "./navigation_controller"
+import TooltipController from "./tooltip_controller"
+import TooltipSchedulerController from "./tooltip_scheduler_controller"
+import TourController from "./tour_controller"
+import ProgressiveDisclosureController from "./progressive_disclosure_controller"
+import MilestoneCelebrationController from "./milestone_celebration_controller"
+import MilestoneDashboardController from "./milestone_dashboard_controller"
+import MilestoneDetailController from "./milestone_detail_controller"
+import AdminChartController from "./admin/chart_controller"
+import AdminFilterController from "./admin/filter_controller"
+import AdminFlashController from "./admin/flash_controller"
+import AdminFlowEditorController from "./admin/flow_editor_controller"
 
-// Import Rails Onboarding controllers
-import OnboardingController from "./rails_onboarding/onboarding_controller"
-import ProgressController from "./rails_onboarding/progress_controller"
-import NavigationController from "./rails_onboarding/navigation_controller"
-import TooltipController from "./rails_onboarding/tooltip_controller"
-import TooltipSchedulerController from "./rails_onboarding/tooltip_scheduler_controller"
-import TourController from "./rails_onboarding/tour_controller"
-import ProgressiveDisclosureController from "./rails_onboarding/progressive_disclosure_controller"
-import MilestoneCelebrationController from "./rails_onboarding/milestone_celebration_controller"
-import MilestoneDashboardController from "./rails_onboarding/milestone_dashboard_controller"
-import MilestoneDetailController from "./rails_onboarding/milestone_detail_controller"
-import AdminChartController from "./rails_onboarding/admin/chart_controller"
-import AdminFilterController from "./rails_onboarding/admin/filter_controller"
-import AdminFlashController from "./rails_onboarding/admin/flash_controller"
-import AdminFlowEditorController from "./rails_onboarding/admin/flow_editor_controller"
-
-// Register Rails Onboarding controllers
 application.register("onboarding", OnboardingController)
 application.register("progress", ProgressController)
 application.register("navigation", NavigationController)
@@ -84,61 +123,45 @@ application.register("admin--chart", AdminChartController)
 application.register("admin--filter", AdminFilterController)
 application.register("admin--flash", AdminFlashController)
 application.register("admin--flow-editor", AdminFlowEditorController)
-```
-
-**Alternative approach** - Create a separate file `app/javascript/controllers/rails_onboarding.js`:
-
-```javascript
-import { application } from "controllers/application"
-
-// Import Rails Onboarding controllers
-import OnboardingController from "./rails_onboarding/onboarding_controller"
-import ProgressController from "./rails_onboarding/progress_controller"
-import NavigationController from "./rails_onboarding/navigation_controller"
-import TooltipController from "./rails_onboarding/tooltip_controller"
-import TooltipSchedulerController from "./rails_onboarding/tooltip_scheduler_controller"
-import TourController from "./rails_onboarding/tour_controller"
-import ProgressiveDisclosureController from "./rails_onboarding/progressive_disclosure_controller"
-import MilestoneCelebrationController from "./rails_onboarding/milestone_celebration_controller"
-import MilestoneDashboardController from "./rails_onboarding/milestone_dashboard_controller"
-import MilestoneDetailController from "./rails_onboarding/milestone_detail_controller"
-import AdminChartController from "./rails_onboarding/admin/chart_controller"
-import AdminFilterController from "./rails_onboarding/admin/filter_controller"
-import AdminFlashController from "./rails_onboarding/admin/flash_controller"
-import AdminFlowEditorController from "./rails_onboarding/admin/flow_editor_controller"
-
-// Register Rails Onboarding controllers
-application.register("onboarding", OnboardingController)
-application.register("progress", ProgressController)
-application.register("navigation", NavigationController)
-application.register("tooltip", TooltipController)
-application.register("tooltip-scheduler", TooltipSchedulerController)
-application.register("tour", TourController)
-application.register("progressive-disclosure", ProgressiveDisclosureController)
-application.register("milestone-celebration", MilestoneCelebrationController)
-application.register("milestone-dashboard", MilestoneDashboardController)
-application.register("milestone-detail", MilestoneDetailController)
-application.register("admin--chart", AdminChartController)
-application.register("admin--filter", AdminFilterController)
-application.register("admin--flash", AdminFlashController)
-application.register("admin--flow-editor", AdminFlowEditorController)
-```
-
-Then import this in your `app/javascript/controllers/index.js`:
-
-```javascript
-import "./rails_onboarding"
 ```
 
 ## 3. Include CSS Styles
 
-Add to your `app/assets/stylesheets/application.css`:
+The gem's CSS isn't part of your JavaScript bundle - it ships as plain
+stylesheets that Propshaft (Rails' default asset pipeline since Rails 8, and
+what you get alongside cssbundling-rails) serves directly, independent of
+whatever bundler produces your own `app/assets/builds/application.css`.
 
-```css
-/*
- *= require rails_onboarding/application
- */
+`rails_onboarding/application.css` only contains the base styles and design
+tokens. The rest of the gem's styling - tooltips, tours, milestones, mobile
+responsiveness, admin UI, flash messages, accessibility helpers - lives in
+separate files that Sprockets would auto-bundle via `require_tree`, but
+Propshaft doesn't process bundling directives at all, so **each file needs
+its own tag**. Add these to your layout (e.g.
+`app/views/layouts/application.html.erb`), inside `<head>`:
+
+```erb
+<%= stylesheet_link_tag "rails_onboarding/application" %>
+<%= stylesheet_link_tag "rails_onboarding/tooltips" %>
+<%= stylesheet_link_tag "rails_onboarding/utilities" %>
+<%= stylesheet_link_tag "rails_onboarding/accessibility" %>
+<%= stylesheet_link_tag "rails_onboarding/milestones" %>
+<%= stylesheet_link_tag "rails_onboarding/tour" %>
+<%= stylesheet_link_tag "rails_onboarding/flash_messages" %>
+<%= stylesheet_link_tag "rails_onboarding/progressive_disclosure" %>
+<%= stylesheet_link_tag "rails_onboarding/admin" %>
+<%= stylesheet_link_tag "rails_onboarding/mobile" %>
 ```
+
+Keep `application` first (it defines the `--onboarding-*` custom properties
+the others use) and `mobile` last (its media-query overrides need to win
+cascade ties against the component files). The rest can be in any order.
+
+If you don't use the admin dashboard, you can skip
+`rails_onboarding/admin`.
+
+This works whether or not cssbundling-rails is installed - it isn't
+involved here at all, since these tags bypass your build pipeline entirely.
 
 ## 4. Alternative: Use Asset Pipeline
 
