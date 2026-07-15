@@ -92,7 +92,9 @@ Next steps:
 
      skip_onboarding_check only: [:edit, :update]   # or except: [...]
 
-6. Visit /onboarding to test your setup!
+6. Visit /onboarding/onboarding to test your setup! (The engine is mounted
+   at /onboarding, and the onboarding flow itself is a resource under that,
+   so the full path has "onboarding" twice.)
 
 For more details, see the README at
 https://github.com/bunnahabhain/rails_onboarding
