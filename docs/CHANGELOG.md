@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-07-14
+
+### Fixed
+
+- Fixed the post-install README's "visit /onboarding to test your setup"
+  instruction - the engine is mounted at `/onboarding` and the onboarding
+  flow is a singular `:show` resource under that, so the real path is
+  `/onboarding/onboarding`.
+
 ## [0.1.5] - 2026-07-14
 
 ### Fixed
@@ -193,7 +202,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.2...v0.1.3
