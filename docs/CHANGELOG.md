@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-07-16
+
+### Fixed
+
+- `getFeatureTooltipContent()` in `tooltip_controller.js` had a hardcoded
+  dictionary of 5 feature names left over from the gem's original host
+  app, silently ignored `config.feature_tooltips` entirely, and showed a
+  generic message for any other feature. Replaced it with a console
+  warning pointing at the `data-tooltip-target="content"` /
+  `data-tooltip-text` path, since static JS can't read server-side Ruby
+  config.
+- `markTooltipSeen()` POSTed to a hardcoded
+  `/rails_onboarding/tooltips/mark_shown` URL with the wrong engine mount
+  prefix and the wrong route shape, so dismissing a tooltip never
+  actually persisted server-side. Added a `dismissUrl` Stimulus value so
+  the host app supplies the real `dismiss_tooltip_path`, and switched
+  from `Rails.ajax` (requires rails-ujs, which many Turbo-only Rails 7/8
+  apps don't load) to `fetch`.
+- Updated README's "Working with Tooltips" section, which referenced a
+  `tooltip_tag` helper that doesn't exist anywhere in the gem.
+
 ## [0.1.7] - 2026-07-16
 
 ### Fixed
@@ -216,7 +237,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.4...v0.1.5
