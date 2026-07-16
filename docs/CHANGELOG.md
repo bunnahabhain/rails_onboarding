@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-07-16
+
+### Fixed
+
+- The post-install README never told users they need a view per
+  configured step - the gem only ships `welcome.html.erb`, so the other
+  default steps (`profile`, `first_action`, `explore`) silently render a
+  generic "not yet configured" placeholder until real views are added.
+  Added a step covering this, with an example.
+- Fixed `next_step_onboarding_path`, which doesn't exist as a route, to
+  the real `next_onboarding_path` helper, in `README.md`, the
+  post-install README, and `docs/MIGRATION_GUIDE.md`'s upgrade test
+  example.
+
 ## [0.1.6] - 2026-07-14
 
 ### Fixed
@@ -202,7 +216,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.3...v0.1.4
