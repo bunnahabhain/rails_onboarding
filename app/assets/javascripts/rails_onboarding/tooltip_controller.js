@@ -6,6 +6,7 @@ export default class extends Controller {
         position: { type: String, default: "top" },
         delay: { type: Number, default: 0 },
         feature: String,
+        dismissUrl: { type: String, default: "" }, // rails_onboarding.dismiss_tooltip_path(tooltip_id: feature)
         dismissible: { type: Boolean, default: true },
         trigger: { type: String, default: "hover" }, // hover, click, focus, idle, scroll, contextual
         idleTime: { type: Number, default: 3000 }, // ms before showing on idle
@@ -408,38 +409,20 @@ export default class extends Controller {
     }
 
     // Get feature-specific tooltip content
+    //
+    // There's no way for this static JS to read config.feature_tooltips
+    // (that lives server-side in Ruby), so there's nothing meaningful to
+    // fall back to here - the host app must supply the actual copy via a
+    // data-tooltip-target="content" element or a data-tooltip-text
+    // attribute (both checked before this method runs, in
+    // getTooltipContent() above).
     getFeatureTooltipContent() {
-        const featureTooltips = {
-            'getting_started': {
-                title: 'Getting Started',
-                content: 'Click here to begin your journey and learn the basics of using this platform effectively.'
-            },
-            'dashboard': {
-                title: 'Dashboard',
-                content: 'Your central hub for viewing overview information and quick access to key features.'
-            },
-            'create_list': {
-                title: 'Create List',
-                content: 'Start organizing by creating your first list. You can add items, set priorities, and share with others.'
-            },
-            'invite_users': {
-                title: 'Invite Team Members',
-                content: 'Collaborate with others by inviting team members to your workspace.'
-            },
-            'settings': {
-                title: 'Settings',
-                content: 'Customize your experience by adjusting preferences, notifications, and account settings.'
-            }
-        }
-
-        const tooltip = featureTooltips[this.featureValue]
-        if (tooltip) {
-            return `
-        <h4 class="tooltip-title">${tooltip.title}</h4>
-        <p class="tooltip-text">${tooltip.content}</p>
-      `
-        }
-
+        console.warn(
+            `RailsOnboarding: tooltip for feature "${this.featureValue}" has no ` +
+            `content. Add a data-tooltip-target="content" element, or a ` +
+            `data-tooltip-text attribute, with the text configured in ` +
+            `config.feature_tooltips["${this.featureValue}"].`
+        )
         return `<p>Learn more about this feature.</p>`
     }
     
@@ -1034,17 +1017,28 @@ export default class extends Controller {
     // Mark tooltip as seen (for feature tooltips)
     markTooltipSeen() {
         if (this.featureValue) {
-            // Send to Rails backend to mark as seen
-            if (typeof Rails !== 'undefined' && Rails.ajax) {
-                Rails.ajax({
-                    url: '/rails_onboarding/tooltips/mark_shown',
-                    type: 'POST',
-                    data: `feature=${encodeURIComponent(this.featureValue)}`,
+            // The engine's mount path isn't knowable from static JS, so this
+            // relies on the host app supplying the real route via
+            // data-tooltip-dismiss-url-value (e.g.
+            // rails_onboarding.dismiss_tooltip_path(tooltip_id: "...")) -
+            // there's no reliable path to guess here.
+            if (this.hasDismissUrlValue && this.dismissUrlValue) {
+                fetch(this.dismissUrlValue, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
-                    }
-                })
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+                        'Accept': 'application/json'
+                    },
+                    body: `tooltip_id=${encodeURIComponent(this.featureValue)}`
+                }).catch(() => {})
+            } else {
+                console.warn(
+                    `RailsOnboarding: tooltip "${this.featureValue}" has no ` +
+                    `data-tooltip-dismiss-url-value, so it was not marked as shown ` +
+                    `server-side and may reappear on the next page load. Set it to ` +
+                    `rails_onboarding.dismiss_tooltip_path(tooltip_id: "${this.featureValue}").`
+                )
             }
 
             // Also store in localStorage as backup

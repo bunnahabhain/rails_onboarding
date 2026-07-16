@@ -432,14 +432,30 @@ current_user.mark_tooltip_shown!('feature_dashboard')
 current_user.reset_tooltips!
 ```
 
-In your views:
+There's no `tooltip_tag` helper - render the Stimulus controller directly,
+gated by `show_feature_tooltip?`, with the copy in a `content` target (the
+controller can't read your Ruby config, so the text has to be in the DOM)
+and the dismiss URL pointed at the engine's real route:
 
 ```erb
-<%= tooltip_tag('feature_reports',
-    'Click here to view your reports',
-    placement: 'bottom',
-    delay: 1000) %>
+<% if current_user.show_feature_tooltip?("feature_reports") %>
+  <div data-controller="tooltip"
+       data-tooltip-feature-value="feature_reports"
+       data-tooltip-position-value="bottom"
+       data-tooltip-delay-value="1000"
+       data-tooltip-dismiss-url-value="<%= rails_onboarding.dismiss_tooltip_path(tooltip_id: "feature_reports") %>">
+    <button data-tooltip-target="trigger" class="btn">Reports</button>
+    <div data-tooltip-target="content" hidden>
+      Click here to view your reports
+    </div>
+  </div>
+<% end %>
 ```
+
+Register `config.feature_tooltips["feature_reports"]` in your initializer
+first (see [Configuration](#configuration) below) - `show_feature_tooltip?`
+returns false for anything not configured there, even if the DOM above is
+present.
 
 ### Working with Milestones
 
