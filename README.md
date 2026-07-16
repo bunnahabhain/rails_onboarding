@@ -281,7 +281,7 @@ Create custom views for your onboarding steps:
   <h1>Welcome to <%= Rails.application.class.name %>!</h1>
   <p>Let's get you started with a quick tour.</p>
 
-  <%= link_to "Get Started", next_step_onboarding_path,
+  <%= link_to "Get Started", next_onboarding_path,
       method: :post,
       class: "btn btn-primary" %>
 </div>

@@ -72,7 +72,27 @@ Next steps:
    gem's repository (github.com/bunnahabhain/rails_onboarding) for how to
    copy and register the controllers manually.
 
-5. Require a `current_user` method in your controllers (from Devise or your
+5. Create a view for each step in config.steps (config/initializers/
+   rails_onboarding.rb). The default config ships with four steps -
+   welcome, profile, first_action, explore - and the gem only provides a
+   real view for "welcome"; any step without one falls back to a generic
+   "this step is not yet fully configured" placeholder, which is fine for
+   development but not something to ship.
+
+   # app/views/rails_onboarding/onboarding/profile.html.erb
+   <div class="onboarding-step">
+     <h1>Setup Your Profile</h1>
+
+     <%= link_to "Continue", next_onboarding_path,
+         method: :post,
+         class: "btn btn-primary" %>
+   </div>
+
+   Repeat for each step name. See the README's "Customize Step Views"
+   section for a full example, including the welcome.html.erb the gem
+   ships as a reference.
+
+6. Require a `current_user` method in your controllers (from Devise or your
    own auth) - RailsOnboarding reads it to know who's onboarding. Then wire
    up the redirect yourself; the gem gives you the predicate, not the
    before_action:
@@ -92,7 +112,7 @@ Next steps:
 
      skip_onboarding_check only: [:edit, :update]   # or except: [...]
 
-6. Visit /onboarding/onboarding to test your setup! (The engine is mounted
+7. Visit /onboarding/onboarding to test your setup! (The engine is mounted
    at /onboarding, and the onboarding flow itself is a resource under that,
    so the full path has "onboarding" twice.)
 

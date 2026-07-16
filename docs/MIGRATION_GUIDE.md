@@ -530,7 +530,7 @@ class RailsOnboardingUpgradeTest < ActionDispatch::IntegrationTest
     get rails_onboarding.onboarding_path
     assert_response :success
 
-    post rails_onboarding.next_step_onboarding_path
+    post rails_onboarding.next_onboarding_path
     assert_redirected_to rails_onboarding.onboarding_path
   end
 
