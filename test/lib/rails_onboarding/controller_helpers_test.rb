@@ -107,5 +107,74 @@ module RailsOnboarding
       assert TestController.method_defined?(:needs_onboarding?)
       assert TestController.method_defined?(:onboarding_path)
     end
+
+    # ===== :path-based steps =====
+
+    def with_steps(steps)
+      original = RailsOnboarding.configuration
+      RailsOnboarding.reset_configuration!
+      RailsOnboarding.configure { |config| config.steps = steps }
+      yield
+    ensure
+      RailsOnboarding.instance_variable_set(:@configuration, original)
+    end
+
+    test "needs_onboarding? is false on the current step's own page" do
+      with_steps([ { name: :welcome, title: "Welcome", path: :new_profile_path } ]) do
+        @controller.request.path = "/profile/new"
+        assert_not @controller.needs_onboarding?
+      end
+    end
+
+    test "needs_onboarding? stays true on unrelated pages when the step has a path" do
+      with_steps([ { name: :welcome, title: "Welcome", path: :new_profile_path } ]) do
+        @controller.request.path = "/somewhere/else"
+        assert @controller.needs_onboarding?
+      end
+    end
+
+    test "step page loop guard ignores query strings from proc paths" do
+      steps = [ { name: :welcome, title: "Welcome", path: -> { main_app.new_profile_path(from: "onboarding") } } ]
+      with_steps(steps) do
+        @controller.request.path = "/profile/new"
+        assert_not @controller.needs_onboarding?
+      end
+    end
+
+    test "step page loop guard tolerates unresolvable paths" do
+      with_steps([ { name: :welcome, title: "Welcome", path: :bogus_route_path } ]) do
+        @controller.request.path = "/profile/new"
+        assert_nothing_raised do
+          assert @controller.needs_onboarding?
+        end
+      end
+    end
+
+    # ===== advance_onboarding! =====
+
+    test "advance_onboarding! completes the matching current step" do
+      assert @controller.advance_onboarding!(:welcome)
+      assert_equal "profile", @user.reload.onboarding_current_step
+    end
+
+    test "advance_onboarding! is a no-op for a step that is not current" do
+      assert_not @controller.advance_onboarding!(:profile)
+      assert_equal "welcome", @user.reload.onboarding_current_step
+    end
+
+    test "advance_onboarding! is a no-op when onboarding is completed" do
+      @user.update!(onboarding_completed: true)
+      assert_not @controller.advance_onboarding!(:welcome)
+    end
+
+    test "advance_onboarding! is a no-op when onboarding was skipped" do
+      @user.update!(onboarding_skipped: true)
+      assert_not @controller.advance_onboarding!(:welcome)
+    end
+
+    test "advance_onboarding! is a no-op without a signed-in user" do
+      @controller.current_user = nil
+      assert_not @controller.advance_onboarding!(:welcome)
+    end
   end
 end

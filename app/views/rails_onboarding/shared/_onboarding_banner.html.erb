@@ -1,0 +1,38 @@
+<%# Onboarding chrome for host-app pages. Render it unconditionally from the
+    host layout - it guards itself and renders nothing once onboarding is
+    done, skipped, or not required:
+
+      <%%= render "rails_onboarding/shared/onboarding_banner" %%>
+
+    Self-contained on purpose: it runs inside host actions that never set the
+    engine's @current_step/@progress ivars, so everything is derived from
+    current_user. %>
+<% if defined?(current_user) &&
+      current_user.respond_to?(:needs_onboarding?) &&
+      current_user.needs_onboarding? &&
+      !request.path.start_with?(rails_onboarding.onboarding_path) &&
+      (step = current_user.current_onboarding_step) %>
+  <div class="onboarding-banner" role="status">
+    <div class="onboarding-banner-progress">
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: <%= current_user.onboarding_progress %>%"></div>
+      </div>
+      <span class="onboarding-banner-step">
+        Step <%= RailsOnboarding.configuration.step_index(step[:name]).to_i + 1 %>
+        of <%= RailsOnboarding.configuration.total_steps %>:
+        <strong><%= step[:icon] %> <%= step[:title] %></strong>
+      </span>
+    </div>
+    <div class="onboarding-banner-actions">
+      <%# For :path steps, /onboarding re-checks complete_if and either
+          advances or routes back to the step's page - so "Continue" is
+          always the right link. %>
+      <%= link_to "Continue setup →", rails_onboarding.onboarding_path,
+                  class: "onboarding-banner-continue" %>
+      <% if step[:skippable] %>
+        <%= button_to "Skip this step", rails_onboarding.skip_onboarding_path,
+                      method: :post, class: "onboarding-banner-skip" %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

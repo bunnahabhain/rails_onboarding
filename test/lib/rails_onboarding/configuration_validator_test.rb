@@ -49,6 +49,57 @@ module RailsOnboarding
       assert_match /invalid format/i, error.message
     end
 
+    test "accepts path as Symbol, String, or Proc" do
+      @config.steps = [
+        { name: :one, title: "One", path: :new_profile_path, complete_if: ->(u) { true } },
+        { name: :two, title: "Two", path: "new_profile_path", skippable: true },
+        { name: :three, title: "Three", path: -> { "/profile/new" }, skippable: true }
+      ]
+
+      assert @config.valid?, @config.validation_errors.map(&:message).join(", ")
+    end
+
+    test "rejects path of invalid type" do
+      @config.steps = [ { name: :one, title: "One", path: 123 } ]
+
+      error = assert_raises(ConfigurationError) { @config.validate! }
+      assert_match /invalid :path type/i, error.message
+    end
+
+    test "rejects complete_if that is not a Proc" do
+      @config.steps = [ { name: :one, title: "One", complete_if: "user.profile.present?" } ]
+
+      error = assert_raises(ConfigurationError) { @config.validate! }
+      assert_match /invalid :complete_if type/i, error.message
+    end
+
+    test "warns when a path step has no complete_if and is not skippable" do
+      @config.steps = [ { name: :stuck, title: "Stuck", path: :new_profile_path } ]
+
+      warnings = capture_logger_warnings { assert @config.valid? }
+      assert_match /advance_onboarding!\(:stuck\)/, warnings
+    end
+
+    test "does not warn when a path step has complete_if or is skippable" do
+      @config.steps = [
+        { name: :one, title: "One", path: :new_profile_path, complete_if: ->(u) { true } },
+        { name: :two, title: "Two", path: :new_profile_path, skippable: true }
+      ]
+
+      warnings = capture_logger_warnings { assert @config.valid? }
+      assert_no_match /advance_onboarding!/, warnings
+    end
+
+    def capture_logger_warnings
+      io = StringIO.new
+      original_logger = Rails.logger
+      Rails.logger = Logger.new(io)
+      yield
+      io.string
+    ensure
+      Rails.logger = original_logger
+    end
+
     test "accepts valid step name formats" do
       @config.steps = [
         { name: :valid_name },

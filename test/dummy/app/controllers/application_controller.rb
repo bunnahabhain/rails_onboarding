@@ -9,6 +9,20 @@ class ApplicationController < ActionController::Base
   helper_method :current_user
 
   def index
-    render html: "<h1>Test App Home</h1>".html_safe
+    render html: "<h1>Test App Home</h1>".html_safe, layout: true
+  end
+
+  # Host-app page a :path-based onboarding step can point at
+  def new_profile
+  end
+
+  # Simulates the host app's real create action completing an onboarding
+  # step via advance_onboarding! (from RailsOnboarding::ControllerHelpers)
+  def create_profile
+    if advance_onboarding!(:profile)
+      redirect_to onboarding_path
+    else
+      redirect_to root_path
+    end
   end
 end

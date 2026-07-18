@@ -37,6 +37,13 @@ module RailsOnboarding
         @current_step = current_user.current_onboarding_step
       end
 
+      # Skip past steps whose :complete_if criteria are already satisfied.
+      # This is what lets a step live on a real host-app page: the host
+      # controller never has to know onboarding exists - landing back on
+      # /onboarding re-checks and moves on. May redirect (completion).
+      advance_completed_steps
+      return if performed?
+
       # Track step view - use gem's analytics if enabled
       if RailsOnboarding.configuration.enable_analytics
         RailsOnboarding::AnalyticsEvent.track_custom_event(
@@ -44,6 +51,12 @@ module RailsOnboarding
           event_name: "onboarding_step_view",
           event_data: { step: @current_step[:name] }
         )
+      end
+
+      # Steps that own a real page in the host app: route there instead of
+      # rendering a gem template, so the existing controller/view do the work.
+      if @current_step[:path]
+        redirect_to_step_page and return
       end
 
       # Dynamic action based on current step
@@ -232,6 +245,69 @@ module RailsOnboarding
 
       @progress ||= 0
       @total_steps ||= 4
+    end
+
+    # Advance past every consecutive step whose :complete_if predicate is
+    # already satisfied. A loop (not a single check) because a returning user
+    # may have satisfied several steps at once. Redirects to the completion
+    # path when advancing finishes the flow, so callers must check performed?.
+    def advance_completed_steps
+      awarded_milestones = []
+      RailsOnboarding.configuration.total_steps.times do
+        break unless @current_step && step_criteria_met?(@current_step)
+
+        if defined?(RailsOnboarding::MilestoneService)
+          milestones = RailsOnboarding::MilestoneService.check_onboarding_step_milestones(
+            current_user,
+            @current_step[:name]
+          ) || []
+          awarded_milestones.concat(milestones)
+        end
+
+        current_user.complete_onboarding_step!(@current_step[:name])
+
+        if current_user.onboarding_completed?
+          if defined?(RailsOnboarding::MilestoneService)
+            completion_milestones = RailsOnboarding::MilestoneService.check_onboarding_completion_milestones(current_user) || []
+            awarded_milestones.concat(completion_milestones)
+          end
+          redirect_to_after_completion(awarded_milestones)
+          return
+        end
+
+        @current_step = current_user.current_onboarding_step
+      end
+
+      set_step
+    end
+
+    # A buggy :complete_if must not brick onboarding - if it raises, treat the
+    # step as not yet complete instead of letting the shared StandardError
+    # handler redirect back to /onboarding (which would re-raise on arrival,
+    # redirecting again in an endless browser loop).
+    def step_criteria_met?(step)
+      return false unless step[:complete_if].is_a?(Proc)
+
+      step[:complete_if].call(current_user)
+    rescue StandardError => e
+      Rails.logger.error("RailsOnboarding: complete_if for step '#{step[:name]}' raised #{e.class} - #{e.message}")
+      false
+    end
+
+    # Redirect to the host-app page that owns the current step. Returns false
+    # (without redirecting) when the configured path can't be resolved, so
+    # show can fall back to rendering a gem template instead of stranding the
+    # user in a redirect loop via the shared StandardError handler.
+    def redirect_to_step_page
+      path = resolve_onboarding_step_path(@current_step[:path])
+      redirect_to path
+      true
+    rescue StandardError => e
+      Rails.logger.error(
+        "RailsOnboarding: could not resolve path #{@current_step[:path].inspect} " \
+        "for step '#{@current_step[:name]}': #{e.class} - #{e.message}"
+      )
+      false
     end
 
     def redirect_to_after_completion(awarded_milestones = [])

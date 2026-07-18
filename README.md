@@ -331,9 +331,86 @@ Each step supports these options:
   description: 'Details...',  # Optional: Additional context
   estimated_time: '2 min',    # Optional: Time estimate
   required_fields: [:name],   # Optional: Required user fields
-  condition: ->(user) { ... } # Optional: Show step conditionally
+  condition: ->(user) { ... },# Optional: Show step conditionally
+  path: :new_profile_path,    # Optional: Host-app page that owns this step
+                              #   (Symbol/String route helper, or a zero-arg
+                              #   Proc evaluated in the controller context)
+  complete_if: ->(user) {     # Optional: Predicate checked on each visit to
+    user.profile.present?     #   /onboarding - when true, the step is
+  }                           #   completed and the user advances
 }
 ```
+
+### Reusing Existing Controllers and Views (`path:` steps)
+
+By default each step is rendered by the gem from
+`app/views/rails_onboarding/onboarding/<step_name>.html.erb`. That's right
+for pure-content steps (a welcome screen, a feature tour), but wrong for
+steps your app already has a page for - duplicating your profile form into
+an onboarding template means two copies to keep in sync.
+
+Give those steps a `path:` instead. Visiting `/onboarding` then redirects to
+your real page, and your existing controller and view do all the work - the
+gem only tracks progress:
+
+```ruby
+config.steps = [
+  { name: :welcome, title: 'Welcome', skippable: true },     # gem-rendered
+  { name: :profile, title: 'Set up your profile', icon: '👤',
+    path: :new_profile_path,
+    complete_if: ->(user) { user.profile.present? } },
+  { name: :first_post, title: 'Create your first post',
+    path: -> { main_app.new_post_path(from: 'onboarding') },
+    complete_if: ->(user) { user.posts.exists? } }
+]
+```
+
+A `path:` step is completed in one of two ways:
+
+1. **Declaratively** via `complete_if:` - whenever the user lands back on
+   `/onboarding`, every satisfied step is skipped automatically. Your
+   controllers never have to know onboarding exists.
+2. **Explicitly** via `advance_onboarding!` in the host controller - useful
+   when completion isn't derivable from persisted state:
+
+   ```ruby
+   class ProfilesController < ApplicationController
+     def create
+       @profile = current_user.build_profile(profile_params)
+       if @profile.save
+         return redirect_to onboarding_path if advance_onboarding!(:profile)
+         redirect_to @profile
+       else
+         render :new, status: :unprocessable_entity
+       end
+     end
+   end
+   ```
+
+   `advance_onboarding!` is a no-op unless the named step is the user's
+   *current* onboarding step, so the same action behaves normally when the
+   user edits their profile outside onboarding.
+
+A `path:` step with neither `complete_if:` nor `skippable: true` can only
+advance through an explicit `advance_onboarding!` call - the validator logs
+a warning for such steps so a missing call doesn't silently trap users.
+
+To keep the guided feel while users are on your own pages, render the
+gem's progress banner from your layout. It shows current step, progress,
+a "Continue setup" link, and a skip button (on skippable steps), and renders
+nothing once onboarding is done, skipped, or not required:
+
+```erb
+<body>
+  <%= render "rails_onboarding/shared/onboarding_banner" %>
+  <%= yield %>
+</body>
+```
+
+If you guard pages with `redirect_to onboarding_path if needs_onboarding?`,
+that guard automatically stays off the current step's own page - the gem
+recognizes it and lets the request through, so the redirect loop you'd
+expect from `/onboarding` bouncing to the page and back can't happen.
 
 ### Milestone Configuration
 

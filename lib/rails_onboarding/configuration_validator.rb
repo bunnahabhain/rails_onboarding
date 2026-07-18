@@ -110,9 +110,24 @@ module RailsOnboarding
         fields: [
           { name: :title, type: String },
           { name: :icon, type: String },
-          { name: :skippable, type: [ TrueClass, FalseClass ] }
+          { name: :skippable, type: [ TrueClass, FalseClass ] },
+          { name: :path, type: [ Symbol, String, Proc ] },
+          { name: :complete_if, type: Proc }
         ]
-      )
+      ) do |step, name|
+        # A :path step with no :complete_if and no skippable: true can only
+        # advance via an explicit advance_onboarding! call in the host
+        # controller - which this validator can't see. Warn rather than error,
+        # but make the trap visible: if that call is missing, the user gets
+        # redirected to the step's page forever.
+        if step.is_a?(Hash) && step[:path] && !step[:complete_if] && step[:skippable] != true
+          Rails.logger.warn(
+            "RailsOnboarding: step '#{name}' has a :path but no :complete_if and is not skippable. " \
+            "Make sure the host controller calls advance_onboarding!(:#{name}), " \
+            "or users cannot progress past this step."
+          )
+        end
+      end
     end
 
     def validate_milestones
