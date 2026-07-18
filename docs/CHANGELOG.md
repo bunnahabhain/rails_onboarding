@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-07-17
+
+### Added
+
+- Steps can now live on real host-app pages instead of gem-rendered
+  templates, eliminating the need to duplicate existing views and
+  controller logic into `app/views/rails_onboarding/onboarding/`:
+  - New `path:` step option (Symbol/String route helper or Proc). When the
+    current step has one, `/onboarding` redirects to that page and the host
+    app's own controller and view do the work. If the path can't be
+    resolved, the gem logs an error and falls back to rendering a template
+    rather than stranding the user.
+  - New `complete_if:` step option - a predicate called with the user on
+    each visit to `/onboarding`. Every consecutive satisfied step is
+    completed automatically (milestones and analytics included), so host
+    controllers don't need to know onboarding exists. A raising predicate
+    is logged and treated as not-yet-complete instead of erroring.
+  - New `advance_onboarding!(step_name)` helper in
+    `RailsOnboarding::ControllerHelpers` for explicit completion from a
+    host controller action; deliberately a no-op unless the named step is
+    the user's current step.
+  - New `rails_onboarding/shared/onboarding_banner` partial: self-guarding
+    onboarding chrome (progress, current step, continue/skip) that host
+    layouts can render unconditionally on their own pages.
+  - `needs_onboarding?` now returns false on the current step's own page,
+    so a host-app `redirect_to onboarding_path if needs_onboarding?` guard
+    can't ping-pong with the step-page redirect.
+  - The configuration validator accepts the new options and warns about
+    `path:` steps that define neither `complete_if:` nor `skippable: true`,
+    since those can only advance via an explicit `advance_onboarding!`
+    call.
+
 ## [0.1.8] - 2026-07-16
 
 ### Fixed
