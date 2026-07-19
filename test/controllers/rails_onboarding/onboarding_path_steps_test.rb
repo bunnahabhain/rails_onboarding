@@ -138,8 +138,9 @@ module RailsOnboarding
       assert_response :success
 
       # The host app's own create action advances onboarding and returns
+      # (to the canonical slash-less engine root ControllerHelpers serves)
       post "/profile"
-      assert_redirected_to onboarding_url
+      assert_redirected_to "/rails_onboarding"
       assert_equal "explore", @user.reload.onboarding_current_step
     end
 

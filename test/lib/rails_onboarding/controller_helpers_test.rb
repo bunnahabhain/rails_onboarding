@@ -82,9 +82,14 @@ module RailsOnboarding
       assert_not TestController.skip_onboarding_for_action?(:profile)
     end
 
-    test "onboarding_path returns correct path" do
-      path = @controller.onboarding_path
-      assert_equal "/rails_onboarding/onboarding", path
+    test "onboarding_path returns the canonical engine root without a trailing slash" do
+      # Bound explicitly because this test controller includes the engine's
+      # url_helpers (for mount-aware generation without a real dispatch),
+      # which shadow ControllerHelpers#onboarding_path - a real host
+      # controller doesn't include them, so ControllerHelpers' version wins
+      # there.
+      path = RailsOnboarding::ControllerHelpers.instance_method(:onboarding_path).bind_call(@controller)
+      assert_equal "/rails_onboarding", path
     end
 
     test "needs_onboarding? returns false for XHR requests" do
@@ -99,8 +104,18 @@ module RailsOnboarding
     end
 
     test "needs_onboarding? returns false when on onboarding page" do
-      @controller.request.path = "/rails_onboarding/onboarding"
+      @controller.request.path = "/rails_onboarding"
       assert_not @controller.needs_onboarding?
+    end
+
+    test "needs_onboarding? returns false on pages under the engine mount" do
+      @controller.request.path = "/rails_onboarding/milestones"
+      assert_not @controller.needs_onboarding?
+    end
+
+    test "needs_onboarding? stays true on host pages sharing the mount prefix" do
+      @controller.request.path = "/rails_onboarding_help"
+      assert @controller.needs_onboarding?
     end
 
     test "helper_methods are defined" do

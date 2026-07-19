@@ -2,8 +2,10 @@ RailsOnboarding::Engine.routes.draw do
   # Test-only route for setting session in integration tests (no URL helpers needed)
   post 'test_session', to: 'test_sessions#create', as: nil if Rails.env.test?
 
-  # Regular web routes
-  resource :onboarding, only: [ :show ], controller: "onboarding" do
+  # Regular web routes. path: "" anchors the onboarding flow at the engine's
+  # mount point, so the host app's mount path alone controls the URL -
+  # `mount ... => "/onboarding"` yields /onboarding, not /onboarding/onboarding.
+  resource :onboarding, only: [ :show ], controller: "onboarding", path: "" do
     post :next
     post :complete
     post :skip

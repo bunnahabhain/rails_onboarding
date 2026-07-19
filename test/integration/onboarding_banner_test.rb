@@ -36,8 +36,19 @@ class OnboardingBannerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".onboarding-banner" do
       assert_select ".onboarding-banner-step", text: /Step 2\s+of 3:\s+👤 Profile/
-      assert_select "a.onboarding-banner-continue[href=?]", "/rails_onboarding/onboarding"
+      assert_select "a.onboarding-banner-continue[href=?]", "/rails_onboarding"
     end
+  end
+
+  test "banner does not leak its ERB header comment into the page" do
+    # Regression: an ERB comment ends at the first %> sequence, so an
+    # embedded example tag once cut the header comment short and rendered
+    # its tail ("Self-contained on purpose: ...") as page text.
+    get "/profile/new"
+
+    assert_response :success
+    assert_no_match(/Self-contained on purpose/, response.body)
+    assert_no_match(/Onboarding chrome for host-app pages/, response.body)
   end
 
   test "banner hides the skip button on non-skippable steps" do
@@ -52,7 +63,7 @@ class OnboardingBannerTest < ActionDispatch::IntegrationTest
 
     get "/profile/new"
 
-    assert_select "form[action=?]", "/rails_onboarding/onboarding/skip" do
+    assert_select "form[action=?]", "/rails_onboarding/skip" do
       assert_select "button[type=submit]", text: "Skip this step"
     end
   end

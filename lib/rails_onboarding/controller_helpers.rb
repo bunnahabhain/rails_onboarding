@@ -36,7 +36,15 @@ module RailsOnboarding
     end
 
     def on_onboarding_page?
-      return true if request.path.start_with?(rails_onboarding.onboarding_path)
+      # Deliberately reads the engine proxy, not the onboarding_path method -
+      # in engine controllers the engine's own url_helper shadows ours, so
+      # relying on method resolution here would be ambiguous. Chomping makes
+      # the match segment-aware: the engine root (with or without its
+      # trailing slash) and anything under it count, but sibling host paths
+      # that merely share the prefix (/onboarding_help when mounted at
+      # /onboarding) do not.
+      root = rails_onboarding.onboarding_path.chomp("/")
+      return true if request.path == root || request.path.start_with?("#{root}/")
 
       on_current_step_page?
     end
@@ -47,8 +55,13 @@ module RailsOnboarding
         request.path.start_with?("/api")
     end
 
+    # The onboarding flow lives at the engine's mount root, so the raw engine
+    # helper returns it with a trailing slash ("/onboarding/") like any
+    # mounted engine root. Serve host apps the canonical slash-less form for
+    # links and redirects.
     def onboarding_path
-      rails_onboarding.onboarding_path
+      path = rails_onboarding.onboarding_path.chomp("/")
+      path.empty? ? "/" : path
     end
 
     # Complete the current onboarding step from a host-app controller.

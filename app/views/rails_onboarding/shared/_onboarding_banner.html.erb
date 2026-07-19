@@ -2,15 +2,25 @@
     host layout - it guards itself and renders nothing once onboarding is
     done, skipped, or not required:
 
-      <%%= render "rails_onboarding/shared/onboarding_banner" %%>
+      render "rails_onboarding/shared/onboarding_banner"
+
+    (No ERB delimiters around the example above: an ERB comment ends at the
+    first "%" + ">" sequence, so embedding a tag here would cut the comment
+    short and leak the rest of it into the page.)
 
     Self-contained on purpose: it runs inside host actions that never set the
     engine's @current_step/@progress ivars, so everything is derived from
     current_user. %>
+<%# The raw engine root carries a trailing slash ("/onboarding/") like any
+    mounted engine root; chomp for a canonical link target and a
+    segment-aware engine-page check. %>
+<% onboarding_root = rails_onboarding.onboarding_path.chomp("/") %>
+<% on_engine_page = request.path == onboarding_root ||
+     request.path.start_with?("#{onboarding_root}/") %>
 <% if defined?(current_user) &&
       current_user.respond_to?(:needs_onboarding?) &&
       current_user.needs_onboarding? &&
-      !request.path.start_with?(rails_onboarding.onboarding_path) &&
+      !on_engine_page &&
       (step = current_user.current_onboarding_step) %>
   <div class="onboarding-banner" role="status">
     <div class="onboarding-banner-progress">
@@ -27,7 +37,7 @@
       <%# For :path steps, /onboarding re-checks complete_if and either
           advances or routes back to the step's page - so "Continue" is
           always the right link. %>
-      <%= link_to "Continue setup →", rails_onboarding.onboarding_path,
+      <%= link_to "Continue setup →", onboarding_root,
                   class: "onboarding-banner-continue" %>
       <% if step[:skippable] %>
         <%= button_to "Skip this step", rails_onboarding.skip_onboarding_path,
