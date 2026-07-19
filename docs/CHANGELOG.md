@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-19
+
+### Changed
+
+- **Breaking (URLs only):** the onboarding flow is now anchored at the
+  engine's mount point (`resource :onboarding, path: ""`), so mounting at
+  `/onboarding` yields `/onboarding` instead of the doubled
+  `/onboarding/onboarding` (and `/onboarding/next`, `/onboarding/skip`,
+  etc.). Route helpers (`onboarding_path`, `next_onboarding_path`, ...)
+  are unchanged, so helper-based code needs no migration - only
+  hardcoded URLs and bookmarks are affected. Existing installs that want
+  the old URLs back can change their mount point to
+  `mount RailsOnboarding::Engine => "/onboarding/onboarding"`.
+- `needs_onboarding?`'s onboarding-page check and the onboarding banner's
+  self-hide check are now segment-aware: a host page like
+  `/onboarding_help` no longer counts as being "on" an engine mounted at
+  `/onboarding` just because it shares the prefix.
+
+### Fixed
+
+- The onboarding banner partial leaked part of its own header comment
+  ("Self-contained on purpose: ...") into the page: the comment embedded
+  an example ERB tag, and an ERB comment terminates at the first `%>`
+  sequence it contains, cutting the comment short and rendering the rest
+  as text. The example no longer uses ERB delimiters, and a regression
+  test asserts no comment text reaches the page.
+
 ## [0.1.9] - 2026-07-17
 
 ### Added
