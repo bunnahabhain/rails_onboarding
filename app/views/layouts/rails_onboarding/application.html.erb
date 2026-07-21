@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
+  <%# Without this, mobile Safari renders at a virtual ~980px desktop-width
+      viewport and zooms out to fit the physical screen - everything (text,
+      buttons, spacing) looks shrunk even though the CSS itself is correct. %>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= Rails.application.class.module_parent.name %> Onboarding</title>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
@@ -28,7 +33,18 @@
 </head>
 <body>
 
-<%= yield %>
+<%# .onboarding-container/.onboarding-content provide the page-level
+    min-height/centering/responsive padding that the stylesheets (see
+    application.css and mobile.css) already define for every onboarding
+    page - without this wrapper, yielded content rendered directly under
+    <body> with zero horizontal padding, which is invisible on wide
+    viewports (there's empty space outside the content's own max-width
+    either way) but runs text edge-to-edge on mobile. %>
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <%= yield %>
+  </div>
+</div>
 
 </body>
 </html>

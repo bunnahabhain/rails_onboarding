@@ -103,6 +103,7 @@
 .onboarding-content {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--onboarding-space-2xl) var(--onboarding-space-lg);
@@ -247,6 +248,7 @@
 .step-content {
   max-width: 42rem;
   width: 100%;
+  margin: 0 auto;
   text-align: center;
 }
 
@@ -255,7 +257,8 @@
   margin-bottom: var(--onboarding-space-lg);
 }
 
-.step-title {
+.step-title,
+.step-heading {
   font-size: var(--onboarding-text-3xl);
   font-weight: 700;
   color: var(--onboarding-text);
@@ -263,20 +266,35 @@
   line-height: 1.2;
 }
 
-.step-intro {
+.step-intro,
+.step-subheading {
   font-size: var(--onboarding-text-lg);
   color: var(--onboarding-text-muted);
   margin-bottom: var(--onboarding-space-xl);
   text-align: center;
 }
 
+/* .welcome-step is a flex column with `gap` (see below) - flex children's
+   own margins don't collapse into that gap, they stack on top of it. Zero
+   out .step-heading/.step-subheading's margins there so `gap` is the only
+   source of spacing between them and their siblings, instead of doubling up. */
+.welcome-step .step-heading,
+.welcome-step .step-subheading {
+  margin: 0;
+}
+
 /* ======================
    Welcome Step
    ====================== */
 .welcome-step {
+  max-width: 42rem;
+  width: 100%;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  gap: var(--onboarding-space-lg);
+  text-align: center;
 }
 
 .welcome-features {
@@ -600,7 +618,7 @@ input[type="checkbox"] {
   margin: 0;
 }
 
-.action-buttons {
+.onboarding-actions {
   display: flex;
   gap: var(--onboarding-space-md);
   justify-content: center;
@@ -844,7 +862,8 @@ input[type="checkbox"] {
     padding: var(--onboarding-space-lg) var(--onboarding-space-md);
   }
 
-  .step-title {
+  .step-title,
+  .step-heading {
     font-size: var(--onboarding-text-2xl);
   }
 
@@ -862,7 +881,7 @@ input[type="checkbox"] {
     font-size: var(--onboarding-text-xs);
   }
 
-  .action-buttons {
+  .onboarding-actions {
     flex-direction: column;
     width: 100%;
   }
@@ -929,7 +948,7 @@ input[type="checkbox"] {
 @media print {
   .onboarding-header,
   .onboarding-footer,
-  .action-buttons,
+  .onboarding-actions,
   .help-action {
     display: none;
   }

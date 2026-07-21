@@ -56,6 +56,17 @@
     margin-bottom: var(--mobile-space-lg);
   }
 
+  /* Margin is handled by .welcome-step's flex `gap` (see application.css) -
+     only font-size/line-height need setting here. */
+  .step-heading {
+    font-size: var(--mobile-text-2xl);
+    line-height: 1.2;
+  }
+
+  .step-subheading {
+    font-size: var(--mobile-text-base);
+  }
+
   .step-icon {
     font-size: 2rem;
     margin-bottom: var(--mobile-space-md);
@@ -68,7 +79,8 @@
     padding: var(--mobile-space-lg) var(--mobile-space-md);
   }
 
-  .step-title {
+  .step-title,
+  .step-heading {
     font-size: var(--mobile-text-3xl);
   }
 }
@@ -114,6 +126,14 @@
     margin-bottom: var(--mobile-space-md);
   }
 
+  .step-heading {
+    font-size: var(--mobile-text-xl);
+  }
+
+  .step-subheading {
+    font-size: var(--mobile-text-sm);
+  }
+
   /* Reduce progress indicator size in landscape */
   .step-marker {
     width: 1.75rem;
@@ -126,7 +146,7 @@
   }
 
   /* Make action buttons horizontal in landscape */
-  .action-buttons {
+  .onboarding-actions {
     flex-direction: row;
     gap: var(--mobile-space-sm);
   }
@@ -161,7 +181,7 @@
   }
 
   /* Increase spacing between interactive elements */
-  .action-buttons {
+  .onboarding-actions {
     gap: var(--mobile-space-lg);
   }
 
@@ -256,7 +276,7 @@
   }
 
   /* Full-width action buttons on mobile */
-  .action-buttons {
+  .onboarding-actions {
     flex-direction: column;
     width: 100%;
   }
@@ -309,11 +329,13 @@
 
 /* Fluid typography for better scaling */
 @media screen and (max-width: 47.9375em) {
-  .step-title {
+  .step-title,
+  .step-heading {
     font-size: clamp(1.375rem, 5vw, 1.875rem);
   }
 
-  .step-intro {
+  .step-intro,
+  .step-subheading {
     font-size: clamp(0.9375rem, 3.5vw, 1.125rem);
   }
 
@@ -564,12 +586,13 @@
   }
 
   /* Tablet-optimized typography */
-  .step-title {
+  .step-title,
+  .step-heading {
     font-size: var(--onboarding-text-3xl);
   }
 
   /* Compact action buttons for tablets */
-  .action-buttons {
+  .onboarding-actions {
     flex-direction: row;
     justify-content: center;
   }
@@ -602,11 +625,13 @@
   }
 
   /* Increase contrast for mobile dark mode */
-  .step-title {
+  .step-title,
+  .step-heading {
     color: #ffffff;
   }
 
-  .step-intro {
+  .step-intro,
+  .step-subheading {
     color: #d1d5db;
   }
 
@@ -641,7 +666,7 @@
     grid-template-columns: 1fr;
   }
 
-  .action-buttons,
+  .onboarding-actions,
   .navigation-buttons {
     display: none;
   }
@@ -661,6 +686,7 @@
   /* Better contrast for mobile screens in bright light */
   @media (prefers-contrast: high) {
     .step-title,
+    .step-heading,
     .feature-title,
     .choice-title {
       font-weight: 700;

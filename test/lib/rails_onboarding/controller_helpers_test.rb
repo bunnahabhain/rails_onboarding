@@ -165,6 +165,30 @@ module RailsOnboarding
       end
     end
 
+    test "needs_onboarding? is false on another action of the step's own controller" do
+      # Regression test: a step's :path typically points at a "show the
+      # form" page (new_profile_path -> GET /profile/new), but the action
+      # that actually completes the step is a different route on the same
+      # controller (create_profile_path -> POST /profile, both routed to
+      # ApplicationController in the dummy app). Without the same-controller
+      # check, handle_onboarding_redirect's before_action would intercept
+      # that create/update request and redirect to /onboarding before
+      # advance_onboarding! ever ran - the step could never be completed.
+      with_steps([ { name: :welcome, title: "Welcome", path: :new_profile_path } ]) do
+        @controller.request.path = "/profile"
+        @controller.request.path_parameters = { controller: "application", action: "create_profile" }
+        assert_not @controller.needs_onboarding?
+      end
+    end
+
+    test "needs_onboarding? stays true on a different controller even if the path guard fails" do
+      with_steps([ { name: :welcome, title: "Welcome", path: :new_profile_path } ]) do
+        @controller.request.path = "/somewhere/else"
+        @controller.request.path_parameters = { controller: "somewhere", action: "else" }
+        assert @controller.needs_onboarding?
+      end
+    end
+
     # ===== advance_onboarding! =====
 
     test "advance_onboarding! completes the matching current step" do

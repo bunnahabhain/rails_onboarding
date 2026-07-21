@@ -269,7 +269,7 @@ All interactive elements meet the 48x48px minimum touch target:
 Touch devices get larger spacing between interactive elements:
 
 ```css
-.action-buttons {
+.onboarding-actions {
   gap: var(--mobile-space-lg);
 }
 ```

@@ -108,11 +108,22 @@ module RailsOnboarding
     private
 
     # True when the current request is for the page a :path-based step points
-    # at. Folded into on_onboarding_page? (and therefore needs_onboarding?) so
-    # a host app's `redirect_to onboarding_path if needs_onboarding?` guard
-    # doesn't bounce the user off the very page the current step sent them to
-    # - without this, /onboarding redirects to the step page and the step
-    # page's guard redirects straight back, forever.
+    # at, or for another action on that same controller. Folded into
+    # on_onboarding_page? (and therefore needs_onboarding?) so a host app's
+    # `redirect_to onboarding_path if needs_onboarding?` guard doesn't bounce
+    # the user off the very flow the current step sent them to.
+    #
+    # Two things need covering, not just one:
+    #   - without the exact-path check, /onboarding redirects to the step
+    #     page and the step page's own guard redirects straight back, forever.
+    #   - without the same-controller check, the action that actually
+    #     performs the step's work (e.g. PATCH /profile for a step whose
+    #     :path is edit_profile_path) never runs at all: the guard fires as a
+    #     before_action on *every* controller action, so it intercepts the
+    #     update/create request and redirects to /onboarding before
+    #     advance_onboarding! ever gets a chance to complete the step. That
+    #     action decides independently whether the step completes, so the
+    #     guard only needs to get out of its way.
     def on_current_step_page?
       return false unless user_signed_in?
       return false unless current_user.respond_to?(:current_onboarding_step)
@@ -124,7 +135,11 @@ module RailsOnboarding
       # Compare paths only - the resolved route may carry a query string
       # (path: -> { main_app.new_post_path(from: "onboarding") }) or be a
       # full URL, while request.path never includes either.
-      request.path == URI.parse(resolved.to_s).path
+      resolved_path = URI.parse(resolved.to_s).path
+      return true if request.path == resolved_path
+
+      recognized = Rails.application.routes.recognize_path(resolved_path, method: "GET")
+      recognized[:controller] == params[:controller]
     rescue StandardError => e
       Rails.logger.warn("RailsOnboarding: could not resolve step path for loop guard: #{e.class} - #{e.message}")
       false
