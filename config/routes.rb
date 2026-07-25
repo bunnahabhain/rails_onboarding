@@ -48,6 +48,7 @@ RailsOnboarding::Engine.routes.draw do
       member do
         post :reset_onboarding
         post :complete_onboarding
+        post :restart_onboarding
       end
       collection do
         post :bulk_action

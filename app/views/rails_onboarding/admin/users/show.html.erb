@@ -71,6 +71,11 @@
           method: :post,
           class: "admin-btn admin-btn-success",
           data: { confirm: "Are you sure you want to mark onboarding as complete?" } %>
+      <%= button_to "Restart Onboarding",
+          restart_onboarding_admin_user_path(@user),
+          method: :post,
+          class: "admin-btn admin-btn-primary",
+          data: { confirm: "Are you sure you want to restart this user's onboarding from the beginning?" } %>
     </div>
   </div>
 

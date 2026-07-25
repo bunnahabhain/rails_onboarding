@@ -51,6 +51,18 @@ module RailsOnboarding
         assert @test_user.reload.onboarding_completed
       end
 
+      test "should restart user onboarding" do
+        @test_user.update!(onboarding_completed: true, onboarding_skipped: true, onboarding_completed_at: Time.current)
+
+        post restart_onboarding_admin_user_path(@test_user)
+
+        assert_redirected_to admin_user_path(@test_user)
+        @test_user.reload
+        assert_not @test_user.onboarding_completed
+        assert_not @test_user.onboarding_skipped
+        assert_not_nil @test_user.onboarding_current_step
+      end
+
       test "should filter users by status" do
         completed_user = User.create!(email: 'completed@example.com', onboarding_completed: true)
 

@@ -47,6 +47,17 @@ module RailsOnboarding
         redirect_to admin_users_path
       end
 
+      def restart_onboarding
+        @user = user_class.find(params[:id])
+
+        @user.restart_onboarding!
+        flash[:notice] = "Onboarding restarted for user #{@user.id}"
+        redirect_to admin_user_path(@user)
+      rescue StandardError => e
+        flash[:alert] = "Error restarting onboarding: #{e.message}"
+        redirect_to admin_users_path
+      end
+
       def bulk_action
         action = params[:bulk_action]
         user_ids = params[:user_ids] || []
