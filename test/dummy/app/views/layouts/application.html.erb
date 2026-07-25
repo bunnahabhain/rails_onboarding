@@ -19,6 +19,9 @@
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app %>
+    <%# Propshaft doesn't process the Sprockets require_tree/require_self
+        directives in rails_onboarding/application.css, so link it explicitly. %>
+    <%= stylesheet_link_tag "rails_onboarding/application" %>
   </head>
 
   <body>

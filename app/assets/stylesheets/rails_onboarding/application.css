@@ -120,6 +120,95 @@
 }
 
 /* ======================
+   Onboarding Banner
+   (rendered on host-app pages outside the engine, so it can't rely on
+   .onboarding-container for layout - keep it self-contained)
+   ====================== */
+.onboarding-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--onboarding-space-lg);
+  background: var(--onboarding-surface-elevated);
+  border: 1px solid var(--onboarding-border);
+  border-radius: 0.75rem;
+  box-shadow: var(--onboarding-shadow-sm);
+  padding: var(--onboarding-space-md) var(--onboarding-space-lg);
+  margin-bottom: var(--onboarding-space-lg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--onboarding-text);
+}
+
+.onboarding-banner-progress {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.onboarding-banner-progress .progress-bar {
+  margin-bottom: var(--onboarding-space-sm);
+}
+
+.onboarding-banner-step {
+  font-size: var(--onboarding-text-sm);
+  color: var(--onboarding-text-muted);
+}
+
+.onboarding-banner-step strong {
+  color: var(--onboarding-text);
+}
+
+.onboarding-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--onboarding-space-md);
+  flex-shrink: 0;
+}
+
+.onboarding-banner-continue {
+  background: var(--onboarding-primary);
+  color: white;
+  border: 2px solid var(--onboarding-primary);
+  padding: var(--onboarding-space-sm) var(--onboarding-space-lg);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: var(--onboarding-text-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: var(--onboarding-transition);
+}
+
+.onboarding-banner-continue:hover {
+  background: var(--onboarding-primary-hover);
+  border-color: var(--onboarding-primary-hover);
+}
+
+.onboarding-banner-skip {
+  background: transparent;
+  color: var(--onboarding-text-muted);
+  border: none;
+  padding: var(--onboarding-space-sm) var(--onboarding-space-sm);
+  font-size: var(--onboarding-text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.onboarding-banner-skip:hover {
+  color: var(--onboarding-text);
+}
+
+@media screen and (max-width: 30em) {
+  .onboarding-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .onboarding-banner-actions {
+    justify-content: space-between;
+  }
+}
+
+/* ======================
    Progress Indicator
    ====================== */
 .progress-indicator {
