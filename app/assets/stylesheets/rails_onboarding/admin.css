@@ -583,6 +583,7 @@
 
 .admin-bar {
   width: 100%;
+  height: var(--admin-bar-height, 0%);
   background: var(--admin-primary);
   border-radius: var(--admin-radius) var(--admin-radius) 0 0;
   display: flex;
@@ -615,28 +616,36 @@
 .admin-funnel-step {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 0.375rem;
+}
+
+.admin-funnel-track {
+  position: relative;
+  height: 3rem;
+  border-radius: var(--admin-radius);
+  background: var(--admin-border);
+  overflow: hidden;
 }
 
 .admin-funnel-bar {
-  height: 3rem;
+  position: absolute;
+  inset: 0;
+  width: var(--admin-funnel-width, 0%);
   background: var(--admin-primary);
   border-radius: var(--admin-radius);
-  display: flex;
-  align-items: center;
-  padding: 0 1rem;
-  transition: all 0.3s;
+  transition: width 0.3s;
 }
 
 .admin-funnel-label {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  color: white;
+  color: var(--admin-text-primary);
   font-size: 0.875rem;
 }
 
 .admin-funnel-arrow {
+  align-self: center;
   font-size: 1.5rem;
   color: var(--admin-text-muted);
   margin: 0.25rem 0;
