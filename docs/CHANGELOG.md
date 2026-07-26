@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-07-26
+
+### Changed
+
+- **Removed inline styles across the admin/onboarding views and their
+  Stimulus controllers**, following on from the 0.2.5 funnel bar fix.
+  Progress-fill bars (admin user list/detail, onboarding banner, progress
+  indicator) now drive their width via CSS custom properties instead of
+  literal `style="width:...%"`; static one-off inline styles (the flows
+  preview alert's margin, the milestone celebration's `display: none`, the
+  step debug panel's styling) moved into real CSS classes.
+- `progress_controller.js` sets `--onboarding-progress-width` via
+  `style.setProperty` instead of `style.width`, drops the now-redundant
+  manual transition/rAF dance (CSS already transitions `width` on
+  `.progress-fill`), toggles a `.step-marker-pulse` class instead of
+  `style.animation`, and moves the step tooltip's static styling into a
+  real `.step-tooltip` CSS rule - previously dead code, since only the
+  class name (with no matching CSS) was ever set on the element.
+- `milestone_celebration_controller.js` toggles `.is-hidden`/`.is-fading`
+  classes instead of writing `display`/`opacity`/`transition` directly.
+- Left inline styles where they're actually necessary: mailer templates
+  (most email clients strip `<style>` blocks) and per-instance random
+  confetti/tooltip positioning that can't be expressed as a CSS class.
+
 ## [0.2.5] - 2026-07-26
 
 ### Added
@@ -353,7 +377,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.8...v0.2.5
 [0.1.8]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.6...v0.1.7
