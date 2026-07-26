@@ -29,6 +29,7 @@ A flexible, customizable onboarding engine for Rails applications. Create engagi
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Advanced Features](#advanced-features)
+- [Admin Dashboard](#admin-dashboard)
 - [API Reference](#api-reference)
 - [Testing](#testing)
 - [Contributing](#contributing)
@@ -726,6 +727,40 @@ RailsOnboarding::ErrorRecovery.log_error(user, step, error)
 # Get error count
 current_user.step_error_count('profile')
 ```
+
+## Admin Dashboard
+
+The engine ships a full admin dashboard - a stats overview, per-user onboarding management (view progress, reset, complete, or restart onboarding), a flow editor, and A/B test management. It's mounted automatically wherever you mounted the engine, at `/admin` under that path (`/onboarding/admin` if you used the default mount point from the installer).
+
+It ships gated behind an authorization check you need to wire up - by default nothing has admin access.
+
+### 1. Add an `admin?` method to your `User` model
+
+```ruby
+class User < ApplicationRecord
+  def admin?
+    role == "admin" # or however you track it
+  end
+end
+```
+
+With this in place and a `current_user` method available on your `ApplicationController` (e.g. from Devise), the default check - `current_user.present? && current_user.admin?` - is all you need.
+
+### 2. Or override the authentication method for custom logic
+
+If you need something more specific than `current_user.admin?` (a different gate, a different method name for the current user, etc.), define this instead and it takes priority over the default check entirely:
+
+```ruby
+class ApplicationController < ActionController::Base
+  def authenticate_rails_onboarding_admin!
+    redirect_to root_path, alert: "Not authorized" unless current_user&.admin?
+  end
+end
+```
+
+Leaving both `admin?` and `authenticate_rails_onboarding_admin!` undefined isn't a silent hole - visiting the dashboard raises a `NotImplementedError` that redirects with a message telling you to define one of them.
+
+No extra asset tags are required for the dashboard itself: its layout (`app/views/layouts/rails_onboarding/admin.html.erb`) is self-contained with its own `<head>` and stylesheet/JS tags, separate from your app's layout.
 
 ## Pre-built Templates
 
