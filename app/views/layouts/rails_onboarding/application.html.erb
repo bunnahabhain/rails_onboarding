@@ -30,6 +30,8 @@
   <% if RailsOnboarding.configuration.include_host_styles %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload", media: "screen" %>
   <% end %>
+
+  <%= javascript_include_tag "rails_onboarding/application", "data-turbo-track": "reload", defer: true %>
 </head>
 <body>
 
