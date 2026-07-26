@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-07-26
+
 ### Added
 
 - **`onboarding_step_started` analytics event** for a true entry funnel. The
@@ -19,6 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   counts.
 
 ### Fixed
+
+- **Onboarding funnel bar hid its own label at 0%.** The step title/user-count
+  label was rendered *inside* the percentage-width `.admin-funnel-bar`, so a
+  step with `percentage: 0` (e.g. a fresh install where `@onboarding_started`
+  is still zero) collapsed the label along with the bar, truncating the
+  display. The label now renders in its own full-width `.admin-funnel-label`
+  above a fixed-width `.admin-funnel-track`, so it stays visible regardless of
+  the fill percentage. Also replaced the funnel bar's and daily-completions
+  chart's literal inline `style="width: ...%"` / `style="height: ...%"`
+  declarations with CSS custom properties (`--admin-funnel-width`,
+  `--admin-bar-height`) consumed by `admin.css`, keeping all actual styling
+  out of the view.
 
 - **Admin dashboard crashed when there were no onboarding completions in the
   last 7 days.** The Daily Completions chart divided each bar by `max_count`,
@@ -339,7 +353,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.8...v0.2.5
 [0.1.8]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.5...v0.1.6
