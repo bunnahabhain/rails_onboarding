@@ -32,7 +32,8 @@ module RailsOnboarding
 
     # Event types
     ONBOARDING_STARTED = 'onboarding_started'.freeze
-    ONBOARDING_STEP_COMPLETED = 'onboarding_step_completed'.freeze  
+    ONBOARDING_STEP_STARTED = 'onboarding_step_started'.freeze
+    ONBOARDING_STEP_COMPLETED = 'onboarding_step_completed'.freeze
     ONBOARDING_STEP_SKIPPED = 'onboarding_step_skipped'.freeze
     ONBOARDING_COMPLETED = 'onboarding_completed'.freeze
     ONBOARDING_SKIPPED = 'onboarding_skipped'.freeze
@@ -65,6 +66,19 @@ module RailsOnboarding
         properties: {
           user_created_at: user.created_at,
           total_steps: RailsOnboarding.configuration.total_steps
+        },
+        session_id: session_id
+      )
+    end
+
+    def self.track_step_started(user:, step_name:, step_index:, session_id: nil)
+      track_event(
+        user: user,
+        event_type: ONBOARDING_STEP_STARTED,
+        properties: {
+          step_name: step_name,
+          step_index: step_index,
+          progress_percentage: user.onboarding_progress
         },
         session_id: session_id
       )

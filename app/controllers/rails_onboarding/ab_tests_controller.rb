@@ -121,21 +121,29 @@ module RailsOnboarding
       }
     end
 
+    # ab_test_assignments is a serialized JSON column that isn't a queryable
+    # jsonb type on every database the gem supports, so all variant filtering is
+    # done in Ruby to stay portable (mirrors Admin::AbTestsController#calculate_results).
+    def all_test_users
+      @all_test_users ||= user_class.all.select { |user| user.respond_to?(:ab_test_variant) }
+    end
+
+    def users_in_variant(variant)
+      all_test_users.select { |user| user.ab_test_variant(@test_name) == variant }
+    end
+
     def participant_count
-      user_class.where("ab_test_assignments ? ?", @test_name.to_s).count
+      all_test_users.count { |user| user.ab_test_variant(@test_name).present? }
     rescue StandardError
       0
     end
 
     def variant_distribution
-      return {} unless user_class.respond_to?(:ab_test_assignments)
+      return {} unless user_class.method_defined?(:ab_test_variant)
 
-      distribution = {}
-      @test_config[:variants].each do |variant|
-        count = user_class.where("ab_test_assignments->>'#{@test_name}' = ?", variant).count rescue 0
-        distribution[variant] = count
+      @test_config[:variants].each_with_object({}) do |variant, distribution|
+        distribution[variant] = users_in_variant(variant).count
       end
-      distribution
     end
 
     def calculate_results
@@ -156,16 +164,13 @@ module RailsOnboarding
     end
 
     def participant_count_for_variant(variant)
-      user_class.where("ab_test_assignments->>'#{@test_name}' = ?", variant).count
+      users_in_variant(variant).count
     rescue StandardError
       0
     end
 
     def completion_count_for_variant(variant)
-      user_class
-        .where("ab_test_assignments->>'#{@test_name}' = ?", variant)
-        .where(onboarding_completed: true)
-        .count
+      users_in_variant(variant).count(&:onboarding_completed)
     rescue StandardError
       0
     end
@@ -179,10 +184,9 @@ module RailsOnboarding
     end
 
     def average_completion_time_for_variant(variant)
-      users = user_class
-              .where("ab_test_assignments->>'#{@test_name}' = ?", variant)
-              .where(onboarding_completed: true)
-              .where.not(onboarding_completed_at: nil)
+      users = users_in_variant(variant).select do |user|
+        user.onboarding_completed && user.onboarding_completed_at
+      end
 
       return 0 if users.empty?
 
@@ -201,10 +205,7 @@ module RailsOnboarding
       participants = participant_count_for_variant(variant)
       return 0 if participants.zero?
 
-      skipped = user_class
-                .where("ab_test_assignments->>'#{@test_name}' = ?", variant)
-                .where(onboarding_skipped: true)
-                .count
+      skipped = users_in_variant(variant).count(&:onboarding_skipped)
 
       (skipped.to_f / participants * 100).round(2)
     end
@@ -242,10 +243,9 @@ module RailsOnboarding
       completed = completion_count_for_variant(variant)
 
       # Users currently on this step or beyond
-      current_on_step = user_class
-                        .where("ab_test_assignments->>'#{@test_name}' = ?", variant)
-                        .where(onboarding_current_step: step)
-                        .count rescue 0
+      current_on_step = users_in_variant(variant).count do |user|
+        user.onboarding_current_step == step
+      end
 
       completed + current_on_step
     end

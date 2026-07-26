@@ -1073,13 +1073,18 @@ RailsOnboarding::SkipLogic.should_skip_step?(user, 'profile')
 Analytics events tracked by the system:
 
 - `onboarding_started` - User started onboarding
-- `step_viewed` - User viewed a step
-- `step_completed` - User completed a step
+- `onboarding_step_started` - User reached (viewed) a step
+- `onboarding_step_completed` - User completed a step
+- `onboarding_step_skipped` - User skipped an optional step
 - `onboarding_completed` - User completed entire onboarding
 - `onboarding_skipped` - User skipped onboarding
-- `tooltip_viewed` - User viewed a tooltip
+- `tooltip_shown` - Tooltip was shown to the user
+- `tooltip_clicked` - User clicked a tooltip
 - `tooltip_dismissed` - User dismissed a tooltip
 - `milestone_achieved` - User achieved a milestone
+
+Event payloads are stored in the `properties` column (JSON), keyed by
+`step_name`, `step_index`, `tooltip_feature`, etc.
 - `error_occurred` - An error occurred during onboarding
 
 ---

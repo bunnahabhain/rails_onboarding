@@ -204,6 +204,39 @@ class AddOnboardingToUsers < ActiveRecord::Migration[7.0]
 end
 ```
 
+### Problem: Admin analytics raises "Unknown column 'metadata'"
+
+**Error:**
+```
+Mysql2::Error: Unknown column 'metadata' in 'where clause'
+```
+(logged as `Error loading analytics` on the admin dashboard; also surfaces
+as `NoMethodError: undefined method 'metadata'` on a user's detail page.)
+
+**Cause:**
+
+Analytics events store their payload in the `properties` column (a
+JSON-serialized **text** column, per the `add_analytics_to_rails_onboarding`
+migration), keyed by names like `step_name` and `tooltip_feature`. Older
+admin reporting code queried a non-existent `metadata` column with a `step`
+key, and used the SQL JSON operator `->>`, which only works on a native
+`json`/`jsonb` column — not on the serialized text column used on MySQL and
+SQLite.
+
+**Solution:**
+
+Upgrade to a release that includes the fix (the admin dashboard, flows, and
+user-timeline controllers now read `event.properties` and filter by variant
+in Ruby). If you have forked or customized the admin controllers, do not use
+`->>` (or the PostgreSQL `?` key-existence operator) against `properties` or
+`ab_test_assignments`; load the records and read the deserialized hash in
+Ruby instead:
+
+```ruby
+# Portable across PostgreSQL, MySQL, and SQLite
+events.select { |e| e.properties.to_h["step_name"] == step_name }
+```
+
 ### Problem: Index creation fails
 
 **Error:**

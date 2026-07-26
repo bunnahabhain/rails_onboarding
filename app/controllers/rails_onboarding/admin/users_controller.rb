@@ -173,7 +173,7 @@ module RailsOnboarding
               type: event.event_type,
               timestamp: event.created_at,
               description: format_event_description(event),
-              metadata: event.metadata
+              metadata: event.properties.to_h
             }
           end
         end
@@ -193,21 +193,24 @@ module RailsOnboarding
       end
 
       def format_event_description(event)
+        props = event.properties.to_h
         case event.event_type
-        when 'onboarding_started'
+        when RailsOnboarding::AnalyticsEvent::ONBOARDING_STARTED
           'Started onboarding'
-        when 'step_started'
-          "Started step: #{event.metadata['step']}"
-        when 'step_completed'
-          "Completed step: #{event.metadata['step']}"
-        when 'onboarding_completed'
+        when RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED
+          "Started step: #{props['step_name']}"
+        when RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_COMPLETED
+          "Completed step: #{props['step_name']}"
+        when RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_SKIPPED
+          "Skipped step: #{props['step_name']}"
+        when RailsOnboarding::AnalyticsEvent::ONBOARDING_COMPLETED
           'Completed onboarding'
-        when 'onboarding_skipped'
+        when RailsOnboarding::AnalyticsEvent::ONBOARDING_SKIPPED
           'Skipped onboarding'
-        when 'tooltip_shown'
-          "Tooltip shown: #{event.metadata['tooltip_id']}"
-        when 'tooltip_dismissed'
-          "Tooltip dismissed: #{event.metadata['tooltip_id']}"
+        when RailsOnboarding::AnalyticsEvent::TOOLTIP_SHOWN
+          "Tooltip shown: #{props['tooltip_feature']}"
+        when RailsOnboarding::AnalyticsEvent::TOOLTIP_DISMISSED
+          "Tooltip dismissed: #{props['tooltip_feature']}"
         else
           event.event_type.humanize
         end

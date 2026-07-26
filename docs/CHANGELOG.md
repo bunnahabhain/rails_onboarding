@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`onboarding_step_started` analytics event** for a true entry funnel. The
+  onboarding controller records this first-class event on a user's first entry
+  to each step (refreshes and back-navigation don't duplicate it), replacing
+  the ad-hoc `onboarding_step_view` custom event, whose `step` key didn't match
+  the `step_name` convention. The admin dashboard funnel counts distinct users
+  who *reached* each step, and the flows report's "started" vs "completed"
+  columns are now genuinely distinct instead of showing identical completion
+  counts.
+
+### Fixed
+
+- **Admin dashboard crashed when there were no onboarding completions in the
+  last 7 days.** The Daily Completions chart divided each bar by `max_count`,
+  which was 0 whenever every day's count was 0 (`.max || 1` doesn't catch a
+  `0`), so `count / 0` produced `NaN` and `Float#round` raised
+  `FloatDomainError: NaN`. `BaseController#handle_admin_error` swallowed it
+  into a redirect back to the dashboard, making the page unreachable for
+  essentially every fresh install. The divisor is now clamped to at least 1.
+  (Previously undetected because every dashboard controller test was skipped;
+  the dashboard now has real render coverage.)
+
+- **Admin analytics crashed against MySQL/SQLite.** The admin dashboard,
+  flows, and user-detail controllers queried a non-existent `metadata`
+  column (with a `step` key) using the SQL JSON operator `->>`. Analytics
+  payloads are actually stored in the `properties` column — a
+  JSON-serialized text column — keyed by `step_name`/`tooltip_feature`, and
+  `->>` only works on a native `json`/`jsonb` column. On MySQL the dashboard
+  logged `Unknown column 'metadata'` (rescued into a degraded "Error loading
+  analytics"), the step funnel and flow stats silently reported zero, and a
+  user's detail page raised `NoMethodError: undefined method 'metadata'`.
+  These now read `event.properties` with the correct keys and the real
+  built-in event types (`onboarding_step_completed`), filtering in Ruby so
+  the reporting is portable across PostgreSQL, MySQL, and SQLite.
+- **A/B test results crashed on non-`jsonb` databases.** `AbTestsController`
+  filtered users with `ab_test_assignments->>'test' = ?` and the
+  PostgreSQL-only `ab_test_assignments ? key` operator. Because
+  `ab_test_assignments` is a serialized text column except when it is a
+  native `jsonb` column, variant counts, conversion/skip rates, completion
+  times, and the per-variant funnel now compute in Ruby via
+  `AbTestable#ab_test_variant`, matching `Admin::AbTestsController`.
+
 ## [0.2.0] - 2026-07-19
 
 ### Changed
