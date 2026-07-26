@@ -170,8 +170,8 @@
               <td><%= event.event_type.humanize %></td>
               <td><%= event.created_at.strftime('%m/%d/%Y %I:%M %p') %></td>
               <td>
-                <% if event.metadata && event.metadata.any? %>
-                  <code class="admin-code"><%= event.metadata.to_json %></code>
+                <% if event.properties.present? %>
+                  <code class="admin-code"><%= event.properties.to_json %></code>
                 <% else %>
                   -
                 <% end %>

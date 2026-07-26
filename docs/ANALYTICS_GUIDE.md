@@ -60,6 +60,9 @@ The gem automatically tracks these events when users interact with onboarding:
 
 ### Onboarding Events
 - **`onboarding_started`** - User begins onboarding flow
+- **`onboarding_step_started`** - User reaches a step - the entry signal
+  powering the admin step funnel. Recorded only on a user's first entry to
+  each step, so refreshes and back-navigation don't record duplicates.
 - **`onboarding_step_completed`** - User completes a step
 - **`onboarding_step_skipped`** - User skips an optional step
 - **`onboarding_completed`** - User finishes entire onboarding
@@ -532,6 +535,16 @@ end
 ```
 
 ### JavaScript Integration
+
+> **Note:** The example below is an *illustrative custom* client-side tracker.
+> Its event names (`step_started`, `step_completed`) are arbitrary and are
+> **not** the gem's built-in event types. The events the gem records
+> automatically use the `onboarding_`-prefixed names listed under
+> [What Gets Tracked Automatically](#what-gets-tracked-automatically)
+> (e.g. `onboarding_step_completed`), with payload stored in the `properties`
+> column under keys like `step_name`. If you build admin reporting or queries
+> against stored events, match those built-in names and keys — not the custom
+> names in this example.
 
 ```javascript
 // app/assets/javascripts/analytics.js

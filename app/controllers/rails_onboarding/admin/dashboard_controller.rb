@@ -105,18 +105,24 @@ module RailsOnboarding
         steps = RailsOnboarding.configuration.steps
         funnel = []
 
+        # A true entry funnel: count distinct users who *reached* each step
+        # (step_started), not just those who completed it. `properties` is a
+        # JSON-serialized text column, so filter by step in Ruby rather than
+        # with a DB JSON operator (not portable to text/MySQL).
+        step_events = if defined?(RailsOnboarding::AnalyticsEvent)
+          RailsOnboarding::AnalyticsEvent
+            .where(event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED)
+            .where('created_at >= ?', @start_date)
+            .to_a
+        else
+          []
+        end
+
         steps.each do |step|
           step_name = step[:name].to_s
-          users_reached = if defined?(RailsOnboarding::AnalyticsEvent)
-            RailsOnboarding::AnalyticsEvent
-              .where(event_type: 'step_started')
-              .where("metadata->>'step' = ?", step_name)
-              .where('created_at >= ?', @start_date)
-              .distinct
-              .count(:user_id)
-          else
-            0
-          end
+          users_reached = step_events
+            .select { |e| e.properties.to_h['step_name'].to_s == step_name }
+            .map(&:user_id).uniq.count
 
           funnel << {
             step: step_name,

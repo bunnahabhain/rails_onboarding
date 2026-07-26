@@ -72,7 +72,9 @@
       <% if @daily_completions && @daily_completions.any? %>
         <div class="admin-chart-container">
           <div class="admin-bar-chart">
-            <% max_count = @daily_completions.map { |d| d[:count] }.max || 1 %>
+            <%# max_count is the bar-height divisor; clamp to >= 1 so a week
+                with zero completions (max == 0) doesn't divide by zero. %>
+            <% max_count = [@daily_completions.map { |d| d[:count] }.max.to_i, 1].max %>
             <% @daily_completions.each do |day| %>
               <div class="admin-bar-item">
                 <div class="admin-bar" style="height: <%= (day[:count].to_f / max_count * 100).round %>%">

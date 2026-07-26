@@ -101,8 +101,31 @@ module RailsOnboarding
       assert_equal "welcome", @user.onboarding_current_step
     end
 
-    test "should track step views" do
+    test "should track step entry as a step_started event" do
       assert_difference "RailsOnboarding::AnalyticsEvent.count" do
+        get onboarding_url
+      end
+
+      event = RailsOnboarding::AnalyticsEvent
+        .where(event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED)
+        .last
+      assert_not_nil event, "expected a step_started event to be recorded"
+      assert_equal @user.current_onboarding_step[:name].to_s,
+        event.properties["step_name"].to_s
+    end
+
+    test "step_started fires only on first entry to a step" do
+      step_started = -> {
+        RailsOnboarding::AnalyticsEvent
+          .where(event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED).count
+      }
+
+      assert_difference step_started, 1 do
+        get onboarding_url
+      end
+
+      # Revisiting the same step (refresh / back-navigation) must not re-record.
+      assert_no_difference step_started do
         get onboarding_url
       end
     end

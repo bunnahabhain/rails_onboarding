@@ -140,10 +140,10 @@ module RailsOnboarding
         steps.each do |step|
           step_name = step[:name].to_s
           stats[step_name] = {
-            started: RailsOnboarding::AnalyticsEvent.where(event_type: 'step_started')
-                       .select { |e| e.properties['step_name'].to_s == step_name }.count,
-            completed: RailsOnboarding::AnalyticsEvent.where(event_type: 'step_completed')
-                       .select { |e| e.properties['step_name'].to_s == step_name }.count
+            started: RailsOnboarding::AnalyticsEvent.where(event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED)
+                       .select { |e| e.properties.to_h['step_name'].to_s == step_name }.count,
+            completed: RailsOnboarding::AnalyticsEvent.where(event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_COMPLETED)
+                       .select { |e| e.properties.to_h['step_name'].to_s == step_name }.count
           }
         end
 

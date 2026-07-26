@@ -59,7 +59,7 @@ The Rails Onboarding gem provides several migration templates that add the neces
 - `id` (primary key)
 - `user_type` (string) - Polymorphic user type
 - `user_id` (bigint) - Polymorphic user ID
-- `event_type` (string) - Type of event (e.g., 'step_viewed', 'step_completed')
+- `event_type` (string) - Type of event (e.g., 'onboarding_step_started', 'onboarding_step_completed')
 - `properties` (text) - Serialized JSON properties
 - `session_id` (string) - Browser/user session identifier
 - `occurred_at` (datetime) - When the event occurred

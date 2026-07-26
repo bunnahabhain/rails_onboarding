@@ -44,12 +44,14 @@ module RailsOnboarding
       advance_completed_steps
       return if performed?
 
-      # Track step view - use gem's analytics if enabled
-      if RailsOnboarding.configuration.enable_analytics
-        RailsOnboarding::AnalyticsEvent.track_custom_event(
+      # Track step entry - the funnel's "reached this step" signal. Emitted
+      # only on a user's first entry to a step, so refreshes and back-navigation
+      # don't record duplicate events.
+      if RailsOnboarding.configuration.enable_analytics && first_entry_to_step?(@current_step[:name])
+        RailsOnboarding::AnalyticsEvent.track_step_started(
           user: current_user,
-          event_name: "onboarding_step_view",
-          event_data: { step: @current_step[:name] }
+          step_name: @current_step[:name],
+          step_index: RailsOnboarding.configuration.step_index(@current_step[:name])
         )
       end
 
@@ -245,6 +247,19 @@ module RailsOnboarding
 
       @progress ||= 0
       @total_steps ||= 4
+    end
+
+    # True the first time this user reaches the given step. Existing
+    # step_started events are matched in Ruby because `properties` is a
+    # JSON-serialized text column (not portably queryable via SQL). The set of
+    # a user's step_started events is bounded by the number of steps, so this
+    # stays cheap.
+    def first_entry_to_step?(step_name)
+      return true unless RailsOnboarding::AnalyticsEvent.table_exists?
+
+      RailsOnboarding::AnalyticsEvent
+        .where(user: current_user, event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED)
+        .none? { |event| event.properties.to_h["step_name"].to_s == step_name.to_s }
     end
 
     # Advance past every consecutive step whose :complete_if predicate is

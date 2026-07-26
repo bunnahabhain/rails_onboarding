@@ -118,6 +118,22 @@ module RailsOnboarding
       assert_includes event.properties.keys, "total_steps"
     end
 
+    test "track_step_started creates correct event" do
+      assert_difference "AnalyticsEvent.count", 1 do
+        AnalyticsEvent.track_step_started(
+          user: @user,
+          step_name: :welcome,
+          step_index: 0,
+          session_id: @session_id
+        )
+      end
+
+      event = AnalyticsEvent.last
+      assert_equal AnalyticsEvent::ONBOARDING_STEP_STARTED, event.event_type
+      assert_equal "welcome", event.properties["step_name"]
+      assert_equal 0, event.properties["step_index"]
+    end
+
     test "track_step_completed creates correct event" do
       assert_difference "AnalyticsEvent.count", 1 do
         AnalyticsEvent.track_step_completed(
