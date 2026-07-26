@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-07-26
+
+### Fixed
+
+- **The onboarding layout never loaded any JavaScript.**
+  `application.html.erb` (used for the welcome/step/onboarding pages)
+  only linked stylesheets, so none of the engine's own Stimulus
+  controllers (progress bar, milestone celebration, tooltips, tour,
+  navigation) ever had a chance to run there - `admin.html.erb` already
+  included this same tag. Added the matching
+  `javascript_include_tag "rails_onboarding/application"`; verified in a
+  live browser session that it loads without errors. Note: this alone
+  doesn't make those controllers register - nothing imports/registers
+  them for the engine's own pages yet, that's left to the host app's
+  importmap/Stimulus manifest per the existing docs.
+
 ## [0.2.6] - 2026-07-26
 
 ### Changed
@@ -377,7 +393,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.7...HEAD
+[0.2.7]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.8...v0.2.5
 [0.1.8]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.1.7...v0.1.8
