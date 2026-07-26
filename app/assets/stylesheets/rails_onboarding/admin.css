@@ -549,6 +549,7 @@
 
 .admin-progress-fill {
   height: 100%;
+  width: var(--admin-progress-width, 0%);
   background: var(--admin-primary);
   transition: width 0.3s;
 }
@@ -556,6 +557,10 @@
 .admin-progress-text {
   font-size: 0.75rem;
   color: var(--admin-text-secondary);
+}
+
+.admin-alert-preview {
+  margin-bottom: 1.5rem;
 }
 
 /* Charts */

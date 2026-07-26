@@ -25,7 +25,7 @@
   <div class="onboarding-banner" role="status">
     <div class="onboarding-banner-progress">
       <div class="progress-bar">
-        <div class="progress-fill" style="width: <%= current_user.onboarding_progress %>%"></div>
+        <div class="progress-fill" style="--onboarding-progress-width: <%= current_user.onboarding_progress %>%"></div>
       </div>
       <span class="onboarding-banner-step">
         Step <%= RailsOnboarding.configuration.step_index(step[:name]).to_i + 1 %>

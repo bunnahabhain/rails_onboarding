@@ -291,6 +291,16 @@
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.milestone-celebration-overlay.is-hidden {
+  display: none;
+}
+
+.milestone-celebration-overlay.is-fading {
+  opacity: 0;
 }
 
 .celebration-backdrop {

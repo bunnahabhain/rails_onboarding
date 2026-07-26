@@ -227,6 +227,7 @@
 
 .progress-fill {
   height: 100%;
+  width: var(--onboarding-progress-width, 0%);
   background: linear-gradient(90deg, var(--onboarding-primary), var(--onboarding-success));
   border-radius: 0.25rem;
   transition: width 0.3s ease;
@@ -277,6 +278,10 @@
   background: var(--onboarding-success);
   border: 2px solid var(--onboarding-success);
   color: white;
+}
+
+.step-marker-pulse {
+  animation: pulse 1s ease-in-out;
 }
 
 .step-label {
@@ -889,6 +894,19 @@ input[type="checkbox"] {
   border-top: 0.5rem solid var(--onboarding-background);
 }
 
+.step-tooltip {
+  position: absolute;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-width: 12rem;
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
 .tooltip-content h4 {
   margin: 0 0 var(--onboarding-space-sm);
   font-size: var(--onboarding-text-base);
@@ -932,13 +950,13 @@ input[type="checkbox"] {
 }
 
 .step-debug {
-  background: var(--onboarding-surface) !important;
+  background: var(--onboarding-surface);
   border: 1px solid var(--onboarding-border);
   border-radius: 0.5rem;
-  padding: var(--onboarding-space-lg) !important;
-  margin: var(--onboarding-space-lg) 0 !important;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
-  font-size: var(--onboarding-text-sm) !important;
+  padding: var(--onboarding-space-lg);
+  margin: var(--onboarding-space-lg) 0;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: var(--onboarding-text-sm);
   text-align: left;
   color: var(--onboarding-text);
 }

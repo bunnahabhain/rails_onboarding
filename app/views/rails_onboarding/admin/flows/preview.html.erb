@@ -1,5 +1,5 @@
 <div class="onboarding-step-wrapper">
-  <div class="admin-alert admin-alert-info" style="margin-bottom: 1.5rem;">
+  <div class="admin-alert admin-alert-info admin-alert-preview">
     <strong>Preview Mode:</strong> "<%= @flow.name %>" - <%= @steps.length %> step<%= 's' unless @steps.length == 1 %>.
     This is a read-only walkthrough; the buttons below don't affect any real onboarding progress.
     <%= link_to "Back to flow", admin_flow_path(@flow), class: "admin-card-action" %>

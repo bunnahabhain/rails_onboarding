@@ -9,46 +9,31 @@ export default class extends Controller {
 
     connect() {
         this.updateProgressDisplay()
-        this.animateProgressBar()
     }
 
     // Update progress when values change
     progressValueChanged() {
         this.updateProgressDisplay()
-        this.animateProgressBar()
     }
 
     currentStepValueChanged() {
         this.updateStepStates()
     }
 
-    // Update the visual progress display
+    // Update the visual progress display. The fill's width comes from
+    // --onboarding-progress-width (consumed by .progress-fill in CSS), so
+    // changing it here still animates via the stylesheet's `transition:
+    // width` - no inline width/transition needed.
     updateProgressDisplay() {
         const progressFill = this.element.querySelector('.progress-fill')
         const progressText = this.element.querySelector('.current-progress')
 
         if (progressFill) {
-            progressFill.style.width = `${this.progressValue}%`
+            progressFill.style.setProperty('--onboarding-progress-width', `${this.progressValue}%`)
         }
 
         if (progressText) {
             progressText.textContent = `Step ${this.currentStepValue || 1}`
-        }
-    }
-
-    // Animate progress bar changes
-    animateProgressBar() {
-        const progressFill = this.element.querySelector('.progress-fill')
-        if (progressFill) {
-            // Add transition if not already present
-            if (!progressFill.style.transition) {
-                progressFill.style.transition = 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
-            }
-
-            // Trigger animation
-            requestAnimationFrame(() => {
-                progressFill.style.width = `${this.progressValue}%`
-            })
         }
     }
 
@@ -105,10 +90,10 @@ export default class extends Controller {
     pulseCurrentStep() {
         const currentStepElement = this.element.querySelector('.progress-step.current .step-marker')
         if (currentStepElement) {
-            currentStepElement.style.animation = 'pulse 1s ease-in-out'
+            currentStepElement.classList.add('step-marker-pulse')
 
             setTimeout(() => {
-                currentStepElement.style.animation = ''
+                currentStepElement.classList.remove('step-marker-pulse')
             }, 1000)
         }
     }
@@ -164,21 +149,8 @@ export default class extends Controller {
       </div>
     `
 
-        // Style the tooltip
-        tooltip.style.cssText = `
-      position: absolute;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      max-width: 12rem;
-      font-size: 0.875rem;
-      pointer-events: none;
-    `
-
-        // Position tooltip
+        // Position tooltip (top/left are viewport-relative and computed per
+        // call, so they stay inline; everything else lives in .step-tooltip)
         document.body.appendChild(tooltip)
         this.positionTooltip(tooltip, targetElement)
 

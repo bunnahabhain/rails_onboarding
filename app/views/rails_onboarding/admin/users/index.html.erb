@@ -101,7 +101,7 @@
                 <td>
                   <% if user.respond_to?(:onboarding_progress_percentage) %>
                     <div class="admin-progress-bar">
-                      <div class="admin-progress-fill" style="width: <%= user.onboarding_progress_percentage %>%"></div>
+                      <div class="admin-progress-fill" style="--admin-progress-width: <%= user.onboarding_progress_percentage %>%"></div>
                     </div>
                     <span class="admin-progress-text"><%= user.onboarding_progress_percentage %>%</span>
                   <% else %>

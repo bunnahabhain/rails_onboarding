@@ -9,18 +9,19 @@ export default class extends Controller {
   }
 
   showCelebration() {
-    // Show the modal with animation
-    this.element.style.display = "flex"
-    this.element.style.opacity = "0"
-    
+    // Show the modal with animation. .is-hidden/.is-fading (and the
+    // opacity transition) live in milestones.css, so this only toggles
+    // classes rather than writing display/opacity/transition inline.
+    this.element.classList.remove("is-hidden")
+    this.element.classList.add("is-fading")
+
     // Trigger animations
     requestAnimationFrame(() => {
-      this.element.style.transition = "opacity 0.3s ease-in-out"
-      this.element.style.opacity = "1"
-      
+      this.element.classList.remove("is-fading")
+
       // Start confetti animation
       this.startConfetti()
-      
+
       // Auto-dismiss after 5 seconds if user doesn't interact
       this.autoDismissTimer = setTimeout(() => {
         this.dismiss()
@@ -78,12 +79,11 @@ export default class extends Controller {
     if (this.autoDismissTimer) {
       clearTimeout(this.autoDismissTimer)
     }
-    
-    this.element.style.transition = "opacity 0.3s ease-in-out"
-    this.element.style.opacity = "0"
-    
+
+    this.element.classList.add("is-fading")
+
     setTimeout(() => {
-      this.element.style.display = "none"
+      this.element.classList.add("is-hidden")
       // Remove the element from DOM if it was dynamically added
       if (this.element.dataset.temporary === "true") {
         this.element.remove()
