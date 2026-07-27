@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-07-27
+
+Patch: additive and opt-in. Leave the new setting unset and nothing changes.
+
 ### Added
 
 - **`config.admin_user_search`**, an override for the admin User Management
@@ -569,7 +573,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.2.8...v0.3.0
