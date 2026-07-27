@@ -47,7 +47,13 @@ jobs:
         env:
           RAILS_ENV: test
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test
+        # Two separate invocations: bin/rails here loads rails/engine/commands,
+        # whose router can't chain a rake task and a command in one argv the way
+        # a full app's bin/rails can - "db:test:prepare test" fails with
+        # Unrecognized command "test".
+        run: |
+          bin/rails db:test:prepare
+          bin/rails test
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v5
