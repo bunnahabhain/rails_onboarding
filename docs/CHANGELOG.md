@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`config.admin_user_search`**, an override for the admin User Management
+  search box. The built-in search is SQL, so it can't see through an encrypted
+  email column — 0.3.2 made that failure honest (exact match under
+  deterministic encryption, no email clause under non-deterministic) but
+  partial matching over ciphertext isn't reachable from SQL at any price. Only
+  the host app knows what it's willing to trade for it, so it can now supply
+  the strategy: the lambda receives the scope already narrowed by the status
+  and step filters plus the raw term, and returns a relation, so sorting and
+  pagination still apply. Left unset, the built-in behavior is unchanged.
+
 ## [0.3.2] - 2026-07-27
 
 Patch: no new dependencies and no API changes. Admin user search was

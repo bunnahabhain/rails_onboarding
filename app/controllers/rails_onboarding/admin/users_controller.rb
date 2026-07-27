@@ -148,7 +148,15 @@ module RailsOnboarding
       # The search box covers both email and ID. Each half contributes a scope
       # only when it could actually match; if neither can, the result is none
       # rather than an empty WHERE that would return every user.
+      #
+      # A host app can replace the whole thing via
+      # `config.admin_user_search` - the built-in search is SQL, so it can't
+      # see through an encrypted email column, and only the host app knows
+      # what it's willing to trade to search one.
       def apply_search(users, term)
+        custom = RailsOnboarding.configuration.admin_user_search
+        return custom.call(users, term) if custom.respond_to?(:call)
+
         scopes = [ email_search_scope(users, term), id_search_scope(users, term) ].compact
         return users.none if scopes.empty?
 

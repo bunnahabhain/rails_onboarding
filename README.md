@@ -799,6 +799,39 @@ Leaving both `admin?` and `authenticate_rails_onboarding_admin!` undefined isn't
 
 No extra asset tags are required for the dashboard itself: its layout (`app/views/layouts/rails_onboarding/admin.html.erb`) is self-contained with its own `<head>` and stylesheet/JS tags, separate from your app's layout.
 
+### 3. Customizing the user search (encrypted email columns)
+
+The User Management search box matches on email and ID with plain SQL. If your
+`User` model encrypts email, that SQL is comparing against ciphertext, so the
+admin adapts automatically: deterministic encryption falls back to exact
+address matching, and non-deterministic encryption skips email entirely. ID
+search always works.
+
+Partial matching over an encrypted column can't be done in SQL at all. Only
+your app knows what it's willing to trade for it, so supply the strategy
+yourself:
+
+```ruby
+# config/initializers/rails_onboarding.rb
+config.admin_user_search = lambda do |scope, term|
+  needle = term.to_s.downcase
+  ids = scope.select(:id, :email).filter_map do |user|
+    user.id if user.email.to_s.downcase.include?(needle)
+  end
+  scope.where(id: ids)
+end
+```
+
+That example decrypts in Ruby, which leaks nothing and needs no schema change,
+but is O(n) per search — fine for hundreds or low thousands of users, not for
+a large table. The alternative is a searchable index of your own (a trigram or
+prefix blind index), which scales but leaks substantially more about the
+addresses than deterministic encryption alone.
+
+The lambda receives the scope already narrowed by the status and step filters,
+plus the raw search term, and **must return a relation** — returning an array
+silently drops sorting and pagination.
+
 ## Pre-built Templates
 
 Use ready-made onboarding flows:

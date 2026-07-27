@@ -151,6 +151,33 @@ module RailsOnboarding
         assert_includes response.body, @test_user.email
       end
 
+      # The escape hatch for encrypted-email apps: SQL can't see through
+      # ciphertext, so the host app supplies the strategy.
+      test "config.admin_user_search overrides the built-in search" do
+        target = User.create!(email: "needle@example.com")
+        with_admin_user_search(->(scope, term) { scope.where(id: target.id) }) do
+          get admin_users_path(search: "anything at all")
+        end
+
+        assert_response :success
+        assert_includes response.body, target.email
+        assert_not_includes response.body, @test_user.email
+      end
+
+      # The override has to stay a relation, not an array, or sorting and
+      # pagination silently stop applying to it.
+      test "a custom search still paginates and sorts" do
+        page_size = UsersController::DEFAULT_PER_PAGE
+        (page_size + 5 - User.count).times { |i| User.create!(email: "bulk#{i}@example.com") }
+
+        with_admin_user_search(->(scope, _term) { scope.all }) do
+          get admin_users_path(search: "ignored", page: 2)
+        end
+
+        assert_response :success
+        assert_select "nav.series-nav"
+      end
+
       # Guards the no-email-column branch: with nothing left to match on, an
       # empty WHERE would return every user rather than none.
       test "search returns nothing when the user model has no email column" do
@@ -301,6 +328,14 @@ module RailsOnboarding
         yield
       ensure
         User.singleton_class.send(:remove_method, :column_names)
+      end
+
+      def with_admin_user_search(callable)
+        original = RailsOnboarding.configuration.admin_user_search
+        RailsOnboarding.configuration.admin_user_search = callable
+        yield
+      ensure
+        RailsOnboarding.configuration.admin_user_search = original
       end
 
       # Makes the controller see email as an encrypted attribute without
