@@ -60,6 +60,20 @@ module RailsOnboarding
         RailsOnboarding.configuration.steps = original_steps
       end
 
+      test "sidebar links Home to the host app's root, not the engine" do
+        sign_in @admin_user
+
+        get admin_dashboard_path
+
+        assert_response :success
+        home_link = css_select("a.admin-nav-item-home").first
+        assert home_link, "admin layout should render a Home nav item"
+        assert_equal "Home", home_link.text.strip.sub(/\A🏠\s*/, "")
+        # The dummy app's root - "/rails_onboarding/..." would mean the link
+        # was built against the engine's routes instead of the host app's.
+        assert_equal "/", home_link["href"]
+      end
+
       test "should filter by date range" do
         skip "Implement based on your authentication system"
       end

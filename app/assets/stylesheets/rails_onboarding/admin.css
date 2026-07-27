@@ -107,6 +107,13 @@
   font-size: 1.25rem;
 }
 
+/* Separated from the admin sections above - this one leaves the admin area */
+.admin-nav-item-home {
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .admin-sidebar-footer {
   padding: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
