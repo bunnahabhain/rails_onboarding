@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A "Home" item in the admin sidebar**, linking back to the host app's root.
+  The engine is namespace-isolated, so the link resolves through `main_app`
+  rather than the engine's own routes. A host app isn't obliged to define a
+  root route, and the link lives in the admin layout, so it renders only when
+  `root_path` actually exists — otherwise a missing route would raise on every
+  admin page rather than on one link.
+
 ## [0.3.3] - 2026-07-27
 
 Patch: additive and opt-in. Leave the new setting unset and nothing changes.

@@ -42,6 +42,16 @@
           <span class="admin-nav-icon">🧪</span>
           A/B Tests
         <% end %>
+
+        <%# Leaves the engine for the host app's root. Guarded because a host
+            app is not required to define a root route, and a missing one here
+            would break every admin page. %>
+        <% if main_app.respond_to?(:root_path) %>
+          <%= link_to main_app.root_path, class: "admin-nav-item admin-nav-item-home" do %>
+            <span class="admin-nav-icon">🏠</span>
+            Home
+          <% end %>
+        <% end %>
       </nav>
 
       <div class="admin-sidebar-footer">
