@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`rails_onboarding:backfill_existing_users` rake task**, for applications
+  that installed the gem on top of a populated `users` table. Those users have
+  empty onboarding columns, so the admin reports every one of them as "Not
+  Started" and `onboarding_required_for = :all_users` pushes them into a flow
+  they don't need. The task marks them complete in batched `update_all`
+  statements, dating `onboarding_completed_at` from each user's own `created_at`
+  so completion-over-time charts don't spike on backfill day. Only users who
+  never engaged are touched — not completed, not skipped, on no current step —
+  so anyone mid-flow is left alone and the task is safe to re-run on a live app.
+  Supports `BEFORE=`, `DRY_RUN=true`, and `BATCH_SIZE=`. Deliberately records no
+  analytics events: these users never went through onboarding, and synthesizing
+  events for them would put fiction into the funnel metrics. The underlying
+  `RailsOnboarding::Backfill` module is public, and its `pending_scope` lets you
+  inspect or further narrow the affected set from a console.
+
+### Fixed
+
+- **Admin user detail page 500'd on users with a `NULL` `created_at` or
+  `updated_at`** with `undefined method 'strftime' for nil`, redirecting the
+  admin back to the dashboard with a flash. Such rows are common in
+  applications where the `users` table predates its timestamp columns or was
+  populated by an import. The rest of the admin already handled this — the
+  index renders `N/A`, the CSV export uses `&.iso8601` — but the show view
+  called `strftime` unguarded. It now renders `N/A` to match. The activity
+  timeline also drops entries with no timestamp rather than raising in its
+  sort.
+- **`needs_onboarding?` raised on a `NULL` `created_at`** under the
+  `:new_users` strategy, which compared it against `1.hour.ago` — so a single
+  legacy row broke every request that user made. An unknown signup time is now
+  treated as "not recent", putting those users on the existing-user path.
+
 ## [0.3.0] - 2026-07-27
 
 Minor rather than patch: pagy becomes a runtime dependency of the engine, so

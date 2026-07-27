@@ -71,6 +71,43 @@ bin/rails db:migrate
 
 The `User` migration adds `onboarding_completed`, `onboarding_completed_at`, `onboarding_current_step`, `onboarding_skipped`, and `feature_tooltips_shown` (stored as `jsonb` on PostgreSQL, `json` on MySQL/MariaDB, and serialized `text` elsewhere), along with the indexes needed to query onboarding state efficiently. On PostgreSQL these indexes are built concurrently so the migration won't lock a large, live `users` table.
 
+### Installing into an app that already has users
+
+The migration leaves every existing user with empty onboarding columns, so the
+admin reports them all as "Not Started" and — depending on your
+`onboarding_required_for` setting — they may be pushed into a flow they don't
+need. Backfill them once, after migrating:
+
+```bash
+# See what would change first
+bin/rails rails_onboarding:backfill_existing_users DRY_RUN=true
+
+# Apply it
+bin/rails rails_onboarding:backfill_existing_users
+```
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `BEFORE` | none | Only backfill users created before this date, e.g. `BEFORE=2026-07-01`. Use it when the gem has been live for a while and you only want to grandfather in the pre-install cohort. Users with a `NULL` `created_at` are always included. |
+| `DRY_RUN` | `false` | Report the count without writing. |
+| `BATCH_SIZE` | `1000` | Rows per `UPDATE`. |
+
+Only users who have never engaged with onboarding are touched — not completed,
+not skipped, and on no current step — so anyone mid-flow is left alone and the
+task is safe to re-run on a live app. `onboarding_completed_at` is taken from
+each user's own `created_at` (falling back to now when that is `NULL`), which
+keeps your completion-over-time charts from spiking on backfill day. No
+analytics events are recorded: these users never actually went through
+onboarding, and inventing events would corrupt your funnel metrics.
+
+It's also available from the console, where `pending_scope` lets you inspect
+exactly who is about to be affected:
+
+```ruby
+RailsOnboarding::Backfill.pending_scope(created_before: "2026-07-01").pluck(:id, :email)
+RailsOnboarding::Backfill.mark_existing_users_onboarded(created_before: "2026-07-01")
+```
+
 ## Requirements
 
 This gem requires:

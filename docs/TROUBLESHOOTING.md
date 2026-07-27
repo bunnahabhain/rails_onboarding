@@ -258,6 +258,54 @@ rails dbconsole
 DROP INDEX index_users_on_onboarding_completed;
 ```
 
+### Problem: Pre-existing users show as "Not Started" forever
+
+**Symptom:**
+
+Every user who signed up before you installed the gem is reported as "Not
+Started" in the admin, and with `onboarding_required_for = :all_users` they get
+pushed into a flow they don't need.
+
+**Solution:**
+
+Backfill them once, after running the install migrations:
+
+```bash
+bundle exec rails rails_onboarding:backfill_existing_users DRY_RUN=true  # preview
+bundle exec rails rails_onboarding:backfill_existing_users               # apply
+```
+
+Pass `BEFORE=2026-07-01` to grandfather in only the pre-install cohort. Users
+who are mid-flow are never touched, so the task is safe to re-run. See the
+README's "Installing into an app that already has users" section for details.
+
+### Problem: `undefined method 'strftime' for nil` in the admin
+
+**Error:**
+```
+ActionView::Template::Error (undefined method 'strftime' for nil)
+```
+
+**Cause:**
+
+A `users` row with a `NULL` `created_at` or `updated_at`. This is common in
+applications where the `users` table predates Rails timestamp columns, or where
+data was imported directly. It is not caused by the onboarding columns — those
+are all nil-guarded.
+
+**Solution:**
+
+The admin views tolerate `NULL` timestamps and display `N/A` instead — upgrade
+to the latest version if you are still seeing this. To fix the underlying data,
+backfill
+the timestamps in your own app — the gem deliberately won't invent creation
+dates for your users:
+
+```ruby
+# Example only - pick a defensible value for your data
+User.where(created_at: nil).update_all("created_at = COALESCE(updated_at, NOW())")
+```
+
 ## Asset Loading Issues
 
 ### Problem: Stimulus controllers not loading

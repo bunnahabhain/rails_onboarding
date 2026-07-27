@@ -99,6 +99,41 @@ namespace :rails_onboarding do
     exit 1
   end
 
+  desc "Mark pre-existing users as already onboarded (BEFORE=2026-01-01 DRY_RUN=true)"
+  task backfill_existing_users: :environment do
+    options = {
+      created_before: ENV["BEFORE"].presence,
+      dry_run: ENV["DRY_RUN"].to_s.downcase.in?(%w[1 true yes]),
+      batch_size: (ENV["BATCH_SIZE"].presence || RailsOnboarding::Backfill::DEFAULT_BATCH_SIZE).to_i
+    }.compact
+
+    puts "\n" + "=" * 80
+    puts "RailsOnboarding Backfill"
+    puts "=" * 80 + "\n"
+
+    puts "User class: #{RailsOnboarding::Backfill.user_class.name}"
+    puts "Cutoff: #{options[:created_before] || 'none (all users who never started onboarding)'}"
+    puts "Batch size: #{options[:batch_size]}"
+    puts "Mode: #{options[:dry_run] ? 'DRY RUN (no writes)' : 'LIVE'}"
+    puts
+
+    result = RailsOnboarding::Backfill.mark_existing_users_onboarded(**options)
+
+    if result.dry_run?
+      puts "Would mark #{result.matched} user(s) as onboarded."
+      puts "Re-run without DRY_RUN=true to apply."
+    else
+      puts "✅ Marked #{result.updated} of #{result.matched} matched user(s) as onboarded."
+      puts "   onboarding_completed_at was set from each user's created_at where available."
+    end
+
+    puts "\n" + "=" * 80 + "\n"
+  rescue => e
+    puts "❌ Error: #{e.message}"
+    puts e.backtrace.first(5).join("\n") if ENV["DEBUG"]
+    exit 1
+  end
+
   desc "Show onboarding statistics"
   task stats: :environment do
     user_class = RailsOnboarding.configuration.user_class_name.constantize

@@ -35,6 +35,18 @@ module RailsOnboarding
         assert_response :success
       end
 
+      # Users predating the gem's install can carry NULL timestamps, which used
+      # to raise NoMethodError on nil in the view's strftime calls and bounce
+      # the admin back to the dashboard.
+      test "should show user details when timestamps are NULL" do
+        @test_user.update_columns(created_at: nil, updated_at: nil)
+
+        get admin_user_path(@test_user)
+
+        assert_response :success
+        assert_select "dd", text: "N/A", count: 2
+      end
+
       test "should reset user onboarding" do
         @test_user.update!(onboarding_completed: true, onboarding_completed_at: Time.current)
 
