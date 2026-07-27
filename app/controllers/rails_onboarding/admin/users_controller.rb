@@ -246,7 +246,11 @@ module RailsOnboarding
           end
         end
 
-        timeline.sort_by { |item| item[:timestamp] }.reverse
+        # A nil timestamp would blow up the sort, and the timeline renders every
+        # entry as a date - so drop entries we can't place in time at all.
+        timeline.reject { |item| item[:timestamp].nil? }
+          .sort_by { |item| item[:timestamp] }
+          .reverse
       end
 
       def format_event_description(event)

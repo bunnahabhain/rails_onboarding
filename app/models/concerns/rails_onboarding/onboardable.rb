@@ -58,7 +58,10 @@ module RailsOnboarding
 
       case RailsOnboarding.configuration.onboarding_required_for
       when :new_users
-        created_at > 1.hour.ago
+        # Users imported before the gem was installed can have a NULL
+        # created_at. An unknown signup time is not a recent one, so they're
+        # treated as existing users rather than crashing on every request.
+        created_at.present? && created_at > 1.hour.ago
       when :all_users
         true
       when Proc

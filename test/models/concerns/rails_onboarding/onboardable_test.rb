@@ -71,6 +71,18 @@ module RailsOnboarding
       assert_not @user.needs_onboarding?
     end
 
+    # Legacy rows can have a NULL created_at; comparing that against 1.hour.ago
+    # used to raise on every request under the :new_users strategy.
+    test "needs_onboarding? treats a NULL created_at as an existing user" do
+      original = RailsOnboarding.configuration.onboarding_required_for
+      RailsOnboarding.configuration.onboarding_required_for = :new_users
+      @user.update_columns(created_at: nil)
+
+      assert_not @user.needs_onboarding?
+    ensure
+      RailsOnboarding.configuration.onboarding_required_for = original
+    end
+
     test "onboarding_skipped? returns true when skipped" do
       @user.update(onboarding_skipped: true)
       assert @user.onboarding_skipped?

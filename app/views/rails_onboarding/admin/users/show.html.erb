@@ -20,11 +20,13 @@
           <dd><%= @user.email %></dd>
         <% end %>
 
+        <%# Users that predate the gem's install can carry NULL timestamps, so
+            every date on this page has to tolerate nil rather than 500. %>
         <dt>Created</dt>
-        <dd><%= @user.created_at.strftime('%B %d, %Y at %I:%M %p') %></dd>
+        <dd><%= @user.created_at&.strftime('%B %d, %Y at %I:%M %p') || 'N/A' %></dd>
 
         <dt>Last Updated</dt>
-        <dd><%= @user.updated_at.strftime('%B %d, %Y at %I:%M %p') %></dd>
+        <dd><%= @user.updated_at&.strftime('%B %d, %Y at %I:%M %p') || 'N/A' %></dd>
 
         <dt>Onboarding Status</dt>
         <dd>

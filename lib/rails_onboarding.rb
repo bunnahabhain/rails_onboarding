@@ -21,6 +21,7 @@ require "rails_onboarding/background_jobs"
 require "rails_onboarding/caching"
 require "rails_onboarding/lazy_loading"
 require "rails_onboarding/cdn_support"
+require "rails_onboarding/backfill"
 
 module RailsOnboarding
   class Error < StandardError; end
