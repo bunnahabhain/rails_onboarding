@@ -5,6 +5,18 @@ module RailsOnboarding
     # Admin users controller
     # Manage and view user onboarding progress
     class UsersController < BaseController
+      MYSQL_ADAPTERS = %w[mysql2 trilogy mysql].freeze
+
+      # The cast target for turning an integer id into something LIKE can match
+      # is not portable. MySQL rejects `CAST(x AS TEXT)` outright as a syntax
+      # error, and PostgreSQL accepts `CAST(x AS CHAR)` but reads it as
+      # character(1), silently truncating the id to its first digit. SQLite
+      # takes either. Defined on the class rather than as an instance method so
+      # Rails doesn't expose it as a controller action.
+      def self.id_cast_type_for(adapter_name)
+        MYSQL_ADAPTERS.include?(adapter_name.to_s.downcase) ? "CHAR" : "TEXT"
+      end
+
       def index
         @pagy, @users = paginate(filtered_users)
         @stats = calculate_stats
@@ -133,6 +145,52 @@ module RailsOnboarding
         end
       end
 
+      # The search box covers both email and ID. Each half contributes a scope
+      # only when it could actually match; if neither can, the result is none
+      # rather than an empty WHERE that would return every user.
+      def apply_search(users, term)
+        scopes = [ email_search_scope(users, term), id_search_scope(users, term) ].compact
+        return users.none if scopes.empty?
+
+        scopes.reduce { |combined, scope| combined.or(scope) }
+      end
+
+      # Rails' `encrypts` stores ciphertext in the column, so a LIKE against a
+      # substring of the plaintext can't match - and worse, it happily matches
+      # ciphertext that happens to contain the term, so an app with an
+      # encrypted email column sees confident nonsense rather than nothing.
+      # Deterministic encryption still supports exact equality (same plaintext
+      # always encrypts to the same ciphertext), so fall back to that. With
+      # non-deterministic encryption there is nothing to search on at all.
+      def email_search_scope(users, term)
+        return nil unless user_class.column_names.include?("email")
+
+        case email_encryption
+        when :none
+          users.where("#{user_class.table_name}.email LIKE ?", "%#{term}%")
+        when :deterministic
+          users.where(email: term)
+        end
+      end
+
+      def email_encryption
+        return :none unless user_class.respond_to?(:encrypted_attributes)
+        return :none unless user_class.encrypted_attributes&.include?(:email)
+
+        type = user_class.type_for_attribute("email")
+        type.respond_to?(:deterministic?) && type.deterministic? ? :deterministic : :non_deterministic
+      end
+
+      # An id renders as digits, so a non-numeric term can never be a substring
+      # of one. Dropping the clause in that case keeps the common email search
+      # off a full-table cast scan rather than merely being tidy.
+      def id_search_scope(users, term)
+        return nil unless term.match?(/\A\d+\z/)
+
+        cast_type = self.class.id_cast_type_for(user_class.connection.adapter_name)
+        users.where("CAST(#{user_class.table_name}.id AS #{cast_type}) LIKE ?", "%#{term}%")
+      end
+
       def filtered_users
         users = user_class.all
 
@@ -158,14 +216,7 @@ module RailsOnboarding
         end
 
         # Search by email or ID
-        if params[:search].present?
-          search_term = "%#{params[:search]}%"
-          users = if user_class.column_names.include?("email")
-            users.where("email LIKE ? OR CAST(id AS TEXT) LIKE ?", search_term, search_term)
-          else
-            users.where("CAST(id AS TEXT) LIKE ?", search_term)
-          end
-        end
+        users = apply_search(users, params[:search]) if params[:search].present?
 
         # Sort - sanitize column and direction to prevent SQL injection
         allowed_sort_columns = %w[email created_at updated_at onboarding_current_step onboarding_completed_at].freeze
