@@ -26,8 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   38 in total" summary, styled to the existing admin theme. Page links carry the
   active search, status, and sort parameters, so paging no longer drops a filter.
   The pre-existing `?per_page=` parameter still works and is now capped at
-  `UsersController::MAX_PER_PAGE` (100) so a crafted URL can't request the whole
-  table in one query.
+  `MAX_PER_PAGE` (100) so a crafted URL can't request the whole table in one
+  query.
+- **Pagination on the admin Flows and A/B Tests screens.** Both went through the
+  same `Admin::BaseController#paginate` helper that now backs the users screen,
+  so all three share the `page`/`per_page` parameters and the `DEFAULT_PER_PAGE`
+  / `MAX_PER_PAGE` constants. On Flows, the "Active Flow" banner is looked up
+  independently of the page so it still shows when the active flow is on another
+  page. A/B tests are config-defined rather than stored, so that list rarely
+  reaches a second page; because the screen renders Active and Inactive sections
+  off one collection, the combined list is paginated (active first) and the
+  current page split back into the two sections, with the stat cards continuing
+  to report whole-collection totals.
 
 ## [0.2.8] - 2026-07-26
 

@@ -8,6 +8,11 @@ module RailsOnboarding
       include RailsOnboarding::AdminAuthorization
       include Pagy::Method
 
+      DEFAULT_PER_PAGE = 25
+      # Upper bound on the client-supplied ?per_page=, so a crafted URL can't ask
+      # for a whole table in one query.
+      MAX_PER_PAGE = 100
+
       before_action :authenticate_admin!
       before_action :verify_admin_authorization!
       layout 'rails_onboarding/admin'
@@ -22,6 +27,25 @@ module RailsOnboarding
       rescue_from UnauthorizedError, with: :handle_admin_unauthorized
 
       private
+
+      # Shared pagination entry point for the admin index screens.
+      #
+      # limit_key keeps the ?per_page= parameter these screens have always
+      # documented working - pagy's own default is ?limit=. max_limit is doing
+      # double duty: it is both what makes pagy honour a client-supplied value at
+      # all (without it the parameter is ignored outright) and the cap enforced on
+      # that value.
+      #
+      # Accepts an Array as well as a relation - pagy slices arrays directly - but
+      # returns [] rather than nil for a page past the end of an array, which is
+      # what pagy's own Array slicing gives you.
+      def paginate(collection, limit: DEFAULT_PER_PAGE)
+        pagy, records = pagy(collection,
+                             limit: limit,
+                             limit_key: 'per_page',
+                             max_limit: MAX_PER_PAGE)
+        [pagy, records || []]
+      end
 
       # Admin-area catch-all: unlike the concern's admin-only handlers, an
       # unexpected error here sends the operator back to the admin dashboard.

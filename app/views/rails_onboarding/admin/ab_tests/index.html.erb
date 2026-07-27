@@ -16,12 +16,12 @@
   </div>
 </div>
 
-<!-- Active Tests -->
-<% if @active_tests.any? %>
+<!-- Active Tests (those on the current page; the stats above count them all) -->
+<% if @page_active_tests.any? %>
   <div class="admin-section">
     <h2 class="admin-section-title">Active Tests</h2>
     <div class="admin-ab-tests-grid">
-      <% @active_tests.each do |test| %>
+      <% @page_active_tests.each do |test| %>
         <%= render 'ab_test_card', test: test %>
       <% end %>
     </div>
@@ -29,14 +29,22 @@
 <% end %>
 
 <!-- Inactive Tests -->
-<% if @inactive_tests.any? %>
+<% if @page_inactive_tests.any? %>
   <div class="admin-section">
     <h2 class="admin-section-title">Inactive Tests</h2>
     <div class="admin-ab-tests-grid">
-      <% @inactive_tests.each do |test| %>
+      <% @page_inactive_tests.each do |test| %>
         <%= render 'ab_test_card', test: test %>
       <% end %>
     </div>
+  </div>
+<% end %>
+
+<!-- Pagination -->
+<% if @pagy.count.positive? %>
+  <div class="admin-pagination">
+    <%= raw @pagy.info_tag(item_name: "tests") %>
+    <%= raw @pagy.series_nav if @pagy.pages > 1 %>
   </div>
 <% end %>
 

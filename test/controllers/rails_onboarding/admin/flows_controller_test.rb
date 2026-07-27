@@ -107,6 +107,60 @@ module RailsOnboarding
         get preview_admin_flow_path(id: 'does-not-exist')
         assert_redirected_to admin_flows_path
       end
+
+      test "should paginate flows beyond the first page" do
+        page_size = BaseController::DEFAULT_PER_PAGE
+        RailsOnboarding::Flow.delete_all
+        (page_size + 3).times { |i| create_flow("Flow #{format('%02d', i)}") }
+
+        get admin_flows_path
+        assert_response :success
+        assert_select 'nav.series-nav a[aria-current="page"]', text: '1'
+        assert_select '.admin-flow-card', page_size
+
+        get admin_flows_path(page: 2)
+        assert_response :success
+        assert_select 'nav.series-nav a[aria-current="page"]', text: '2'
+        assert_select '.admin-flow-card', 3
+        assert_includes response.body, 'Flow 27'
+        assert_not_includes response.body, 'Flow 00'
+      end
+
+      test "the active flow banner shows even when the active flow is off-page" do
+        RailsOnboarding::Flow.delete_all
+        active = create_flow('Zebra Flow (active)')
+        RailsOnboarding::Flow.activate!(active)
+        # Created after the active flow, so ordering by created_at keeps it on page 1
+        # while these fill the rest of page 1 and spill onto page 2.
+        (BaseController::DEFAULT_PER_PAGE + 1).times { |i| create_flow("Filler #{i}") }
+
+        get admin_flows_path(page: 2)
+
+        assert_response :success
+        # The banner is driven by Flow.active, not by what fell on this page: the
+        # active flow was created first so its card sits back on page 1.
+        assert_select '.admin-alert-info', text: /Zebra Flow \(active\)/
+        assert_select '.admin-flow-title', text: /Zebra Flow/, count: 0
+      end
+
+      test "renders no pagination for a single page of flows" do
+        RailsOnboarding::Flow.delete_all
+        # index seeds a default flow when the table is empty, so there is always
+        # at least one flow - assert the nav stays away for a single page.
+        get admin_flows_path
+
+        assert_response :success
+        assert_select 'nav.series-nav', count: 0
+      end
+
+      private
+
+      def create_flow(name)
+        RailsOnboarding::Flow.create!(
+          name: name,
+          steps: [{ name: 'welcome', title: 'Welcome', icon: '👋', skippable: true }]
+        )
+      end
     end
   end
 end

@@ -98,6 +98,14 @@
   <% end %>
 </div>
 
+<!-- Pagination -->
+<% if @pagy.count.positive? %>
+  <div class="admin-pagination">
+    <%= raw @pagy.info_tag(item_name: "flows") %>
+    <%= raw @pagy.series_nav if @pagy.pages > 1 %>
+  </div>
+<% end %>
+
 <!-- Templates Section -->
 <% if @templates && @templates.any? %>
   <div class="admin-section">
