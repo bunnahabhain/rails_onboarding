@@ -3,7 +3,7 @@ module RailsOnboarding
     self.table_name = "rails_onboarding_analytics_events"
 
     belongs_to :user, polymorphic: true, optional: true
-    
+
     # Rails 8 compatibility: Handle polymorphic associations gracefully
     def user=(user_instance)
       if user_instance
@@ -31,16 +31,16 @@ module RailsOnboarding
     scope :ordered, -> { order(occurred_at: :asc) } # Consistent ordering for pagination
 
     # Event types
-    ONBOARDING_STARTED = 'onboarding_started'.freeze
-    ONBOARDING_STEP_STARTED = 'onboarding_step_started'.freeze
-    ONBOARDING_STEP_COMPLETED = 'onboarding_step_completed'.freeze
-    ONBOARDING_STEP_SKIPPED = 'onboarding_step_skipped'.freeze
-    ONBOARDING_COMPLETED = 'onboarding_completed'.freeze
-    ONBOARDING_SKIPPED = 'onboarding_skipped'.freeze
-    TOOLTIP_SHOWN = 'tooltip_shown'.freeze
-    TOOLTIP_DISMISSED = 'tooltip_dismissed'.freeze
-    TOOLTIP_CLICKED = 'tooltip_clicked'.freeze
-    MILESTONE_ACHIEVED = 'milestone_achieved'.freeze
+    ONBOARDING_STARTED = "onboarding_started".freeze
+    ONBOARDING_STEP_STARTED = "onboarding_step_started".freeze
+    ONBOARDING_STEP_COMPLETED = "onboarding_step_completed".freeze
+    ONBOARDING_STEP_SKIPPED = "onboarding_step_skipped".freeze
+    ONBOARDING_COMPLETED = "onboarding_completed".freeze
+    ONBOARDING_SKIPPED = "onboarding_skipped".freeze
+    TOOLTIP_SHOWN = "tooltip_shown".freeze
+    TOOLTIP_DISMISSED = "tooltip_dismissed".freeze
+    TOOLTIP_CLICKED = "tooltip_clicked".freeze
+    MILESTONE_ACHIEVED = "milestone_achieved".freeze
 
     def self.track_event(user:, event_type:, properties: {}, session_id: nil)
       return unless RailsOnboarding.configuration.enable_analytics
@@ -126,11 +126,11 @@ module RailsOnboarding
 
     def self.track_tooltip_interaction(user:, tooltip_feature:, action:, session_id: nil)
       event_type = case action.to_s
-                   when 'shown' then TOOLTIP_SHOWN
-                   when 'dismissed' then TOOLTIP_DISMISSED  
-                   when 'clicked' then TOOLTIP_CLICKED
-                   else 'tooltip_interaction'
-                   end
+      when "shown" then TOOLTIP_SHOWN
+      when "dismissed" then TOOLTIP_DISMISSED
+      when "clicked" then TOOLTIP_CLICKED
+      else "tooltip_interaction"
+      end
 
       track_event(
         user: user,

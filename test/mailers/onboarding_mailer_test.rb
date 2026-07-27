@@ -42,8 +42,8 @@ module RailsOnboarding
         email.deliver_now
       end
 
-      assert_equal [@user.email], email.to
-      assert_equal ["onboarding@example.com"], email.from
+      assert_equal [ @user.email ], email.to
+      assert_equal [ "onboarding@example.com" ], email.from
     rescue NameError
       skip "OnboardingMailer not defined"
     end
@@ -108,7 +108,7 @@ module RailsOnboarding
         email.deliver_now
       end
 
-      assert_equal [@user.email], email.to
+      assert_equal [ @user.email ], email.to
     rescue NameError
       skip "OnboardingMailer not defined"
     end
@@ -177,7 +177,7 @@ module RailsOnboarding
         email.deliver_now
       end
 
-      assert_equal [@user.email], email.to
+      assert_equal [ @user.email ], email.to
     rescue NameError
       skip "OnboardingMailer not defined"
     end
@@ -233,7 +233,7 @@ module RailsOnboarding
         email.deliver_now
       end
 
-      assert_equal [@user.email], email.to
+      assert_equal [ @user.email ], email.to
     rescue NameError
       skip "OnboardingMailer not defined"
     end
@@ -269,7 +269,7 @@ module RailsOnboarding
 
       @user.update(name: "Jane Smith") if @user.respond_to?(:name=)
 
-      [:welcome_email, :reminder_email, :completion_email].each do |email_type|
+      [ :welcome_email, :reminder_email, :completion_email ].each do |email_type|
         email = OnboardingMailer.send(email_type, @user)
         body = email_text_body(email)
 

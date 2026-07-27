@@ -5,7 +5,7 @@ module RailsOnboarding
     def setup
       @user = User.create!(email: "test@example.com", created_at: 2.hours.ago)
       @session_id = "test_session_123"
-      
+
       # Skip all tests if analytics table doesn't exist
       skip "Analytics table not available" unless RailsOnboarding::AnalyticsEvent.table_exists?
     end
@@ -44,7 +44,7 @@ module RailsOnboarding
     end
 
     test "serializes properties as JSON" do
-      properties = { step_name: "welcome", step_index: 0, custom_data: [1, 2, 3] }
+      properties = { step_name: "welcome", step_index: 0, custom_data: [ 1, 2, 3 ] }
       event = AnalyticsEvent.create!(
         user: @user,
         event_type: AnalyticsEvent::ONBOARDING_STEP_COMPLETED,
@@ -60,7 +60,7 @@ module RailsOnboarding
       # Create test events
       AnalyticsEvent.create!(user: @user, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: 1.day.ago)
       AnalyticsEvent.create!(user: @user, event_type: AnalyticsEvent::ONBOARDING_COMPLETED, occurred_at: Time.current)
-      
+
       other_user = User.create!(email: "other@example.com")
       AnalyticsEvent.create!(user: other_user, event_type: AnalyticsEvent::ONBOARDING_STARTED, occurred_at: Time.current)
 

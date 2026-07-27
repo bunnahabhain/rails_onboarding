@@ -12,7 +12,7 @@ class AddAnalyticsToRailsOnboarding < ActiveRecord::Migration[8.0]
       # Indexes for common queries
       t.index :event_type
       t.index :occurred_at
-      t.index [:user_type, :user_id, :event_type]
+      t.index [ :user_type, :user_id, :event_type ]
       t.index :session_id
     end
   end

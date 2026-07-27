@@ -29,21 +29,21 @@ module RailsOnboarding
     end
 
     test "validates step is a hash" do
-      @config.steps = ["invalid"]
+      @config.steps = [ "invalid" ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /must be a hash/i, error.message
     end
 
     test "validates step has required name field" do
-      @config.steps = [{ title: "Test" }]
+      @config.steps = [ { title: "Test" } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /missing required :name field/i, error.message
     end
 
     test "validates step name format" do
-      @config.steps = [{ name: "invalid-name" }]
+      @config.steps = [ { name: "invalid-name" } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /invalid format/i, error.message
@@ -123,14 +123,14 @@ module RailsOnboarding
     end
 
     test "validates step title is a string if present" do
-      @config.steps = [{ name: :test, title: 123 }]
+      @config.steps = [ { name: :test, title: 123 } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /invalid :title type/i, error.message
     end
 
     test "validates step skippable is boolean if present" do
-      @config.steps = [{ name: :test, skippable: "yes" }]
+      @config.steps = [ { name: :test, skippable: "yes" } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /invalid :skippable type/i, error.message
@@ -147,7 +147,7 @@ module RailsOnboarding
 
     test "validates milestone is a hash" do
       @config.enable_milestones = true
-      @config.milestones = ["invalid"]
+      @config.milestones = [ "invalid" ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /must be a hash/i, error.message
@@ -155,7 +155,7 @@ module RailsOnboarding
 
     test "validates milestone has required key field" do
       @config.enable_milestones = true
-      @config.milestones = [{ trigger: :onboarding_completed }]
+      @config.milestones = [ { trigger: :onboarding_completed } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /missing required :key field/i, error.message
@@ -163,7 +163,7 @@ module RailsOnboarding
 
     test "validates milestone has required trigger field" do
       @config.enable_milestones = true
-      @config.milestones = [{ key: :test }]
+      @config.milestones = [ { key: :test } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /missing required :trigger field/i, error.message
@@ -182,7 +182,7 @@ module RailsOnboarding
 
     test "validates milestone key format" do
       @config.enable_milestones = true
-      @config.milestones = [{ key: "invalid-key", trigger: :custom }]
+      @config.milestones = [ { key: "invalid-key", trigger: :custom } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /invalid format/i, error.message
@@ -190,7 +190,7 @@ module RailsOnboarding
 
     test "validates milestone trigger is valid" do
       @config.enable_milestones = true
-      @config.milestones = [{ key: :test, trigger: :invalid_trigger }]
+      @config.milestones = [ { key: :test, trigger: :invalid_trigger } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /invalid trigger/i, error.message
@@ -211,7 +211,7 @@ module RailsOnboarding
 
     test "validates milestone points is an integer if present" do
       @config.enable_milestones = true
-      @config.milestones = [{ key: :test, trigger: :custom, points: "10" }]
+      @config.milestones = [ { key: :test, trigger: :custom, points: "10" } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /invalid :points type/i, error.message
@@ -219,7 +219,7 @@ module RailsOnboarding
 
     test "validates milestone points is non-negative" do
       @config.enable_milestones = true
-      @config.milestones = [{ key: :test, trigger: :custom, points: -10 }]
+      @config.milestones = [ { key: :test, trigger: :custom, points: -10 } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /negative points/i, error.message
@@ -227,7 +227,7 @@ module RailsOnboarding
 
     test "validates milestone conditions is a hash if present" do
       @config.enable_milestones = true
-      @config.milestones = [{ key: :test, trigger: :custom, conditions: "invalid" }]
+      @config.milestones = [ { key: :test, trigger: :custom, conditions: "invalid" } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /invalid :conditions type/i, error.message
@@ -235,7 +235,7 @@ module RailsOnboarding
 
     test "validates milestone step condition references valid step" do
       @config.enable_milestones = true
-      @config.steps = [{ name: :welcome }]
+      @config.steps = [ { name: :welcome } ]
       @config.milestones = [
         { key: :test, trigger: :onboarding_step_completed, conditions: { step: :nonexistent } }
       ]
@@ -421,7 +421,7 @@ module RailsOnboarding
 
     test "validates progressive_feature is a hash" do
       @config.progressive_disclosure_enabled = true
-      @config.progressive_features = ["invalid"]
+      @config.progressive_features = [ "invalid" ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /must be a hash/i, error.message
@@ -429,7 +429,7 @@ module RailsOnboarding
 
     test "validates progressive_feature has key field" do
       @config.progressive_disclosure_enabled = true
-      @config.progressive_features = [{ reveal_condition: :time_based }]
+      @config.progressive_features = [ { reveal_condition: :time_based } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /missing required :key field/i, error.message
@@ -437,7 +437,7 @@ module RailsOnboarding
 
     test "validates progressive_feature reveal_condition is valid" do
       @config.progressive_disclosure_enabled = true
-      @config.progressive_features = [{ key: :test, reveal_condition: :invalid }]
+      @config.progressive_features = [ { key: :test, reveal_condition: :invalid } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /invalid :reveal_condition/i, error.message
@@ -445,7 +445,7 @@ module RailsOnboarding
 
     test "validates time_based progressive_feature has delay" do
       @config.progressive_disclosure_enabled = true
-      @config.progressive_features = [{ key: :test, reveal_condition: :time_based }]
+      @config.progressive_features = [ { key: :test, reveal_condition: :time_based } ]
 
       error = assert_raises(ConfigurationError) { @config.validate! }
       assert_match /must have :delay/i, error.message
@@ -453,7 +453,7 @@ module RailsOnboarding
 
     test "validates step_based progressive_feature references valid step" do
       @config.progressive_disclosure_enabled = true
-      @config.steps = [{ name: :welcome }]
+      @config.steps = [ { name: :welcome } ]
       @config.progressive_features = [
         { key: :test, reveal_condition: :step_based, after_step: :nonexistent }
       ]
@@ -513,7 +513,7 @@ module RailsOnboarding
       @config.steps = []
       refute @config.valid?
 
-      @config.steps = [{ name: :welcome }]
+      @config.steps = [ { name: :welcome } ]
       assert @config.valid?
     end
   end

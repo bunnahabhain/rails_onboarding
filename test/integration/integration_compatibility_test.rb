@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
 class IntegrationCompatibilityTest < ActiveSupport::TestCase
   setup do
     @user = User.create!(
-      email: 'test@example.com',
+      email: "test@example.com",
       onboarding_completed: false,
-      onboarding_current_step: 'welcome'
+      onboarding_current_step: "welcome"
     )
   end
 
@@ -50,9 +50,9 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
     controller = MockController.new
     controller.extend(RailsOnboarding::TurboCompatibility)
 
-    data = controller.stimulus_controller_data('onboarding', { step: 'welcome' })
+    data = controller.stimulus_controller_data("onboarding", { step: "welcome" })
 
-    assert_equal 'rails-onboarding--onboarding', data[:controller]
+    assert_equal "rails-onboarding--onboarding", data[:controller]
     assert data.key?(:'rails-onboarding--onboarding-step-value')
   end
 
@@ -137,7 +137,7 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
     assert_equal false, config.turbo_morphing_enabled
     assert_equal false, config.background_jobs_enabled
     assert_equal :default, config.background_jobs_queue
-    assert_equal 'noreply@example.com', config.mailer_from
+    assert_equal "noreply@example.com", config.mailer_from
   end
 
   # Integration Tests
@@ -175,12 +175,12 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
     RailsOnboarding.configure do |config|
       config.background_jobs_enabled = true
       config.background_jobs_queue = :onboarding
-      config.mailer_from = 'support@example.com'
+      config.mailer_from = "support@example.com"
     end
 
     assert_equal true, RailsOnboarding.configuration.background_jobs_enabled
     assert_equal :onboarding, RailsOnboarding.configuration.background_jobs_queue
-    assert_equal 'support@example.com', RailsOnboarding.configuration.mailer_from
+    assert_equal "support@example.com", RailsOnboarding.configuration.mailer_from
   end
 
   private
@@ -225,11 +225,11 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
     def initialize
       @headers = {}
       @format = :html
-      @path = '/'
+      @path = "/"
     end
 
     def request_id
-      'test-request-id'
+      "test-request-id"
     end
   end
 
@@ -238,7 +238,7 @@ class IntegrationCompatibilityTest < ActiveSupport::TestCase
 
     def initialize
       @headers = {}
-      @content_type = 'text/html'
+      @content_type = "text/html"
     end
   end
 

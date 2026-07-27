@@ -380,7 +380,7 @@ module RailsOnboarding
         # Track analytics
         if defined?(RailsOnboarding::OnboardingAnalyticsJob)
           RailsOnboarding::OnboardingAnalyticsJob.perform_later(
-            'milestone_achieved',
+            "milestone_achieved",
             user_id,
             { milestone_id: milestone_id }
           )

@@ -16,7 +16,7 @@ module RailsOnboarding
 
       # Create users for different organizations
       # Check if organization_id column exists
-      has_org_column = User.column_names.include?('organization_id')
+      has_org_column = User.column_names.include?("organization_id")
 
       if has_org_column
         @user_org1 = User.create!(
@@ -91,8 +91,8 @@ module RailsOnboarding
       @user_org2.define_singleton_method(:current_organization_id) { org2_id }
       steps_org2 = @user_org2.onboarding_steps
 
-      assert_equal [:org1_welcome, :org1_setup], steps_org1.map { |s| s[:name] }
-      assert_equal [:org2_intro, :org2_tour, :org2_advanced], steps_org2.map { |s| s[:name] }
+      assert_equal [ :org1_welcome, :org1_setup ], steps_org1.map { |s| s[:name] }
+      assert_equal [ :org2_intro, :org2_tour, :org2_advanced ], steps_org2.map { |s| s[:name] }
     end
 
     test "changing one organization's config does not affect others" do
@@ -360,7 +360,7 @@ module RailsOnboarding
       # Create configurations for many organizations
       100.times do |i|
         MultiTenant.configure_for_organization(i + 100) do |config|
-          config.steps = [{ name: "step_#{i}", title: "Step #{i}" }]
+          config.steps = [ { name: "step_#{i}", title: "Step #{i}" } ]
         end
       end
 

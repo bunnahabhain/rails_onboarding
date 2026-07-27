@@ -36,7 +36,7 @@ module RailsOnboarding
     included do
       # Store revealed features as JSON
       # Expected column: revealed_features (jsonb or text)
-      serialize :revealed_features, coder: JSON unless column_names.include?('revealed_features') && columns_hash['revealed_features'].type == :jsonb
+      serialize :revealed_features, coder: JSON unless column_names.include?("revealed_features") && columns_hash["revealed_features"].type == :jsonb
 
       # Callback to check and reveal features
       after_save :check_progressive_features, if: :saved_change_to_onboarding_current_step?
@@ -74,7 +74,7 @@ module RailsOnboarding
       # Track the reveal event
       if respond_to?(:track_analytics_event)
         track_analytics_event(
-          'feature_revealed',
+          "feature_revealed",
           {
             feature_key: feature_key.to_s,
             reveal_time: Time.current

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
 module RailsOnboarding
   module Admin
@@ -8,10 +8,10 @@ module RailsOnboarding
       include Engine.routes.url_helpers
 
       def setup
-        @admin_user = User.create!(email: 'admin@example.com')
+        @admin_user = User.create!(email: "admin@example.com")
         @test_user = User.create!(
-          email: 'test@example.com',
-          onboarding_current_step: 'welcome',
+          email: "test@example.com",
+          onboarding_current_step: "welcome",
           onboarding_completed: false
         )
         sign_in @admin_user
@@ -24,7 +24,7 @@ module RailsOnboarding
 
       test "non-admin cannot list users" do
         sign_out
-        sign_in User.create!(email: 'regular@example.com')
+        sign_in User.create!(email: "regular@example.com")
 
         get admin_users_path
         assert_redirected_to "/"
@@ -64,9 +64,9 @@ module RailsOnboarding
       end
 
       test "should filter users by status" do
-        completed_user = User.create!(email: 'completed@example.com', onboarding_completed: true)
+        completed_user = User.create!(email: "completed@example.com", onboarding_completed: true)
 
-        get admin_users_path(status: 'completed')
+        get admin_users_path(status: "completed")
 
         assert_response :success
         assert_includes response.body, completed_user.email
@@ -89,7 +89,7 @@ module RailsOnboarding
 
         get admin_users_path
         assert_response :success
-        assert_select 'nav.series-nav a[aria-current="page"]', text: '1'
+        assert_select 'nav.series-nav a[aria-current="page"]', text: "1"
         assert_select 'nav.series-nav a[href*="page=2"]'
 
         first_page_ids = User.order(created_at: :desc).limit(page_size).pluck(:id)
@@ -97,7 +97,7 @@ module RailsOnboarding
 
         get admin_users_path(page: 2)
         assert_response :success
-        assert_select 'nav.series-nav a[aria-current="page"]', text: '2'
+        assert_select 'nav.series-nav a[aria-current="page"]', text: "2"
         second_page_ids.each { |id| assert_select "tbody td", text: id.to_s }
         first_page_ids.each { |id| assert_select "tbody td", text: id.to_s, count: 0 }
       end
@@ -107,7 +107,7 @@ module RailsOnboarding
           User.create!(email: "filtered#{i}@example.com", onboarding_completed: true)
         end
 
-        get admin_users_path(status: 'completed')
+        get admin_users_path(status: "completed")
 
         assert_response :success
         assert_select 'nav.series-nav a[href*="status=completed"]'
@@ -120,19 +120,19 @@ module RailsOnboarding
 
         get admin_users_path(per_page: 5)
         assert_response :success
-        assert_select 'tbody tr', 5
+        assert_select "tbody tr", 5
 
         get admin_users_path(per_page: 1_000)
         assert_response :success
-        assert_select 'tbody tr', UsersController::MAX_PER_PAGE
+        assert_select "tbody tr", UsersController::MAX_PER_PAGE
       end
 
       test "renders the empty state without pagination when no users match" do
-        get admin_users_path(search: 'nobody-matches-this')
+        get admin_users_path(search: "nobody-matches-this")
 
         assert_response :success
-        assert_select '.admin-table-empty'
-        assert_select 'nav.series-nav', count: 0
+        assert_select ".admin-table-empty"
+        assert_select "nav.series-nav", count: 0
       end
     end
   end

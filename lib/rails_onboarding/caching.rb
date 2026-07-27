@@ -149,7 +149,7 @@ module RailsOnboarding
       return false unless persisted?
 
       previous_changes.keys.any? do |attr|
-        attr.start_with?('onboarding_')
+        attr.start_with?("onboarding_")
       end
     end
 
@@ -157,7 +157,7 @@ module RailsOnboarding
     # Uses changes which contains dirty/unsaved attributes
     def has_dirty_onboarding_attributes?
       changes.keys.any? do |attr|
-        attr.start_with?('onboarding_')
+        attr.start_with?("onboarding_")
       end
     end
 
@@ -165,16 +165,16 @@ module RailsOnboarding
     def milestone_attributes_changed?
       return false unless persisted?
 
-      previous_changes.key?('milestones_achieved') ||
-        previous_changes.key?('milestone_points') ||
-        previous_changes.key?('last_milestone_at')
+      previous_changes.key?("milestones_achieved") ||
+        previous_changes.key?("milestone_points") ||
+        previous_changes.key?("last_milestone_at")
     end
 
     # Check if milestone attributes have unsaved changes (for caching bypass)
     def has_dirty_milestone_attributes?
-      changes.key?('milestones_achieved') ||
-        changes.key?('milestone_points') ||
-        changes.key?('last_milestone_at')
+      changes.key?("milestones_achieved") ||
+        changes.key?("milestone_points") ||
+        changes.key?("last_milestone_at")
     end
   end
 end

@@ -229,7 +229,7 @@ module RailsOnboarding
         content = File.read(file)
         # Remove all extensions (.rb.tt -> remove .tt then .rb)
         basename = File.basename(file)
-        basename = basename.sub(/\.rb\.tt$/, '').sub(/\.rb$/, '')
+        basename = basename.sub(/\.rb\.tt$/, "").sub(/\.rb$/, "")
 
         # Class name should be CamelCase version of file name
         expected_pattern = basename.split("_").map { |w| w.capitalize }.join

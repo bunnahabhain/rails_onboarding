@@ -6,7 +6,7 @@ module RailsOnboarding
     # Provides analytics overview and metrics visualization
     class DashboardController < BaseController
       def index
-        @date_range = params[:date_range] || '30'
+        @date_range = params[:date_range] || "30"
         @start_date = date_range_start(@date_range)
         @end_date = Time.current
 
@@ -35,7 +35,7 @@ module RailsOnboarding
 
         # Recent events
         @recent_events = RailsOnboarding::AnalyticsEvent
-          .where('created_at >= ?', @start_date)
+          .where("created_at >= ?", @start_date)
           .order(created_at: :desc)
           .limit(10)
 
@@ -82,7 +82,7 @@ module RailsOnboarding
         completed_users = user_class
           .where(onboarding_completed: true)
           .where.not(onboarding_completed_at: nil)
-          .where('onboarding_completed_at >= ?', @start_date)
+          .where("onboarding_completed_at >= ?", @start_date)
 
         return 0 if completed_users.empty?
 
@@ -97,7 +97,7 @@ module RailsOnboarding
       def recent_completions_count
         user_class
           .where(onboarding_completed: true)
-          .where('onboarding_completed_at >= ?', @start_date)
+          .where("onboarding_completed_at >= ?", @start_date)
           .count
       end
 
@@ -112,7 +112,7 @@ module RailsOnboarding
         step_events = if defined?(RailsOnboarding::AnalyticsEvent)
           RailsOnboarding::AnalyticsEvent
             .where(event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED)
-            .where('created_at >= ?', @start_date)
+            .where("created_at >= ?", @start_date)
             .to_a
         else
           []
@@ -121,7 +121,7 @@ module RailsOnboarding
         steps.each do |step|
           step_name = step[:name].to_s
           users_reached = step_events
-            .select { |e| e.properties.to_h['step_name'].to_s == step_name }
+            .select { |e| e.properties.to_h["step_name"].to_s == step_name }
             .map(&:user_id).uniq.count
 
           funnel << {
@@ -145,10 +145,10 @@ module RailsOnboarding
           date = i.days.ago.to_date
           completions = user_class
             .where(onboarding_completed: true)
-            .where('DATE(onboarding_completed_at) = ?', date)
+            .where("DATE(onboarding_completed_at) = ?", date)
             .count
 
-          trend.unshift({ date: date.strftime('%m/%d'), count: completions })
+          trend.unshift({ date: date.strftime("%m/%d"), count: completions })
         end
 
         trend
@@ -159,22 +159,22 @@ module RailsOnboarding
 
         RailsOnboarding::Milestone
           .joins("LEFT JOIN rails_onboarding_milestone_achievements ON rails_onboarding_milestone_achievements.milestone_id = rails_onboarding_milestones.id")
-          .group('rails_onboarding_milestones.id', 'rails_onboarding_milestones.name', 'rails_onboarding_milestones.title')
-          .order('COUNT(rails_onboarding_milestone_achievements.id) DESC')
+          .group("rails_onboarding_milestones.id", "rails_onboarding_milestones.name", "rails_onboarding_milestones.title")
+          .order("COUNT(rails_onboarding_milestone_achievements.id) DESC")
           .limit(5)
-          .pluck('rails_onboarding_milestones.name', 'rails_onboarding_milestones.title', 'COUNT(rails_onboarding_milestone_achievements.id)')
+          .pluck("rails_onboarding_milestones.name", "rails_onboarding_milestones.title", "COUNT(rails_onboarding_milestone_achievements.id)")
           .map { |name, title, count| { name: name, title: title, count: count } }
       end
 
       def date_range_start(range)
         case range
-        when '7'
+        when "7"
           7.days.ago
-        when '30'
+        when "30"
           30.days.ago
-        when '90'
+        when "90"
           90.days.ago
-        when 'all'
+        when "all"
           100.years.ago
         else
           30.days.ago

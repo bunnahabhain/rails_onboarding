@@ -10,7 +10,7 @@ module RailsOnboarding
       # Detect if Devise is available
       if defined?(Devise)
         # Hook into Devise's after_sign_in callback
-        after_action :redirect_to_onboarding_if_needed, only: [:create], if: -> { devise_controller? }
+        after_action :redirect_to_onboarding_if_needed, only: [ :create ], if: -> { devise_controller? }
       end
     end
 

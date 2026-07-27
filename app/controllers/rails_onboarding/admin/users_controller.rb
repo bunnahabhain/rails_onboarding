@@ -61,9 +61,9 @@ module RailsOnboarding
         user_ids = params[:user_ids] || []
 
         case action
-        when 'reset_onboarding'
+        when "reset_onboarding"
           bulk_reset_onboarding(user_ids)
-        when 'complete_onboarding'
+        when "complete_onboarding"
           bulk_complete_onboarding(user_ids)
         else
           flash[:alert] = "Invalid bulk action"
@@ -80,13 +80,13 @@ module RailsOnboarding
         # Filter by onboarding status
         if params[:status].present?
           users = case params[:status]
-          when 'completed'
+          when "completed"
             users.where(onboarding_completed: true)
-          when 'in_progress'
+          when "in_progress"
             users.where(onboarding_completed: false).where.not(onboarding_current_step: nil)
-          when 'not_started'
+          when "not_started"
             users.where(onboarding_current_step: nil, onboarding_completed: false)
-          when 'skipped'
+          when "skipped"
             users.where(onboarding_skipped: true)
           else
             users
@@ -101,7 +101,7 @@ module RailsOnboarding
         # Search by email or ID
         if params[:search].present?
           search_term = "%#{params[:search]}%"
-          users = if user_class.column_names.include?('email')
+          users = if user_class.column_names.include?("email")
             users.where("email LIKE ? OR CAST(id AS TEXT) LIKE ?", search_term, search_term)
           else
             users.where("CAST(id AS TEXT) LIKE ?", search_term)
@@ -112,12 +112,12 @@ module RailsOnboarding
         allowed_sort_columns = %w[email created_at updated_at onboarding_current_step onboarding_completed_at].freeze
         allowed_directions = %w[asc desc].freeze
 
-        sort_column = params[:sort] || 'created_at'
-        sort_direction = params[:direction] || 'desc'
+        sort_column = params[:sort] || "created_at"
+        sort_direction = params[:direction] || "desc"
 
         # Sanitize inputs
-        sort_column = allowed_sort_columns.include?(sort_column) ? sort_column : 'created_at'
-        sort_direction = allowed_directions.include?(sort_direction.downcase) ? sort_direction.downcase : 'desc'
+        sort_column = allowed_sort_columns.include?(sort_column) ? sort_column : "created_at"
+        sort_direction = allowed_directions.include?(sort_direction.downcase) ? sort_direction.downcase : "desc"
 
         users = users.order("#{user_class.table_name}.#{sort_column} #{sort_direction}")
 
@@ -159,9 +159,9 @@ module RailsOnboarding
 
         if @user.created_at
           timeline << {
-            type: 'user_created',
+            type: "user_created",
             timestamp: @user.created_at,
-            description: 'User account created'
+            description: "User account created"
           }
         end
 
@@ -179,7 +179,7 @@ module RailsOnboarding
         if @user_milestones.any?
           @user_milestones.each do |achievement|
             timeline << {
-              type: 'milestone_achieved',
+              type: "milestone_achieved",
               timestamp: achievement.achieved_at,
               description: "Achieved milestone: #{achievement.milestone.title}",
               metadata: { points: achievement.milestone.points }
@@ -194,7 +194,7 @@ module RailsOnboarding
         props = event.properties.to_h
         case event.event_type
         when RailsOnboarding::AnalyticsEvent::ONBOARDING_STARTED
-          'Started onboarding'
+          "Started onboarding"
         when RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED
           "Started step: #{props['step_name']}"
         when RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_COMPLETED
@@ -202,9 +202,9 @@ module RailsOnboarding
         when RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_SKIPPED
           "Skipped step: #{props['step_name']}"
         when RailsOnboarding::AnalyticsEvent::ONBOARDING_COMPLETED
-          'Completed onboarding'
+          "Completed onboarding"
         when RailsOnboarding::AnalyticsEvent::ONBOARDING_SKIPPED
-          'Skipped onboarding'
+          "Skipped onboarding"
         when RailsOnboarding::AnalyticsEvent::TOOLTIP_SHOWN
           "Tooltip shown: #{props['tooltip_feature']}"
         when RailsOnboarding::AnalyticsEvent::TOOLTIP_DISMISSED

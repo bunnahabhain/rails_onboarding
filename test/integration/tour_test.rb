@@ -2,12 +2,12 @@ require "test_helper"
 
 class TourTest < ActionDispatch::IntegrationTest
   test "tour controller file exists" do
-    controller_path = Rails.root.join('..', '..', 'app', 'assets', 'javascripts', 'rails_onboarding', 'tour_controller.js')
+    controller_path = Rails.root.join("..", "..", "app", "assets", "javascripts", "rails_onboarding", "tour_controller.js")
     assert File.exist?(controller_path), "Tour controller file should exist"
   end
 
   test "tour controller has proper Stimulus structure" do
-    controller_path = Rails.root.join('..', '..', 'app', 'assets', 'javascripts', 'rails_onboarding', 'tour_controller.js')
+    controller_path = Rails.root.join("..", "..", "app", "assets", "javascripts", "rails_onboarding", "tour_controller.js")
     content = File.read(controller_path)
 
     # Check for Stimulus controller definition
@@ -29,12 +29,12 @@ class TourTest < ActionDispatch::IntegrationTest
   end
 
   test "tour CSS file exists" do
-    css_path = Rails.root.join('..', '..', 'app', 'assets', 'stylesheets', 'rails_onboarding', 'tour.css')
+    css_path = Rails.root.join("..", "..", "app", "assets", "stylesheets", "rails_onboarding", "tour.css")
     assert File.exist?(css_path), "Tour CSS file should exist"
   end
 
   test "tour CSS has proper styles" do
-    css_path = Rails.root.join('..', '..', 'app', 'assets', 'stylesheets', 'rails_onboarding', 'tour.css')
+    css_path = Rails.root.join("..", "..", "app", "assets", "stylesheets", "rails_onboarding", "tour.css")
     content = File.read(css_path)
 
     # Check for essential CSS classes
@@ -46,7 +46,7 @@ class TourTest < ActionDispatch::IntegrationTest
   end
 
   test "tour CSS is included in application stylesheet" do
-    app_css_path = Rails.root.join('..', '..', 'app', 'assets', 'stylesheets', 'rails_onboarding', 'application.css')
+    app_css_path = Rails.root.join("..", "..", "app", "assets", "stylesheets", "rails_onboarding", "application.css")
     content = File.read(app_css_path)
 
     assert_match(/require.*rails_onboarding\/tour/, content, "Tour CSS should be required in application.css")

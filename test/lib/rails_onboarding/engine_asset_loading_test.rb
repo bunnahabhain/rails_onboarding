@@ -21,7 +21,7 @@ module RailsOnboarding
       skip "Sprockets detection tested in integration" unless defined?(Sprockets)
 
       pipeline = @engine.send(:detect_asset_pipeline, @app)
-      assert_includes [:sprockets, :importmap], pipeline,
+      assert_includes [ :sprockets, :importmap ], pipeline,
         "Should detect sprockets or importmap"
     end
 

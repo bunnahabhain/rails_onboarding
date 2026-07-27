@@ -38,7 +38,7 @@ module RailsOnboarding
             flash[:error] = "Template not found: #{@template_key}"
             redirect_to templates_path
           end
-          format.json { render json: { error: 'Template not found' }, status: :not_found }
+          format.json { render json: { error: "Template not found" }, status: :not_found }
         end
         return
       end
@@ -61,7 +61,7 @@ module RailsOnboarding
             flash[:error] = "Template not found: #{template_key}"
             redirect_to templates_path
           end
-          format.json { render json: { error: 'Template not found' }, status: :not_found }
+          format.json { render json: { error: "Template not found" }, status: :not_found }
         end
         return
       end
@@ -99,7 +99,7 @@ module RailsOnboarding
 
       unless template
         respond_to do |format|
-          format.json { render json: { error: 'Template not found' }, status: :not_found }
+          format.json { render json: { error: "Template not found" }, status: :not_found }
         end
         return
       end
@@ -118,7 +118,7 @@ module RailsOnboarding
     # GET /templates/compare
     # Compare multiple templates side by side
     def compare
-      template_keys = params[:templates]&.split(',') || []
+      template_keys = params[:templates]&.split(",") || []
       @templates_to_compare = {}
 
       template_keys.each do |key|
@@ -135,13 +135,13 @@ module RailsOnboarding
     # POST /templates/custom
     # Create a custom template based on current configuration
     def create_custom
-      template_name = params[:template_name] || 'Custom Template'
+      template_name = params[:template_name] || "Custom Template"
       template_key = params[:template_key]&.to_sym || :custom
 
       custom_template = {
         name: template_name,
         steps: RailsOnboarding.configuration.steps,
-        description: params[:description] || 'Custom onboarding flow',
+        description: params[:description] || "Custom onboarding flow",
         created_at: Time.current
       }
 

@@ -24,8 +24,8 @@ module RailsOnboarding
 
     def self.seed_default!
       create!(
-        name: 'Current Configuration',
-        description: 'Flow from current configuration',
+        name: "Current Configuration",
+        description: "Flow from current configuration",
         steps: RailsOnboarding.configuration.steps,
         active: true
       )

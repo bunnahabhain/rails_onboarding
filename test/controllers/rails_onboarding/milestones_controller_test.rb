@@ -43,7 +43,7 @@ module RailsOnboarding
 
     test "should get user progress" do
       @user.update(
-        milestones_achieved: [{ 'key' => 'first_login', 'achieved_at' => Time.current.iso8601 }],
+        milestones_achieved: [ { "key" => "first_login", "achieved_at" => Time.current.iso8601 } ],
         milestone_points: 100
       )
 
@@ -57,7 +57,7 @@ module RailsOnboarding
 
     test "should check milestone achievement" do
       milestone_id = "profile_completed"
-      @user.update(milestones_achieved: [{ 'key' => milestone_id, 'achieved_at' => Time.current.iso8601 }])
+      @user.update(milestones_achieved: [ { "key" => milestone_id, "achieved_at" => Time.current.iso8601 } ])
 
       get check_milestone_url(id: milestone_id), as: :json
 

@@ -199,10 +199,10 @@ module RailsOnboarding
       # Track the personalization in analytics if available
       if respond_to?(:track_analytics_event)
         track_analytics_event(
-          'personalized_flow_applied',
+          "personalized_flow_applied",
           {
             user_type: personalization_type.to_s,
-            flow_steps: personalized_steps.map { |s| s[:name] }.join(',')
+            flow_steps: personalized_steps.map { |s| s[:name] }.join(",")
           }
         )
       end

@@ -2,13 +2,13 @@ module RailsOnboarding
   class OnboardingMailer < ApplicationMailer
     include RailsOnboarding::Engine.routes.url_helpers
 
-    default from: -> { RailsOnboarding.configuration.mailer_from || 'noreply@example.com' }
+    default from: -> { RailsOnboarding.configuration.mailer_from || "noreply@example.com" }
 
     def default_url_options
       if defined?(Rails) && Rails.application
-        Rails.application.config.action_mailer.default_url_options || { host: 'localhost', port: 3000 }
+        Rails.application.config.action_mailer.default_url_options || { host: "localhost", port: 3000 }
       else
-        { host: 'localhost', port: 3000 }
+        { host: "localhost", port: 3000 }
       end
     end
 
@@ -18,7 +18,7 @@ module RailsOnboarding
 
       mail(
         to: user.email,
-        subject: I18n.t('rails_onboarding.mailer.welcome.subject', default: 'Welcome! Get Started')
+        subject: I18n.t("rails_onboarding.mailer.welcome.subject", default: "Welcome! Get Started")
       ) do |format|
         format.text
         format.html
@@ -33,7 +33,7 @@ module RailsOnboarding
 
       mail(
         to: user.email,
-        subject: I18n.t('rails_onboarding.mailer.reminder.subject', default: 'Complete Your Onboarding')
+        subject: I18n.t("rails_onboarding.mailer.reminder.subject", default: "Complete Your Onboarding")
       ) do |format|
         format.text
         format.html
@@ -47,7 +47,7 @@ module RailsOnboarding
 
       mail(
         to: user.email,
-        subject: I18n.t('rails_onboarding.mailer.completion.subject', default: 'Congratulations! Onboarding Complete')
+        subject: I18n.t("rails_onboarding.mailer.completion.subject", default: "Congratulations! Onboarding Complete")
       ) do |format|
         format.text
         format.html
@@ -62,7 +62,7 @@ module RailsOnboarding
 
       mail(
         to: user.email,
-        subject: I18n.t('rails_onboarding.mailer.step_completed.subject', default: 'Step Completed!')
+        subject: I18n.t("rails_onboarding.mailer.step_completed.subject", default: "Step Completed!")
       ) do |format|
         format.text
         format.html

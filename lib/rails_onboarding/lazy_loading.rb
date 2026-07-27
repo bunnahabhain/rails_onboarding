@@ -20,7 +20,7 @@ module RailsOnboarding
       # @return [ActiveRecord::Relation]
       def needs_onboarding
         where(onboarding_completed: false)
-          .where('created_at > ?', 1.hour.ago)
+          .where("created_at > ?", 1.hour.ago)
       end
 
       # Scope for users currently in onboarding
@@ -54,7 +54,7 @@ module RailsOnboarding
       # @param ttl [Integer] Cache TTL in seconds
       # @return [Hash] Step name => count
       def onboarding_step_counts(ttl: 300)
-        cache_key = 'rails_onboarding:step_counts'
+        cache_key = "rails_onboarding:step_counts"
         Rails.cache.fetch(cache_key, expires_in: ttl) do
           in_onboarding
             .group(:onboarding_current_step)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
 module RailsOnboarding
   module Admin
@@ -8,12 +8,12 @@ module RailsOnboarding
       include Engine.routes.url_helpers
 
       def setup
-        @admin_user = User.create!(email: 'admin@example.com')
+        @admin_user = User.create!(email: "admin@example.com")
         sign_in @admin_user
 
         @original_ab_tests = RailsOnboarding.configuration.ab_tests
         RailsOnboarding.configuration.ab_tests = {
-          onboarding_flow: { variants: %w[original simplified], weights: [50, 50], enabled: true }
+          onboarding_flow: { variants: %w[original simplified], weights: [ 50, 50 ], enabled: true }
         }
       end
 
@@ -24,35 +24,35 @@ module RailsOnboarding
       test "should list configured tests" do
         get admin_ab_tests_path
         assert_response :success
-        assert_includes response.body, 'onboarding_flow'
+        assert_includes response.body, "onboarding_flow"
       end
 
       test "should show test results" do
-        get admin_ab_test_path('onboarding_flow')
+        get admin_ab_test_path("onboarding_flow")
 
         assert_response :success
-        assert_includes response.body, 'simplified'
+        assert_includes response.body, "simplified"
       end
 
       test "unknown test redirects with an alert" do
-        get admin_ab_test_path('does_not_exist')
+        get admin_ab_test_path("does_not_exist")
         assert_redirected_to admin_ab_tests_path
       end
 
       test "should stop and start a test" do
-        post stop_admin_ab_test_path('onboarding_flow')
-        assert_redirected_to admin_ab_test_path('onboarding_flow')
+        post stop_admin_ab_test_path("onboarding_flow")
+        assert_redirected_to admin_ab_test_path("onboarding_flow")
         assert_not RailsOnboarding.configuration.ab_tests[:onboarding_flow][:enabled]
 
-        post start_admin_ab_test_path('onboarding_flow')
-        assert_redirected_to admin_ab_test_path('onboarding_flow')
+        post start_admin_ab_test_path("onboarding_flow")
+        assert_redirected_to admin_ab_test_path("onboarding_flow")
         assert RailsOnboarding.configuration.ab_tests[:onboarding_flow][:enabled]
       end
 
       test "should export results as csv" do
-        get export_admin_ab_test_path('onboarding_flow', format: :csv)
+        get export_admin_ab_test_path("onboarding_flow", format: :csv)
         assert_response :success
-        assert_includes response.body, 'Variant,Participants,Completions,Conversion Rate (%)'
+        assert_includes response.body, "Variant,Participants,Completions,Conversion Rate (%)"
       end
 
       test "should paginate tests beyond the first page" do
@@ -60,15 +60,15 @@ module RailsOnboarding
 
         get admin_ab_tests_path
         assert_response :success
-        assert_select 'nav.series-nav a[aria-current="page"]', text: '1'
-        assert_select '.admin-ab-tests-grid > *', BaseController::DEFAULT_PER_PAGE
+        assert_select 'nav.series-nav a[aria-current="page"]', text: "1"
+        assert_select ".admin-ab-tests-grid > *", BaseController::DEFAULT_PER_PAGE
 
         get admin_ab_tests_path(page: 2)
         assert_response :success
-        assert_select 'nav.series-nav a[aria-current="page"]', text: '2'
-        assert_select '.admin-ab-tests-grid > *', 3
-        assert_includes response.body, 'test_27'
-        assert_not_includes response.body, 'test_00'
+        assert_select 'nav.series-nav a[aria-current="page"]', text: "2"
+        assert_select ".admin-ab-tests-grid > *", 3
+        assert_includes response.body, "test_27"
+        assert_not_includes response.body, "test_00"
       end
 
       test "stat cards report collection totals, not the current page" do
@@ -80,9 +80,9 @@ module RailsOnboarding
 
         assert_response :success
         # Active / Inactive / Total cards, whole-collection counts on every page.
-        assert_select '.admin-stat-value', text: enabled.to_s
-        assert_select '.admin-stat-value', text: (total - enabled).to_s
-        assert_select '.admin-stat-value', text: total.to_s
+        assert_select ".admin-stat-value", text: enabled.to_s
+        assert_select ".admin-stat-value", text: (total - enabled).to_s
+        assert_select ".admin-stat-value", text: total.to_s
       end
 
       test "a page holding only inactive tests drops the Active heading" do
@@ -92,14 +92,14 @@ module RailsOnboarding
         get admin_ab_tests_path(page: 2)
 
         assert_response :success
-        assert_select '.admin-section-title', text: 'Inactive Tests'
-        assert_select '.admin-section-title', text: 'Active Tests', count: 0
+        assert_select ".admin-section-title", text: "Inactive Tests"
+        assert_select ".admin-section-title", text: "Active Tests", count: 0
       end
 
       test "renders no pagination for a single page of tests" do
         get admin_ab_tests_path
         assert_response :success
-        assert_select 'nav.series-nav', count: 0
+        assert_select "nav.series-nav", count: 0
       end
 
       private
@@ -108,11 +108,11 @@ module RailsOnboarding
         tests = (0...count).each_with_object({}) do |i, hash|
           enabled = if enabled_every
                       (i % enabled_every).zero?
-                    else
+          else
                       first_enabled && i.zero?
-                    end
+          end
           hash[:"test_#{format('%02d', i)}"] = {
-            variants: %w[a b], weights: [50, 50], enabled: enabled
+            variants: %w[a b], weights: [ 50, 50 ], enabled: enabled
           }
         end
         RailsOnboarding.configuration.ab_tests = tests

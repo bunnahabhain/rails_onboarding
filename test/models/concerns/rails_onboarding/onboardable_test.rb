@@ -254,7 +254,7 @@ module RailsOnboarding
     end
 
     test "milestone_achieved? returns true for achieved milestone" do
-      @user.update(milestones_achieved: [{ "key" => "completed_milestone", "achieved_at" => Time.current.iso8601 }])
+      @user.update(milestones_achieved: [ { "key" => "completed_milestone", "achieved_at" => Time.current.iso8601 } ])
 
       assert @user.milestone_achieved?("completed_milestone")
     end

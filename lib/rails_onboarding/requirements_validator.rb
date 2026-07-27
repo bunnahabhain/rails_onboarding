@@ -48,7 +48,7 @@ module RailsOnboarding
       end
 
       def validate_rails_version(results)
-        required_version = Gem::Version.new('7.0.0')
+        required_version = Gem::Version.new("7.0.0")
         current_version = Gem::Version.new(Rails.version)
 
         if current_version < required_version
@@ -61,7 +61,7 @@ module RailsOnboarding
       end
 
       def validate_ruby_version(results)
-        required_version = Gem::Version.new('3.0.0')
+        required_version = Gem::Version.new("3.0.0")
         current_version = Gem::Version.new(RUBY_VERSION)
 
         if current_version < required_version
@@ -157,17 +157,17 @@ module RailsOnboarding
           return unless user_class.respond_to?(:column_names)
 
           required_columns = {
-            'onboarding_completed' => :boolean,
-            'onboarding_current_step' => :string,
-            'onboarding_skipped' => :boolean
+            "onboarding_completed" => :boolean,
+            "onboarding_current_step" => :string,
+            "onboarding_skipped" => :boolean
           }
 
           optional_columns = {
-            'onboarding_completed_at' => :datetime,
-            'feature_tooltips_shown' => [:jsonb, :text],
-            'milestones_achieved' => [:text, :jsonb],
-            'milestone_points' => :integer,
-            'last_milestone_at' => :datetime
+            "onboarding_completed_at" => :datetime,
+            "feature_tooltips_shown" => [ :jsonb, :text ],
+            "milestones_achieved" => [ :text, :jsonb ],
+            "milestone_points" => :integer,
+            "last_milestone_at" => :datetime
           }
 
           # Check required columns
@@ -209,7 +209,7 @@ module RailsOnboarding
         if defined?(Rails.application)
           routes = Rails.application.routes.routes.map(&:name).compact
 
-          if routes.include?('rails_onboarding')
+          if routes.include?("rails_onboarding")
             results[:info] << "Engine mounted in routes ✓"
           else
             results[:errors] << "RailsOnboarding engine not mounted in routes. Add: mount RailsOnboarding::Engine => '/onboarding'"
@@ -222,13 +222,13 @@ module RailsOnboarding
       def validate_optional_dependencies(results)
         # Check for optional gems
         optional_gems = {
-          'ActiveJob' => -> { defined?(::ActiveJob::Base) },
-          'ActionMailer' => -> { defined?(::ActionMailer::Base) },
-          'Devise' => -> { defined?(Devise) },
-          'Turbo' => -> { defined?(Turbo) },
-          'Stimulus' => -> { defined?(Stimulus) },
-          'Noticed' => -> { defined?(Noticed) },
-          'ActiveModel::Serializers' => -> { defined?(ActiveModel::Serializer) }
+          "ActiveJob" => -> { defined?(::ActiveJob::Base) },
+          "ActionMailer" => -> { defined?(::ActionMailer::Base) },
+          "Devise" => -> { defined?(Devise) },
+          "Turbo" => -> { defined?(Turbo) },
+          "Stimulus" => -> { defined?(Stimulus) },
+          "Noticed" => -> { defined?(Noticed) },
+          "ActiveModel::Serializers" => -> { defined?(ActiveModel::Serializer) }
         }
 
         optional_gems.each do |gem_name, check|

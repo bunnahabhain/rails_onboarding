@@ -191,12 +191,12 @@ module RailsOnboarding
 
     # Disable Turbo for specific links/forms
     def disable_turbo
-      { 'data-turbo': 'false' }
+      { 'data-turbo': "false" }
     end
 
     # Enable Turbo permanent elements
     def turbo_permanent
-      { 'data-turbo-permanent': 'true' }
+      { 'data-turbo-permanent': "true" }
     end
 
     private
