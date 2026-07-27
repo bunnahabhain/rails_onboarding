@@ -7,23 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+## [0.3.0] - 2026-07-27
 
-- **The "Export CSV" button on admin User Management did nothing.** It was
-  rendered as `link_to "Export CSV", "#"` - a placeholder that had never been
-  wired up. There was no `export` route, no controller action, and no CSV
-  generation behind it, so clicking it just jumped to the top of the page. Added
-  the route (`GET /admin/users/export`), the action, and the export itself.
-  The button now carries the filters in effect (`search`, `status`, `step`,
-  `sort`, `direction`) through to the export, so the file matches the table on
-  screen; `page`/`per_page` are ignored, since the export covers every matching
-  user rather than the page being viewed. Columns are ID, Email (omitted when the
-  user model has no `email` column), Status, Current Step, Progress (%),
-  Completed At, Created At, and Last Activity, with timestamps in ISO 8601.
-  Unlike the A/B test export this action doesn't use `respond_to`: CSV is its
-  only representation, and a bare `/admin/users/export` would otherwise raise
-  `UnknownFormat` and get turned into a dashboard redirect by the admin error
-  handler.
+Minor rather than patch: pagy becomes a runtime dependency of the engine, so
+this version pulls a new gem into every host application.
+
+### Added
+
+- **Pagination on the admin user list, backed by [pagy](https://github.com/ddnexus/pagy)**
+  (now a runtime dependency, `~> 43.6`). The users index renders a page series
+  nav plus a "Displaying users 1-25 of 38 in total" summary, styled to the
+  existing admin theme. Page links carry the active search, status, and sort
+  parameters, so paging no longer drops a filter. The pre-existing `?per_page=`
+  parameter still works and is now capped at `MAX_PER_PAGE` (100) so a crafted
+  URL can't request the whole table in one query.
+- **Pagination on the admin Flows and A/B Tests screens.** All three index
+  screens now go through one `Admin::BaseController#paginate` helper and share
+  the `page`/`per_page` parameters and the `DEFAULT_PER_PAGE` / `MAX_PER_PAGE`
+  constants. On Flows, the "Active Flow" banner is looked up independently of the
+  page so it still shows when the active flow is on another page. A/B tests are
+  config-defined rather than stored, so that list rarely reaches a second page;
+  because the screen renders Active and Inactive sections off one collection, the
+  combined list is paginated (active first) and the current page split back into
+  the two sections, with the stat cards continuing to report whole-collection
+  totals.
 
 ### Fixed
 
@@ -34,28 +41,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ActiveRecord::Relation` never responds to `total_pages`, so the guard was
   always false and the page controls were silently skipped. Every user past the
   first page was unreachable through the UI.
+- **The "Export CSV" button on admin User Management did nothing.** It was
+  rendered as `link_to "Export CSV", "#"` - a placeholder that had never been
+  wired up. There was no `export` route, no controller action, and no CSV
+  generation behind it, so clicking it just jumped to the top of the page. Added
+  the route (`GET /admin/users/export`), the action, and the export itself. The
+  button now carries the filters in effect (`search`, `status`, `step`, `sort`,
+  `direction`) through to the export, so the file matches the table on screen;
+  `page`/`per_page` are ignored, since the export covers every matching user
+  rather than the page being viewed. Columns are ID, Email (omitted when the user
+  model has no `email` column), Status, Current Step, Progress (%), Completed At,
+  Created At, and Last Activity, with timestamps in ISO 8601. Unlike the A/B test
+  export this action doesn't use `respond_to`: CSV is its only representation,
+  and a bare `/admin/users/export` would otherwise raise `UnknownFormat` and get
+  turned into a dashboard redirect by the admin error handler.
+- **CI had not run successfully in months, on any branch.** Three independent
+  breaks were stacked: `Gemfile.lock` listed only `arm64-darwin` while the
+  workflow runs on `x86_64-linux`, so bundler refused to install; both jobs
+  pinned `ruby-3.4.4`, below the gemspec's own `required_ruby_version` floor of
+  `>= 3.4.9`, while `.ruby-version` said `4.0.5`; and the test step ran
+  `bin/rails db:test:prepare test`, which this engine's `bin/rails` cannot
+  parse - it loads `rails/engine/commands`, whose router hands the whole argv to
+  rake once the first argument matches a task, leaving no `test` task to land on.
+  Each break only became visible once the one before it was fixed.
+- **No merge to `master` ever produced a CI build.** The workflow triggered
+  post-merge runs on `push: branches: [main]`, naming a branch this repository
+  has never had. The gemspec's `changelog_uri` was wrong the same way and then
+  some, pointing at `/blob/main/CHANGELOG.md` when the file lives at
+  `docs/CHANGELOG.md` - a 404 in either half, and the "Changelog" link on the
+  eventual RubyGems listing.
 
-### Added
+### Changed
 
-- **Pagination on the admin user list, backed by [pagy](https://github.com/ddnexus/pagy)**
-  (now a runtime dependency, `~> 43.6`). `RailsOnboarding::Admin::BaseController`
-  includes `Pagy::Method`, so the other admin index screens can paginate the same
-  way. The users index renders a page series nav plus a "Displaying users 1-25 of
-  38 in total" summary, styled to the existing admin theme. Page links carry the
-  active search, status, and sort parameters, so paging no longer drops a filter.
-  The pre-existing `?per_page=` parameter still works and is now capped at
-  `MAX_PER_PAGE` (100) so a crafted URL can't request the whole table in one
-  query.
-- **Pagination on the admin Flows and A/B Tests screens.** Both went through the
-  same `Admin::BaseController#paginate` helper that now backs the users screen,
-  so all three share the `page`/`per_page` parameters and the `DEFAULT_PER_PAGE`
-  / `MAX_PER_PAGE` constants. On Flows, the "Active Flow" banner is looked up
-  independently of the page so it still shows when the active flow is on another
-  page. A/B tests are config-defined rather than stored, so that list rarely
-  reaches a second page; because the screen renders Active and Inactive sections
-  off one collection, the combined list is paginated (active first) and the
-  current page split back into the two sections, with the stat cards continuing
-  to report whole-collection totals.
+- **Rubocop is clean across the project.** With CI running again for the first
+  time in months, the lint job surfaced a backlog of 840 offences that had never
+  been enforced. 773 were fixed by `bin/rubocop -a` (safe autocorrect only,
+  no `-A`), overwhelmingly `Style/StringLiterals` and
+  `Layout/SpaceInsideArrayLiteralBrackets`. The remaining 16 were false
+  positives: generator templates under `lib/generators/**/templates/` are ERB,
+  not Ruby, and are now excluded along with `test/dummy/db/schema.rb` and
+  `coverage/`.
 
 ## [0.2.8] - 2026-07-26
 
