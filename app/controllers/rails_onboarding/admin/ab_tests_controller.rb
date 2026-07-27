@@ -13,6 +13,17 @@ module RailsOnboarding
         @ab_tests = ab_tests_collection
         @active_tests = @ab_tests.select { |t| t[:enabled] }
         @inactive_tests = @ab_tests.reject { |t| t[:enabled] }
+
+        # The screen renders two lists off one collection, so paginate the
+        # concatenation - active first, matching the order the sections appear in -
+        # and split the current page back out. Paginating the two lists separately
+        # would need two page parameters and two navs.
+        #
+        # @active_tests/@inactive_tests stay whole so the stat cards keep reporting
+        # collection totals rather than per-page counts.
+        @pagy, page_of_tests = paginate(@active_tests + @inactive_tests)
+        @page_active_tests = page_of_tests.select { |t| t[:enabled] }
+        @page_inactive_tests = page_of_tests.reject { |t| t[:enabled] }
       end
 
       def show

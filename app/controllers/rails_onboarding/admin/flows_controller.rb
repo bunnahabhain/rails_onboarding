@@ -8,7 +8,9 @@ module RailsOnboarding
       before_action :set_flow, only: [:show, :edit, :update, :destroy, :duplicate, :activate, :preview]
 
       def index
-        @flows = flows_collection
+        @pagy, @flows = paginate(flows_collection)
+        # Looked up independently of the page: the active flow is called out at the
+        # top of the screen whether or not it falls on the page being viewed.
         @active_flow = RailsOnboarding::Flow.active.first
         @templates = available_templates
       end

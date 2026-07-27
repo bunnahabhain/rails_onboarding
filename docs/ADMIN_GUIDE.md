@@ -467,7 +467,16 @@ Returns the analytics dashboard with:
 - `sort`: Column to sort by
 - `direction`: `asc` or `desc`
 - `page`: Page number
-- `per_page`: Results per page (default: 25)
+- `per_page`: Results per page (default: 25, capped at 100)
+
+Pagination is provided by [pagy](https://github.com/ddnexus/pagy), a runtime
+dependency of the engine. Page links preserve the `search`, `status`, `sort`,
+and `direction` parameters that are in effect.
+
+All three admin index screens (users, flows, A/B tests) paginate through the same
+`Admin::BaseController#paginate` helper, so they share the `page`/`per_page`
+parameters and the `DEFAULT_PER_PAGE` (25) / `MAX_PER_PAGE` (100) constants
+defined on `Admin::BaseController`.
 
 #### FlowsController
 
@@ -481,6 +490,13 @@ Returns the analytics dashboard with:
 - `POST /onboarding/admin/flows/:id/duplicate` - Duplicate flow
 - `GET /onboarding/admin/flows/:id/preview` - Preview flow
 
+**Query Parameters** (index):
+- `page`: Page number
+- `per_page`: Results per page (default: 25, capped at 100)
+
+The "Active Flow" banner at the top of the index is looked up independently of
+the current page, so it shows even when the active flow sits on another page.
+
 #### AbTestsController
 
 **Routes**:
@@ -493,6 +509,17 @@ Returns the analytics dashboard with:
 - `POST /onboarding/admin/ab_tests/:id/stop` - Stop test
 - `POST /onboarding/admin/ab_tests/:id/declare_winner` - Declare winner
 - `GET /onboarding/admin/ab_tests/:id/export` - Export results
+
+**Query Parameters** (index):
+- `page`: Page number
+- `per_page`: Results per page (default: 25, capped at 100)
+
+A/B tests are defined in `config.ab_tests`, not stored in the database, so this
+list only grows when a developer edits the initializer - in practice it rarely
+reaches a second page. The index renders two sections off one collection, so the
+combined list is paginated (active tests first) and the current page is split back
+into the Active and Inactive sections; a page holding only inactive tests renders
+just that heading. The stat cards always report whole-collection totals.
 
 ---
 

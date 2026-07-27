@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Admin User Management showed only the first 25 users with no way to reach
+  the rest.** The controller applied a `limit`/`offset` by hand, but the view's
+  pagination block was guarded on `@users.respond_to?(:total_pages)` - a
+  Kaminari-ism left over from before any pagination gem was installed. A plain
+  `ActiveRecord::Relation` never responds to `total_pages`, so the guard was
+  always false and the page controls were silently skipped. Every user past the
+  first page was unreachable through the UI.
+
+### Added
+
+- **Pagination on the admin user list, backed by [pagy](https://github.com/ddnexus/pagy)**
+  (now a runtime dependency, `~> 43.6`). `RailsOnboarding::Admin::BaseController`
+  includes `Pagy::Method`, so the other admin index screens can paginate the same
+  way. The users index renders a page series nav plus a "Displaying users 1-25 of
+  38 in total" summary, styled to the existing admin theme. Page links carry the
+  active search, status, and sort parameters, so paging no longer drops a filter.
+  The pre-existing `?per_page=` parameter still works and is now capped at
+  `MAX_PER_PAGE` (100) so a crafted URL can't request the whole table in one
+  query.
+- **Pagination on the admin Flows and A/B Tests screens.** Both went through the
+  same `Admin::BaseController#paginate` helper that now backs the users screen,
+  so all three share the `page`/`per_page` parameters and the `DEFAULT_PER_PAGE`
+  / `MAX_PER_PAGE` constants. On Flows, the "Active Flow" banner is looked up
+  independently of the page so it still shows when the active flow is on another
+  page. A/B tests are config-defined rather than stored, so that list rarely
+  reaches a second page; because the screen renders Active and Inactive sections
+  off one collection, the combined list is paginated (active first) and the
+  current page split back into the two sections, with the stat cards continuing
+  to report whole-collection totals.
+
 ## [0.2.8] - 2026-07-26
 
 ### Fixed

@@ -6,9 +6,7 @@ module RailsOnboarding
     # Manage and view user onboarding progress
     class UsersController < BaseController
       def index
-        page = [params[:page].to_i, 1].max
-        per_page = [(params[:per_page] || 25).to_i, 1].max
-        @users = filtered_users.limit(per_page).offset((page - 1) * per_page)
+        @pagy, @users = paginate(filtered_users)
         @stats = calculate_stats
       end
 
