@@ -14,7 +14,12 @@ Gem::Specification.new do |spec|
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = spec.homepage
+  # Pinned to the release tag rather than repeating the homepage: RubyGems warns
+  # when two metadata keys carry the same URI, and "the source for this exact
+  # version" is more use to someone reading the listing than a second link to the
+  # repository root. Relies on the release flow tagging v<VERSION> - see
+  # docs/CHANGELOG.md for the versions that have shipped.
+  spec.metadata["source_code_uri"] = "#{spec.homepage}/tree/v#{spec.version}"
   spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/master/docs/CHANGELOG.md"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
