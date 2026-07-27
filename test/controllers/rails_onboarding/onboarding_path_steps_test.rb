@@ -144,6 +144,42 @@ module RailsOnboarding
       assert_equal "explore", @user.reload.onboarding_current_step
     end
 
+    test "an active DB flow keeps a path step working even though JSON dropped its Proc" do
+      skip "Flow table not available" unless RailsOnboarding::Flow.table_exists?
+
+      # Use a Proc path (like the real host-app configs do), so JSON serializing
+      # the flow drops it entirely - the exact case that rendered the "not yet
+      # configured" fallback instead of redirecting to the host page.
+      RailsOnboarding.configuration.steps[1][:path] = -> { main_app.new_profile_path }
+      RailsOnboarding.configuration.clear_cache!
+
+      # Persisting the current config as an active flow is exactly what the
+      # admin Flow Editor's seed does. JSON serialization can't hold the
+      # :path/:complete_if Procs, which used to leave the profile step with no
+      # path (rendering the fallback) and no completion criteria - the bug this
+      # guards against.
+      flow = RailsOnboarding::Flow.seed_default!
+      RailsOnboarding.configuration.clear_cache!
+
+      # The persisted step really did lose its Proc on the way to the database.
+      persisted_profile = flow.reload.steps.find { |step| step[:name].to_s == "profile" }
+      assert_not_instance_of Proc, persisted_profile[:path],
+        "precondition: JSON serialization should have dropped the path Proc"
+
+      # ...but the runtime config re-hydrates it from code, so show still
+      # redirects to the host-app page instead of rendering the fallback.
+      get onboarding_url
+      assert_redirected_to "/profile/new"
+
+      # complete_if is re-hydrated too, so a satisfied step still auto-advances.
+      OnboardingPathStepsTest.satisfied_steps = [ :profile ]
+      get onboarding_url
+      assert_response :success
+      assert_equal "explore", @user.reload.onboarding_current_step
+    ensure
+      RailsOnboarding::Flow.delete_all if RailsOnboarding::Flow.table_exists?
+    end
+
     test "advance_onboarding! is a no-op when onboarding is already completed" do
       @user.update!(onboarding_completed: true, onboarding_completed_at: Time.current)
 

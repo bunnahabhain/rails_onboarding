@@ -11,7 +11,10 @@ module RailsOnboarding
       # instead of caching a value that could go stale the moment another
       # process (or another admin) activates a different flow.
       def steps
-        active_flow_steps || tenant_override(:steps, @steps)
+        flow_steps = active_flow_steps
+        return hydrate_code_options(flow_steps) if flow_steps
+
+        tenant_override(:steps, @steps)
       end
 
       # Override setter to clear cache when configuration changes
@@ -53,6 +56,33 @@ module RailsOnboarding
         RailsOnboarding::Flow.active.first&.steps
       rescue StandardError
         nil
+      end
+
+      # A flow persisted by the admin Flow Editor is stored as JSON, so any
+      # Proc-valued step option (:path, :complete_if, or a custom callable) was
+      # silently dropped on write - JSON can't serialize a Proc. Merge those
+      # code-only options back in from the statically-configured step of the
+      # same name, so activating a flow never disables a path-based step or its
+      # completion criteria. Presentation and ordering still come entirely from
+      # the flow; only behavior that can only live in code is re-hydrated.
+      def hydrate_code_options(flow_steps)
+        config_by_name = Array(@steps).each_with_object({}) do |step, index|
+          index[step[:name].to_sym] = step if step.is_a?(Hash) && step[:name]
+        end
+        return Array(flow_steps) if config_by_name.empty?
+
+        Array(flow_steps).map do |flow_step|
+          name = flow_step[:name] if flow_step.respond_to?(:[])
+          config_step = name && config_by_name[name.to_sym]
+          next flow_step unless config_step
+
+          code_options = config_step.select { |_key, value| value.is_a?(Proc) }
+          next flow_step if code_options.empty?
+
+          hydrated = flow_step.dup
+          code_options.each { |key, value| hydrated[key] = value }
+          hydrated
+        end
       end
 
       def initialize_steps
