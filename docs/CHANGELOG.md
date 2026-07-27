@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-07-26
+
+### Fixed
+
+- **Activating a saved flow silently broke path-based steps.** A flow
+  persisted by the admin Flow Editor is stored as JSON, and JSON can't hold a
+  Proc, so any `path:` or `complete_if:` option was dropped when the flow was
+  written. Once such a flow was active (`Flow.seed_default!` marks the
+  seeded-from-config flow active), `Configuration#steps` returned the
+  proc-less flow steps: a path-based step lost its `:path` and rendered the
+  "This step is not yet fully configured" fallback instead of redirecting to
+  its host-app page, and lost its `:complete_if` so it could never
+  auto-advance. `Configuration#steps` now re-hydrates the code-only,
+  Proc-valued options from the statically-configured step of the same name
+  when an active flow is used - the flow still owns presentation and ordering,
+  but behavior that can only live in code is restored. Added an end-to-end
+  regression test that seeds an active flow from a config whose profile step
+  has a Proc `path`/`complete_if` and asserts the step still redirects and
+  auto-advances.
+
 ## [0.2.7] - 2026-07-26
 
 ### Fixed

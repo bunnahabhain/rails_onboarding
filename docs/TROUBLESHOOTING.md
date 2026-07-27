@@ -404,6 +404,41 @@ def complete_step
 end
 ```
 
+### Problem: A path-based step shows "This step is not yet fully configured"
+
+**Symptoms:**
+A step that normally redirects to a page in your app (configured with `path:`)
+instead renders the generic fallback template ("This step is not yet fully
+configured. Please contact support..."), and/or a step with a `complete_if:`
+never auto-advances. Often appears right after you create/activate a flow in
+the admin Flow Editor.
+
+**Cause:**
+A saved flow is stored as JSON, and JSON cannot serialize a Proc. When a flow
+is written to the database, any `path:` or `complete_if:` option that is a Proc
+(or the symbol/lambda form of `path:`) is lost. While that flow is *active*, it
+overrides your `config.steps`, so the step arrives at runtime with no `:path`
+(hence the fallback render) and no `:complete_if` (hence no auto-advance).
+
+**Solution:**
+
+As of the fix in this release, `Configuration#steps` re-hydrates Proc-valued
+options from the statically-configured step of the same name, so an active flow
+no longer disables path-based steps - just make sure the step's `name` in the
+flow still matches the `name` in your `config.steps`. To confirm what the active
+flow resolves to:
+
+```ruby
+rails console
+RailsOnboarding.configuration.steps.map { |s| [s[:name], s[:path], s[:complete_if]] }
+# The profile/create-wish style steps should show their Proc/path again.
+RailsOnboarding::Flow.active.first  # nil means config.steps is used as-is
+```
+
+If you are on an older version and can't upgrade, deactivate the flow
+(`RailsOnboarding::Flow.update_all(active: false)`) to fall back to
+`config.steps`, which keeps its Procs.
+
 ### Problem: Skip button not working
 
 **Symptoms:**
