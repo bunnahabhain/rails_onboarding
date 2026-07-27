@@ -72,7 +72,66 @@ module RailsOnboarding
         redirect_to admin_users_path
       end
 
+      # Exports every user matching the current filters, not just the page being
+      # viewed - the button sits under the filter form, so "export what I'm
+      # looking at" is the expectation. Deliberately unpaginated.
+      # CSV is the only representation, so this deliberately doesn't respond_to:
+      # a bare /admin/users/export would otherwise raise UnknownFormat, which the
+      # admin error handler turns into a dashboard redirect with an alert.
+      def export
+        send_data generate_users_csv,
+          filename: "onboarding_users_#{Date.current}.csv",
+          type: "text/csv"
+      end
+
       private
+
+      def generate_users_csv
+        require "csv"
+
+        has_email = user_class.column_names.include?("email")
+
+        CSV.generate do |csv|
+          csv << csv_headers(has_email)
+          # Iterated in the admin's chosen sort order, so no find_each here: it
+          # would override the ORDER BY with a primary-key scan and silently
+          # discard the sort the export was requested under.
+          filtered_users.each { |user| csv << csv_row(user, has_email) }
+        end
+      end
+
+      def csv_headers(has_email)
+        headers = [ "ID" ]
+        headers << "Email" if has_email
+        headers + [ "Status", "Current Step", "Progress (%)", "Completed At", "Created At", "Last Activity" ]
+      end
+
+      def csv_row(user, has_email)
+        row = [ user.id ]
+        row << user.email if has_email
+        row + [
+          onboarding_status_label(user),
+          user.onboarding_current_step,
+          user.respond_to?(:onboarding_progress_percentage) ? user.onboarding_progress_percentage : nil,
+          user.onboarding_completed_at&.iso8601,
+          user.created_at&.iso8601,
+          user.updated_at&.iso8601
+        ]
+      end
+
+      # Mirrors the badge shown in the index table, including its precedence:
+      # completed wins over skipped, which wins over in-progress.
+      def onboarding_status_label(user)
+        if user.onboarding_completed
+          "Completed"
+        elsif user.onboarding_skipped
+          "Skipped"
+        elsif user.onboarding_current_step
+          "In Progress"
+        else
+          "Not Started"
+        end
+      end
 
       def filtered_users
         users = user_class.all

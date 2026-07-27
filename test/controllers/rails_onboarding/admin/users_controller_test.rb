@@ -127,6 +127,75 @@ module RailsOnboarding
         assert_select "tbody tr", UsersController::MAX_PER_PAGE
       end
 
+      test "should export users as csv" do
+        get export_admin_users_path(format: :csv)
+
+        assert_response :success
+        assert_equal "text/csv", response.media_type
+        assert_match(/attachment/, response.headers["Content-Disposition"])
+        assert_match(/onboarding_users_#{Date.current}\.csv/, response.headers["Content-Disposition"])
+
+        rows = CSV.parse(response.body, headers: true)
+        assert_equal %w[ID Email Status], rows.headers.first(3)
+        assert_includes rows.map { |r| r["Email"] }, @test_user.email
+        assert_equal "In Progress", rows.find { |r| r["Email"] == @test_user.email }["Status"]
+      end
+
+      test "csv export works without an explicit format" do
+        get export_admin_users_path
+
+        assert_response :success
+        assert_equal "text/csv", response.media_type
+      end
+
+      test "csv export covers every match, not just the first page" do
+        page_size = BaseController::DEFAULT_PER_PAGE
+        (page_size + 5 - User.count).times { |i| User.create!(email: "export#{i}@example.com") }
+
+        get export_admin_users_path(format: :csv)
+
+        assert_response :success
+        assert_equal User.count, CSV.parse(response.body, headers: true).size
+      end
+
+      test "csv export honours the active filters" do
+        completed = User.create!(email: "done@example.com", onboarding_completed: true)
+
+        get export_admin_users_path(format: :csv, status: "completed")
+
+        assert_response :success
+        emails = CSV.parse(response.body, headers: true).map { |r| r["Email"] }
+        assert_includes emails, completed.email
+        assert_not_includes emails, @test_user.email
+      end
+
+      test "csv export reports each onboarding status" do
+        User.create!(email: "done@example.com", onboarding_completed: true)
+        User.create!(email: "skipped@example.com", onboarding_skipped: true)
+        User.create!(email: "fresh@example.com")
+
+        get export_admin_users_path(format: :csv)
+
+        rows = CSV.parse(response.body, headers: true).to_h { |r| [ r["Email"], r["Status"] ] }
+        assert_equal "Completed", rows["done@example.com"]
+        assert_equal "Skipped", rows["skipped@example.com"]
+        assert_equal "Not Started", rows["fresh@example.com"]
+        assert_equal "In Progress", rows[@test_user.email]
+      end
+
+      test "the export link carries the filters currently in effect" do
+        get admin_users_path(status: "completed", search: "example")
+
+        assert_response :success
+        assert_select "a[href*='users/export.csv']" do |links|
+          href = links.first["href"]
+          assert_includes href, "status=completed"
+          assert_includes href, "search=example"
+          # Paging is not a property of the export.
+          assert_not_includes href, "page="
+        end
+      end
+
       test "renders the empty state without pagination when no users match" do
         get admin_users_path(search: "nobody-matches-this")
 

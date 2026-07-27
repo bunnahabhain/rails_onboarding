@@ -52,6 +52,7 @@ RailsOnboarding::Engine.routes.draw do
       end
       collection do
         post :bulk_action
+        get :export
       end
     end
 

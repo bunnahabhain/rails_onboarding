@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The "Export CSV" button on admin User Management did nothing.** It was
+  rendered as `link_to "Export CSV", "#"` - a placeholder that had never been
+  wired up. There was no `export` route, no controller action, and no CSV
+  generation behind it, so clicking it just jumped to the top of the page. Added
+  the route (`GET /admin/users/export`), the action, and the export itself.
+  The button now carries the filters in effect (`search`, `status`, `step`,
+  `sort`, `direction`) through to the export, so the file matches the table on
+  screen; `page`/`per_page` are ignored, since the export covers every matching
+  user rather than the page being viewed. Columns are ID, Email (omitted when the
+  user model has no `email` column), Status, Current Step, Progress (%),
+  Completed At, Created At, and Last Activity, with timestamps in ISO 8601.
+  Unlike the A/B test export this action doesn't use `respond_to`: CSV is its
+  only representation, and a bare `/admin/users/export` would otherwise raise
+  `UnknownFormat` and get turned into a dashboard redirect by the admin error
+  handler.
+
+### Fixed
+
 - **Admin User Management showed only the first 25 users with no way to reach
   the rest.** The controller applied a `limit`/`offset` by hand, but the view's
   pagination block was guarded on `@users.respond_to?(:total_pages)` - a
