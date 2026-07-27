@@ -41,7 +41,8 @@ module RailsOnboarding
                   :custom_js_path,
                   :welcome_heading,
                   :welcome_subheading,
-                  :welcome_features
+                  :welcome_features,
+                  :admin_user_search
 
     def initialize
       @user_class_name = "User"
@@ -55,6 +56,14 @@ module RailsOnboarding
         { icon: "📝", text: "Create your first item" },
         { icon: "🔍", text: "Explore key features" }
       ]
+
+      # Optional override for the admin User Management search box. The
+      # built-in search is plain SQL, which can't see through an encrypted
+      # email column - a host app that encrypts email and still wants partial
+      # matching has to supply the strategy itself. Receives the already
+      # status/step-filtered scope and the raw term, and must return a
+      # relation (not an array) so sorting and pagination still apply.
+      @admin_user_search = nil
 
       initialize_steps
       initialize_milestones
