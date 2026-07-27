@@ -243,7 +243,7 @@ module RailsOnboarding
           next unless line =~ /add_column\s+\S+,\s*:\w+,\s*:(text|blob|json)\b/
           next unless line.include?("default:")
 
-          surrounding = lines[[index - 15, 0].max..index].join
+          surrounding = lines[[ index - 15, 0 ].max..index].join
           guarded = surrounding.match?(/mysql/i)
 
           assert guarded,

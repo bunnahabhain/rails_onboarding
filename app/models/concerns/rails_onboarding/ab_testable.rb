@@ -26,7 +26,7 @@ module RailsOnboarding
     included do
       # Store A/B test assignments as JSON
       # Expected column: ab_test_assignments (jsonb or text)
-      serialize :ab_test_assignments, coder: JSON unless column_names.include?('ab_test_assignments') && columns_hash['ab_test_assignments'].type == :jsonb
+      serialize :ab_test_assignments, coder: JSON unless column_names.include?("ab_test_assignments") && columns_hash["ab_test_assignments"].type == :jsonb
 
       # Callbacks
       after_initialize :assign_ab_test_variants, if: :new_record?
@@ -95,7 +95,7 @@ module RailsOnboarding
       # Track using analytics system if available
       if respond_to?(:track_analytics_event)
         track_analytics_event(
-          'ab_test_conversion',
+          "ab_test_conversion",
           {
             test_name: test_name.to_s,
             variant: variant,

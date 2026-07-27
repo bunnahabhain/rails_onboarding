@@ -48,7 +48,7 @@ module RailsOnboarding
       end
 
       migrations_path = File.join(destination_root, "db/migrate")
-      context = ActiveRecord::MigrationContext.new([migrations_path])
+      context = ActiveRecord::MigrationContext.new([ migrations_path ])
 
       assert_nothing_raised { context.migrate }
       assert_equal [], context.open.pending_migrations, "all generated migrations should have applied"

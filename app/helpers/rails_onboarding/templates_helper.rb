@@ -75,10 +75,10 @@ module RailsOnboarding
       templates = available_templates
       current_template = options[:current] || detect_current_template
 
-      content_tag :div, class: 'template-selector' do
-        concat(content_tag(:h3, options[:title] || 'Choose a Template'))
+      content_tag :div, class: "template-selector" do
+        concat(content_tag(:h3, options[:title] || "Choose a Template"))
 
-        concat(content_tag(:div, class: 'template-options') do
+        concat(content_tag(:div, class: "template-options") do
           templates.each do |key, template|
             concat(template_option(key, template, key == current_template))
           end
@@ -94,13 +94,13 @@ module RailsOnboarding
     # @return [String] HTML for template option
     def template_option(key, template, selected = false)
       content_tag :div, class: "template-option #{selected ? 'selected' : ''}", data: { template: key } do
-        concat(content_tag(:div, class: 'template-icon') do
-          template[:icon] || '📋'
+        concat(content_tag(:div, class: "template-icon") do
+          template[:icon] || "📋"
         end)
-        concat(content_tag(:div, class: 'template-info') do
+        concat(content_tag(:div, class: "template-info") do
           concat(content_tag(:h4, template[:name]))
           concat(content_tag(:p, template[:description] || "#{key.to_s.titleize} onboarding"))
-          concat(content_tag(:span, "#{template[:steps]&.size || 0} steps", class: 'step-count'))
+          concat(content_tag(:span, "#{template[:steps]&.size || 0} steps", class: "step-count"))
         end)
       end
     end
@@ -146,12 +146,12 @@ module RailsOnboarding
     # @return [String] HTML table comparing templates
     def render_template_comparison(*template_keys)
       comparison = compare_templates(*template_keys)
-      return '' if comparison.empty?
+      return "" if comparison.empty?
 
-      content_tag :table, class: 'template-comparison' do
+      content_tag :table, class: "template-comparison" do
         concat(content_tag(:thead) do
           content_tag(:tr) do
-            concat(content_tag(:th, 'Feature'))
+            concat(content_tag(:th, "Feature"))
             comparison.each_key do |key|
               concat(content_tag(:th, comparison[key][:name]))
             end
@@ -161,7 +161,7 @@ module RailsOnboarding
         concat(content_tag(:tbody) do
           # Total steps row
           concat(content_tag(:tr) do
-            concat(content_tag(:td, 'Total Steps'))
+            concat(content_tag(:td, "Total Steps"))
             comparison.each_value do |data|
               concat(content_tag(:td, data[:total_steps]))
             end
@@ -169,7 +169,7 @@ module RailsOnboarding
 
           # Required steps row
           concat(content_tag(:tr) do
-            concat(content_tag(:td, 'Required Steps'))
+            concat(content_tag(:td, "Required Steps"))
             comparison.each_value do |data|
               concat(content_tag(:td, data[:required_steps]))
             end
@@ -177,7 +177,7 @@ module RailsOnboarding
 
           # Optional steps row
           concat(content_tag(:tr) do
-            concat(content_tag(:td, 'Optional Steps'))
+            concat(content_tag(:td, "Optional Steps"))
             comparison.each_value do |data|
               concat(content_tag(:td, data[:optional_steps]))
             end
@@ -241,11 +241,11 @@ module RailsOnboarding
 
       step_names = template[:steps]&.map { |s| s[:name].to_s } || []
 
-      categories << :profile if step_names.any? { |n| n.include?('profile') }
-      categories << :team if step_names.any? { |n| n.include?('team') || n.include?('invite') }
-      categories << :payment if step_names.any? { |n| n.include?('payment') || n.include?('billing') }
-      categories << :content if step_names.any? { |n| n.include?('post') || n.include?('product') }
-      categories << :social if step_names.any? { |n| n.include?('connect') || n.include?('friends') }
+      categories << :profile if step_names.any? { |n| n.include?("profile") }
+      categories << :team if step_names.any? { |n| n.include?("team") || n.include?("invite") }
+      categories << :payment if step_names.any? { |n| n.include?("payment") || n.include?("billing") }
+      categories << :content if step_names.any? { |n| n.include?("post") || n.include?("product") }
+      categories << :social if step_names.any? { |n| n.include?("connect") || n.include?("friends") }
 
       categories
     end

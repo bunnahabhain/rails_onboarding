@@ -35,7 +35,7 @@ namespace :rails_onboarding do
       end
     rescue => e
       puts "\n❌ Error running validation: #{e.message}"
-      puts e.backtrace.first(5).join("\n") if ENV['DEBUG']
+      puts e.backtrace.first(5).join("\n") if ENV["DEBUG"]
       exit 1
     end
   end
@@ -76,7 +76,7 @@ namespace :rails_onboarding do
 
   desc "Reset onboarding for a user (provide USER_ID=123)"
   task reset_user: :environment do
-    user_id = ENV['USER_ID']
+    user_id = ENV["USER_ID"]
 
     unless user_id
       puts "❌ Error: Please provide USER_ID environment variable"

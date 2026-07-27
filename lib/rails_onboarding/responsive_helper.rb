@@ -23,12 +23,12 @@ module RailsOnboarding
     # @example Custom configuration
     #   <%= rails_onboarding_viewport_meta(maximum_scale: 3.0, viewport_fit: 'contain') %>
     def rails_onboarding_viewport_meta(options = {})
-      width = options[:width] || 'device-width'
+      width = options[:width] || "device-width"
       initial_scale = options[:initial_scale] || 1.0
       maximum_scale = options[:maximum_scale] || 5.0
       minimum_scale = options[:minimum_scale] || 1.0
-      user_scalable = options.fetch(:user_scalable, true) ? 'yes' : 'no'
-      viewport_fit = options[:viewport_fit] || 'cover'
+      user_scalable = options.fetch(:user_scalable, true) ? "yes" : "no"
+      viewport_fit = options[:viewport_fit] || "cover"
 
       content = [
         "width=#{width}",
@@ -37,9 +37,9 @@ module RailsOnboarding
         "minimum-scale=#{minimum_scale}",
         "user-scalable=#{user_scalable}",
         "viewport-fit=#{viewport_fit}"
-      ].join(', ')
+      ].join(", ")
 
-      tag(:meta, name: 'viewport', content: content)
+      tag(:meta, name: "viewport", content: content)
     end
 
     # Returns theme color meta tag for mobile browsers
@@ -51,8 +51,8 @@ module RailsOnboarding
     #   <%= rails_onboarding_theme_color %>
     #   <%= rails_onboarding_theme_color('#6366f1') %>
     def rails_onboarding_theme_color(color = nil)
-      color ||= '#6366f1' # Default primary color
-      tag(:meta, name: 'theme-color', content: color)
+      color ||= "#6366f1" # Default primary color
+      tag(:meta, name: "theme-color", content: color)
     end
 
     # Checks if the current device is mobile based on user agent
@@ -85,7 +85,7 @@ module RailsOnboarding
       return false unless request.present?
 
       user_agent = request.user_agent.to_s.downcase
-      tablet_patterns = [/ipad/, /tablet/, /kindle/, /silk/, /playbook/]
+      tablet_patterns = [ /ipad/, /tablet/, /kindle/, /silk/, /playbook/ ]
 
       tablet_patterns.any? { |pattern| user_agent.match?(pattern) }
     end
@@ -105,11 +105,11 @@ module RailsOnboarding
     #   <div class="<%= responsive_device_classes %>">
     def responsive_device_classes
       classes = []
-      classes << 'is-mobile' if mobile_device?
-      classes << 'is-tablet' if tablet_device?
-      classes << 'is-phone' if phone_device?
-      classes << 'is-desktop' unless mobile_device?
-      classes.join(' ')
+      classes << "is-mobile" if mobile_device?
+      classes << "is-tablet" if tablet_device?
+      classes << "is-phone" if phone_device?
+      classes << "is-desktop" unless mobile_device?
+      classes.join(" ")
     end
 
     # Returns data attributes for JavaScript device detection
@@ -120,9 +120,9 @@ module RailsOnboarding
     #   <div <%= responsive_device_data %>>
     def responsive_device_data
       {
-        'data-mobile' => mobile_device?,
-        'data-tablet' => tablet_device?,
-        'data-phone' => phone_device?
+        "data-mobile" => mobile_device?,
+        "data-tablet" => tablet_device?,
+        "data-phone" => phone_device?
       }
     end
 
@@ -136,13 +136,13 @@ module RailsOnboarding
       tags = []
 
       # Enable web app capable mode
-      tags << tag(:meta, name: 'apple-mobile-web-app-capable', content: 'yes')
+      tags << tag(:meta, name: "apple-mobile-web-app-capable", content: "yes")
 
       # Status bar style
-      tags << tag(:meta, name: 'apple-mobile-web-app-status-bar-style', content: 'default')
+      tags << tag(:meta, name: "apple-mobile-web-app-status-bar-style", content: "default")
 
       # Disable phone number detection
-      tags << tag(:meta, name: 'format-detection', content: 'telephone=no')
+      tags << tag(:meta, name: "format-detection", content: "telephone=no")
 
       safe_join(tags, "\n")
     end
@@ -154,8 +154,8 @@ module RailsOnboarding
     #
     # @example
     #   <%= rails_onboarding_manifest_link %>
-    def rails_onboarding_manifest_link(manifest_path = '/manifest.json')
-      tag(:link, rel: 'manifest', href: manifest_path)
+    def rails_onboarding_manifest_link(manifest_path = "/manifest.json")
+      tag(:link, rel: "manifest", href: manifest_path)
     end
 
     # Helper to render responsive images
@@ -172,15 +172,15 @@ module RailsOnboarding
     #         srcset: { '1x' => 'welcome.jpg', '2x' => 'welcome@2x.jpg' },
     #         sizes: '(max-width: 768px) 100vw, 50vw') %>
     def responsive_image(src, options = {})
-      alt = options[:alt] || ''
+      alt = options[:alt] || ""
       srcset = options[:srcset]
       sizes = options[:sizes]
-      css_class = options[:class] || ''
+      css_class = options[:class] || ""
 
       img_options = { src: src, alt: alt, class: css_class }
 
       if srcset.present?
-        srcset_value = srcset.map { |density, path| "#{path} #{density}" }.join(', ')
+        srcset_value = srcset.map { |density, path| "#{path} #{density}" }.join(", ")
         img_options[:srcset] = srcset_value
       end
 
@@ -194,7 +194,7 @@ module RailsOnboarding
     # @param eager [Boolean] Whether to load eagerly
     # @return [String] Loading attribute value
     def image_loading_strategy(eager: false)
-      eager ? 'eager' : 'lazy'
+      eager ? "eager" : "lazy"
     end
 
     # Checks if the viewport supports hover (desktop/laptop)
@@ -210,8 +210,8 @@ module RailsOnboarding
     # @return [Hash] Data attributes for touch optimization
     def touch_friendly_attrs
       {
-        'data-touch-enabled' => mobile_device?,
-        'style' => mobile_device? ? 'touch-action: manipulation;' : nil
+        "data-touch-enabled" => mobile_device?,
+        "style" => mobile_device? ? "touch-action: manipulation;" : nil
       }.compact
     end
   end

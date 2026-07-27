@@ -232,7 +232,7 @@ module RailsOnboarding
       metadata = {
         "step" => "welcome",
         "duration" => 30,
-        "interactions" => ["click", "scroll", "submit"]
+        "interactions" => [ "click", "scroll", "submit" ]
       }
 
       event = AnalyticsEvent.create!(

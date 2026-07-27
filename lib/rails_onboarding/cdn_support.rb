@@ -20,7 +20,7 @@ module RailsOnboarding
         if defined?(Rails.application) && Rails.application.config.action_controller.asset_host
           Rails.application.config.action_controller.asset_host
         else
-          ENV['RAILS_ONBOARDING_CDN_HOST']
+          ENV["RAILS_ONBOARDING_CDN_HOST"]
         end
       end
     end
@@ -68,14 +68,14 @@ module RailsOnboarding
     def self.preload_assets
       [
         {
-          href: cdn_asset_url('rails_onboarding/application.css', asset_type: :stylesheet),
-          as: 'style',
-          type: 'text/css'
+          href: cdn_asset_url("rails_onboarding/application.css", asset_type: :stylesheet),
+          as: "style",
+          type: "text/css"
         },
         {
-          href: cdn_asset_url('rails_onboarding/application.js', asset_type: :javascript),
-          as: 'script',
-          type: 'text/javascript'
+          href: cdn_asset_url("rails_onboarding/application.js", asset_type: :javascript),
+          as: "script",
+          type: "text/javascript"
         }
       ]
     end
@@ -113,13 +113,13 @@ module RailsOnboarding
       crossorigin = options.delete(:crossorigin)
 
       tag_options = {
-        rel: 'stylesheet',
+        rel: "stylesheet",
         href: url
       }.merge(options)
 
       tag_options[:crossorigin] = crossorigin if crossorigin
 
-      tags = ["<link #{cdn_tag_attributes(tag_options)} />"]
+      tags = [ "<link #{cdn_tag_attributes(tag_options)} />" ]
 
       if preload
         tags.unshift("<link #{cdn_tag_attributes(rel: 'preload', href: url, as: 'style')} />")
@@ -142,13 +142,13 @@ module RailsOnboarding
 
       tag_options = {
         src: url,
-        type: 'text/javascript'
+        type: "text/javascript"
       }.merge(options)
 
-      tag_options[:defer] = 'defer' if defer && !async
-      tag_options[:async] = 'async' if async
+      tag_options[:defer] = "defer" if defer && !async
+      tag_options[:async] = "async" if async
 
-      tags = ["<script #{cdn_tag_attributes(tag_options)}></script>"]
+      tags = [ "<script #{cdn_tag_attributes(tag_options)}></script>" ]
 
       if preload
         tags.unshift("<link #{cdn_tag_attributes(rel: 'preload', href: url, as: 'script')} />")
@@ -161,7 +161,7 @@ module RailsOnboarding
     #
     # @return [String] HTML meta tags for resource hints
     def cdn_resource_hints
-      return '' unless CdnSupport.cdn_enabled?
+      return "" unless CdnSupport.cdn_enabled?
 
       cdn_host = ERB::Util.html_escape(CdnSupport.cdn_host)
       <<~HTML.html_safe
@@ -177,7 +177,7 @@ module RailsOnboarding
     # because these methods are also called as CdnSupport module functions,
     # outside any view context where `tag`/`content_tag` would be available.
     def cdn_tag_attributes(attributes)
-      attributes.map { |key, value| "#{key}=\"#{ERB::Util.html_escape(value)}\"" }.join(' ')
+      attributes.map { |key, value| "#{key}=\"#{ERB::Util.html_escape(value)}\"" }.join(" ")
     end
 
     # Configure CDN headers for optimal caching
@@ -186,9 +186,9 @@ module RailsOnboarding
     # @return [Hash] Headers for CDN caching
     def cdn_cache_headers(max_age: 31_536_000)
       {
-        'Cache-Control' => "public, max-age=#{max_age}, immutable",
-        'Expires' => max_age.seconds.from_now.httpdate,
-        'Vary' => 'Accept-Encoding'
+        "Cache-Control" => "public, max-age=#{max_age}, immutable",
+        "Expires" => max_age.seconds.from_now.httpdate,
+        "Vary" => "Accept-Encoding"
       }
     end
   end

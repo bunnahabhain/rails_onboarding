@@ -7,7 +7,7 @@ module RailsOnboarding
     # and inspect their results. Tests are config-defined (see RailsOnboarding::AbTestable),
     # so there is no create/edit/destroy here - only viewing and enabling/disabling.
     class AbTestsController < BaseController
-      before_action :set_ab_test, only: [:show, :start, :stop, :export]
+      before_action :set_ab_test, only: [ :show, :start, :stop, :export ]
 
       def index
         @ab_tests = ab_tests_collection
@@ -49,7 +49,7 @@ module RailsOnboarding
           format.csv do
             send_data generate_csv_export(results),
               filename: "ab_test_#{@test_name}_results_#{Date.current}.csv",
-              type: 'text/csv'
+              type: "text/csv"
           end
         end
       end
@@ -102,13 +102,13 @@ module RailsOnboarding
       end
 
       def generate_csv_export(results)
-        require 'csv'
+        require "csv"
 
         CSV.generate do |csv|
-          csv << ['Variant', 'Participants', 'Completions', 'Conversion Rate (%)']
+          csv << [ "Variant", "Participants", "Completions", "Conversion Rate (%)" ]
 
           results.each do |variant, data|
-            csv << [variant, data[:participants], data[:completions], data[:conversion_rate]]
+            csv << [ variant, data[:participants], data[:completions], data[:conversion_rate] ]
           end
         end
       end

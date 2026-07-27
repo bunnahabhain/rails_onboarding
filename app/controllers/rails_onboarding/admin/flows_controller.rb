@@ -5,7 +5,7 @@ module RailsOnboarding
     # Admin flows controller
     # Visual editor for creating and managing onboarding flows
     class FlowsController < BaseController
-      before_action :set_flow, only: [:show, :edit, :update, :destroy, :duplicate, :activate, :preview]
+      before_action :set_flow, only: [ :show, :edit, :update, :destroy, :duplicate, :activate, :preview ]
 
       def index
         @pagy, @flows = paginate(flows_collection)
@@ -91,7 +91,7 @@ module RailsOnboarding
 
       def preview
         @steps = @flow.steps || []
-        render layout: 'rails_onboarding/application'
+        render layout: "rails_onboarding/application"
       end
 
       private
@@ -111,10 +111,10 @@ module RailsOnboarding
 
       def default_flow_structure
         {
-          name: '',
-          description: '',
+          name: "",
+          description: "",
           steps: [
-            { name: 'welcome', title: 'Welcome', icon: '👋', skippable: true, order: 0 }
+            { name: "welcome", title: "Welcome", icon: "👋", skippable: true, order: 0 }
           ]
         }
       end
@@ -122,7 +122,7 @@ module RailsOnboarding
       def flow_params
         permitted = params.require(:flow).permit(
           :name, :description,
-          steps: [:name, :title, :icon, :description, :skippable, :order]
+          steps: [ :name, :title, :icon, :description, :skippable, :order ]
         )
 
         if permitted[:steps]
@@ -143,9 +143,9 @@ module RailsOnboarding
           step_name = step[:name].to_s
           stats[step_name] = {
             started: RailsOnboarding::AnalyticsEvent.where(event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_STARTED)
-                       .select { |e| e.properties.to_h['step_name'].to_s == step_name }.count,
+                       .select { |e| e.properties.to_h["step_name"].to_s == step_name }.count,
             completed: RailsOnboarding::AnalyticsEvent.where(event_type: RailsOnboarding::AnalyticsEvent::ONBOARDING_STEP_COMPLETED)
-                       .select { |e| e.properties.to_h['step_name'].to_s == step_name }.count
+                       .select { |e| e.properties.to_h["step_name"].to_s == step_name }.count
           }
         end
 
@@ -159,16 +159,16 @@ module RailsOnboarding
         return [] unless defined?(RailsOnboarding::Templates)
 
         [
-          { id: 'saas', name: 'SaaS Application', description: 'Standard SaaS onboarding flow' },
-          { id: 'ecommerce', name: 'E-commerce', description: 'Onboarding for online stores' },
-          { id: 'marketplace', name: 'Marketplace', description: 'Two-sided marketplace flow' },
-          { id: 'community', name: 'Community', description: 'Social/community platform' },
-          { id: 'education', name: 'Education', description: 'Learning platform flow' }
+          { id: "saas", name: "SaaS Application", description: "Standard SaaS onboarding flow" },
+          { id: "ecommerce", name: "E-commerce", description: "Onboarding for online stores" },
+          { id: "marketplace", name: "Marketplace", description: "Two-sided marketplace flow" },
+          { id: "community", name: "Community", description: "Social/community platform" },
+          { id: "education", name: "Education", description: "Learning platform flow" }
         ]
       end
 
       def available_icons
-        ['👋', '🎉', '👤', '📝', '🚀', '🔍', '⚙️', '💡', '📊', '🎯', '✨', '🏆', '📱', '💬', '🔔', '📧', '🎨', '🔒']
+        [ "👋", "🎉", "👤", "📝", "🚀", "🔍", "⚙️", "💡", "📊", "🎯", "✨", "🏆", "📱", "💬", "🔔", "📧", "🎨", "🔒" ]
       end
     end
   end

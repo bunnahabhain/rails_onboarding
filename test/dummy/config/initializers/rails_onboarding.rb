@@ -1,6 +1,6 @@
 # Configure RailsOnboarding for test environment
 RailsOnboarding.configure do |config|
-  config.user_class_name = 'User'
+  config.user_class_name = "User"
   config.redirect_after_completion = :root_path
   config.redirect_after_skip = :root_path
   config.enable_tooltips = true
@@ -8,16 +8,16 @@ RailsOnboarding.configure do |config|
   config.onboarding_required_for = :new_users
 
   config.steps = [
-    { name: :welcome, title: 'Welcome', icon: '👋', skippable: true },
-    { name: :profile, title: 'Setup Profile', icon: '👤', skippable: false },
-    { name: :first_action, title: 'First Action', icon: '🚀', skippable: false },
-    { name: :explore, title: 'Explore Features', icon: '🔍', skippable: true }
+    { name: :welcome, title: "Welcome", icon: "👋", skippable: true },
+    { name: :profile, title: "Setup Profile", icon: "👤", skippable: false },
+    { name: :first_action, title: "First Action", icon: "🚀", skippable: false },
+    { name: :explore, title: "Explore Features", icon: "🔍", skippable: true }
   ]
 
   # Welcome page configuration
   config.welcome_features = [
-    { icon: '🚀', text: 'Getting started with the platform' },
-    { icon: '👥', text: 'Building your profile' },
-    { icon: '🎯', text: 'Achieving your goals' }
+    { icon: "🚀", text: "Getting started with the platform" },
+    { icon: "👥", text: "Building your profile" },
+    { icon: "🎯", text: "Achieving your goals" }
   ]
 end

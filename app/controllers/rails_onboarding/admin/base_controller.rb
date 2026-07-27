@@ -15,7 +15,7 @@ module RailsOnboarding
 
       before_action :authenticate_admin!
       before_action :verify_admin_authorization!
-      layout 'rails_onboarding/admin'
+      layout "rails_onboarding/admin"
 
       # rescue_from handlers are checked most-recently-registered-first, so the
       # generic StandardError handler must be registered BEFORE the specific
@@ -42,9 +42,9 @@ module RailsOnboarding
       def paginate(collection, limit: DEFAULT_PER_PAGE)
         pagy, records = pagy(collection,
                              limit: limit,
-                             limit_key: 'per_page',
+                             limit_key: "per_page",
                              max_limit: MAX_PER_PAGE)
-        [pagy, records || []]
+        [ pagy, records || [] ]
       end
 
       # Admin-area catch-all: unlike the concern's admin-only handlers, an

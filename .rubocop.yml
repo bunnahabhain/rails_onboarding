@@ -1,6 +1,18 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
+AllCops:
+  Exclude:
+    # Generator templates are ERB, not Ruby: the migration version in their class
+    # declaration is an ERB interpolation, which rubocop's parser can only read as
+    # a syntax error. (Don't spell that tag out here - rubocop evaluates this file
+    # as ERB too.) They are copied into the host app by the generators, where the
+    # host's own rubocop config applies to them.
+    - 'lib/generators/**/templates/**/*'
+    # Generated dummy app and coverage output - not ours to style.
+    - 'test/dummy/db/schema.rb'
+    - 'coverage/**/*'
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`

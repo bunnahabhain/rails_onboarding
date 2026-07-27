@@ -206,7 +206,7 @@ module RailsOnboarding
       org_id = 123
 
       MultiTenant.configure_for_organization(org_id) do |config|
-        config.steps = [{ name: :test }]
+        config.steps = [ { name: :test } ]
       end
 
       benchmark_result = Benchmark.measure do
@@ -388,7 +388,7 @@ module RailsOnboarding
       create_test_users(@large_dataset_size)
 
       # Test different page sizes
-      [25, 50, 100].each do |per_page|
+      [ 25, 50, 100 ].each do |per_page|
         benchmark_result = Benchmark.measure do
           User.where(onboarding_completed: false)
               .limit(per_page)
@@ -407,7 +407,7 @@ module RailsOnboarding
       # Test pagination at different offsets
       results = []
 
-      [0, 25, 50, 75].each do |offset|
+      [ 0, 25, 50, 75 ].each do |offset|
         benchmark_result = Benchmark.measure do
           User.where(onboarding_completed: false)
               .limit(25)
@@ -421,7 +421,7 @@ module RailsOnboarding
       # Later pages shouldn't be significantly slower.
       # Use a floor of 10ms so sub-millisecond baseline noise doesn't cause false failures;
       # the 10x multiplier catches genuine O(n) degradation, not timing jitter.
-      max_acceptable = [results.first * 10, 0.01].max
+      max_acceptable = [ results.first * 10, 0.01 ].max
       assert_operator results.last, :<, max_acceptable,
                       "Deep pagination should not degrade significantly"
     end

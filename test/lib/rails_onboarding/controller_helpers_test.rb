@@ -25,7 +25,7 @@ module RailsOnboarding
     end
 
     class SkippedController < TestController
-      skip_onboarding_check only: [:profile]
+      skip_onboarding_check only: [ :profile ]
     end
 
     setup do

@@ -65,7 +65,7 @@ module RailsOnboarding
         if defined?(RailsOnboarding::AnalyticsEvent)
           RailsOnboarding::AnalyticsEvent.track_custom_event(
             user: user,
-            event_name: 'onboarding_error',
+            event_name: "onboarding_error",
             event_data: error_data
           )
         end
@@ -140,7 +140,7 @@ module RailsOnboarding
           yield
         rescue StandardError => e
           if attempt < max_attempts
-            delay = [base_delay * (exponential_base ** (attempt - 1)), max_delay].min
+            delay = [ base_delay * (exponential_base ** (attempt - 1)), max_delay ].min
             Rails.logger.warn "Attempt #{attempt} failed: #{e.message}. Retrying in #{delay}s..."
             sleep delay
             retry

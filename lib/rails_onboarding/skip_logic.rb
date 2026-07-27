@@ -137,10 +137,10 @@ module RailsOnboarding
         when :missing_attribute
           !user.respond_to?(value) || user.send(value).blank?
         when :attribute_equals
-          attribute, expected = value.is_a?(Hash) ? value.first : [value, true]
+          attribute, expected = value.is_a?(Hash) ? value.first : [ value, true ]
           user.respond_to?(attribute) && user.send(attribute) == expected
         when :attribute_not_equals
-          attribute, expected = value.is_a?(Hash) ? value.first : [value, true]
+          attribute, expected = value.is_a?(Hash) ? value.first : [ value, true ]
           !user.respond_to?(attribute) || user.send(attribute) != expected
         when :has_role
           user.respond_to?(:has_role?) && user.has_role?(value)

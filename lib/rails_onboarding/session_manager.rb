@@ -3,7 +3,7 @@ module RailsOnboarding
   # Handles browser refresh/navigation during onboarding
   # Persists onboarding state to allow seamless resume
   class SessionManager
-    SESSION_KEY = 'rails_onboarding_session'
+    SESSION_KEY = "rails_onboarding_session"
     SESSION_TIMEOUT = 2.hours
 
     class << self
@@ -174,9 +174,9 @@ module RailsOnboarding
 
         parsed = if data.is_a?(String)
                    JSON.parse(data)
-                 else
+        else
                    data
-                 end
+        end
 
         parsed.deep_symbolize_keys
       rescue JSON::ParserError

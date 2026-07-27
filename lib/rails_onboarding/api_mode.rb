@@ -33,7 +33,7 @@ module RailsOnboarding
       # Enable API mode for specific actions
       def enable_api_mode(options = {})
         @api_mode_options = {
-          version: options.fetch(:version, 'v1'),
+          version: options.fetch(:version, "v1"),
           authentication: options.fetch(:authentication, :token),
           serializer: options.fetch(:serializer, :active_model_serializers),
           rate_limiting: options.fetch(:rate_limiting, true),
@@ -54,9 +54,9 @@ module RailsOnboarding
     # Detect API requests
     def api_request?
       request.format.json? ||
-      request.path.start_with?('/api/') ||
-      request.headers['Accept']&.include?('application/json') ||
-      request.headers['Content-Type']&.include?('application/json')
+      request.path.start_with?("/api/") ||
+      request.headers["Accept"]&.include?("application/json") ||
+      request.headers["Content-Type"]&.include?("application/json")
     end
 
     # API response helpers
@@ -232,7 +232,7 @@ module RailsOnboarding
     def build_api_meta(custom_meta = {})
       {
         timestamp: Time.current.iso8601,
-        version: self.class.api_mode_options[:version] || 'v1',
+        version: self.class.api_mode_options[:version] || "v1",
         request_id: request.request_id
       }.merge(custom_meta)
     end
@@ -280,12 +280,12 @@ module RailsOnboarding
     # into server and proxy access logs, browser history, and the Referer
     # header sent to third parties.
     def extract_api_token
-      authorization = request.headers['Authorization']
+      authorization = request.headers["Authorization"]
       # Authorization: Bearer <token> (also tolerates a bare token value)
-      return authorization.split(' ').last if authorization.present?
+      return authorization.split(" ").last if authorization.present?
 
       # Custom header for clients that can't set Authorization
-      request.headers['X-API-Token'].presence
+      request.headers["X-API-Token"].presence
     end
 
     # Authenticate user with token
@@ -296,7 +296,7 @@ module RailsOnboarding
 
       if user_class.respond_to?(:find_by_api_token)
         user_class.find_by_api_token(token)
-      elsif user_class.column_names.include?('api_token')
+      elsif user_class.column_names.include?("api_token")
         user_class.find_by(api_token: token)
       else
         # Raise error if no token authentication method is available

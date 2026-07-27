@@ -63,7 +63,7 @@ module RailsOnboarding
     def localized_step_description(step)
       return step[:description] unless step[:description_key]
 
-      I18n.t(step[:description_key], default: step[:description] || '')
+      I18n.t(step[:description_key], default: step[:description] || "")
     end
 
     # Get localized milestone title
@@ -83,7 +83,7 @@ module RailsOnboarding
     def localized_milestone_description(milestone)
       return milestone[:description] unless milestone[:description_key]
 
-      I18n.t(milestone[:description_key], default: milestone[:description] || '')
+      I18n.t(milestone[:description_key], default: milestone[:description] || "")
     end
 
     # Get available locales for onboarding
@@ -91,7 +91,7 @@ module RailsOnboarding
     # @return [Array<Symbol>] Available locale codes
     def onboarding_locales
       I18n.available_locales.select do |locale|
-        I18n.exists?('rails_onboarding', locale: locale)
+        I18n.exists?("rails_onboarding", locale: locale)
       end
     end
 
@@ -101,7 +101,7 @@ module RailsOnboarding
     # @return [Boolean] True if locale is available
     def locale_available?(locale)
       I18n.available_locales.include?(locale.to_sym) &&
-        I18n.exists?('rails_onboarding', locale: locale)
+        I18n.exists?("rails_onboarding", locale: locale)
     end
 
     # Get user's preferred locale
@@ -114,11 +114,11 @@ module RailsOnboarding
       # Try to get locale from user
       user_locale = if user.respond_to?(:locale)
                       user.locale
-                    elsif user.respond_to?(:language)
+      elsif user.respond_to?(:language)
                       user.language
-                    elsif user.respond_to?(:preferred_language)
+      elsif user.respond_to?(:preferred_language)
                       user.preferred_language
-                    end
+      end
 
       return I18n.default_locale unless user_locale
 
