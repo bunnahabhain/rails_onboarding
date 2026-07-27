@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Admin User Management showed only the first 25 users with no way to reach
+  the rest.** The controller applied a `limit`/`offset` by hand, but the view's
+  pagination block was guarded on `@users.respond_to?(:total_pages)` - a
+  Kaminari-ism left over from before any pagination gem was installed. A plain
+  `ActiveRecord::Relation` never responds to `total_pages`, so the guard was
+  always false and the page controls were silently skipped. Every user past the
+  first page was unreachable through the UI.
+
+### Added
+
+- **Pagination on the admin user list, backed by [pagy](https://github.com/ddnexus/pagy)**
+  (now a runtime dependency, `~> 43.6`). `RailsOnboarding::Admin::BaseController`
+  includes `Pagy::Method`, so the other admin index screens can paginate the same
+  way. The users index renders a page series nav plus a "Displaying users 1-25 of
+  38 in total" summary, styled to the existing admin theme. Page links carry the
+  active search, status, and sort parameters, so paging no longer drops a filter.
+  The pre-existing `?per_page=` parameter still works and is now capped at
+  `UsersController::MAX_PER_PAGE` (100) so a crafted URL can't request the whole
+  table in one query.
+
 ## [0.2.8] - 2026-07-26
 
 ### Fixed

@@ -467,7 +467,11 @@ Returns the analytics dashboard with:
 - `sort`: Column to sort by
 - `direction`: `asc` or `desc`
 - `page`: Page number
-- `per_page`: Results per page (default: 25)
+- `per_page`: Results per page (default: 25, capped at 100)
+
+Pagination is provided by [pagy](https://github.com/ddnexus/pagy), a runtime
+dependency of the engine. Page links preserve the `search`, `status`, `sort`,
+and `direction` parameters that are in effect.
 
 #### FlowsController
 

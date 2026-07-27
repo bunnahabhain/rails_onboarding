@@ -1,3 +1,5 @@
+require "pagy"
+
 require "rails_onboarding/version"
 require "rails_onboarding/engine"
 require "rails_onboarding/deprecation"

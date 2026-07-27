@@ -6,6 +6,7 @@ module RailsOnboarding
     # Provides authentication and authorization for admin actions
     class BaseController < ApplicationController
       include RailsOnboarding::AdminAuthorization
+      include Pagy::Method
 
       before_action :authenticate_admin!
       before_action :verify_admin_authorization!

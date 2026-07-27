@@ -5,10 +5,18 @@ module RailsOnboarding
     # Admin users controller
     # Manage and view user onboarding progress
     class UsersController < BaseController
+      DEFAULT_PER_PAGE = 25
+      # Upper bound on the client-supplied ?per_page=, so a crafted URL can't ask
+      # for the whole users table in one query.
+      MAX_PER_PAGE = 100
+
       def index
-        page = [params[:page].to_i, 1].max
-        per_page = [(params[:per_page] || 25).to_i, 1].max
-        @users = filtered_users.limit(per_page).offset((page - 1) * per_page)
+        # limit_key keeps the pre-pagy ?per_page= parameter working; max_limit is
+        # what makes pagy honour it at all (without it the client value is ignored).
+        @pagy, @users = pagy(filtered_users,
+                             limit: DEFAULT_PER_PAGE,
+                             limit_key: 'per_page',
+                             max_limit: MAX_PER_PAGE)
         @stats = calculate_stats
       end
 

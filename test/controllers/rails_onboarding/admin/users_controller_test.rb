@@ -79,6 +79,61 @@ module RailsOnboarding
         assert_response :success
         assert_includes response.body, @test_user.email
       end
+
+      test "should paginate users beyond the first page" do
+        # setup already created 2 users; top up to 3 full pages worth.
+        page_size = UsersController::DEFAULT_PER_PAGE
+        (page_size * 3 - User.count).times do |i|
+          User.create!(email: "paginated#{i}@example.com")
+        end
+
+        get admin_users_path
+        assert_response :success
+        assert_select 'nav.series-nav a[aria-current="page"]', text: '1'
+        assert_select 'nav.series-nav a[href*="page=2"]'
+
+        first_page_ids = User.order(created_at: :desc).limit(page_size).pluck(:id)
+        second_page_ids = User.order(created_at: :desc).offset(page_size).limit(page_size).pluck(:id)
+
+        get admin_users_path(page: 2)
+        assert_response :success
+        assert_select 'nav.series-nav a[aria-current="page"]', text: '2'
+        second_page_ids.each { |id| assert_select "tbody td", text: id.to_s }
+        first_page_ids.each { |id| assert_select "tbody td", text: id.to_s, count: 0 }
+      end
+
+      test "pagination links preserve the active filters" do
+        (UsersController::DEFAULT_PER_PAGE + 1).times do |i|
+          User.create!(email: "filtered#{i}@example.com", onboarding_completed: true)
+        end
+
+        get admin_users_path(status: 'completed')
+
+        assert_response :success
+        assert_select 'nav.series-nav a[href*="status=completed"]'
+      end
+
+      test "honours per_page but caps it at MAX_PER_PAGE" do
+        (UsersController::MAX_PER_PAGE + 5 - User.count).times do |i|
+          User.create!(email: "capped#{i}@example.com")
+        end
+
+        get admin_users_path(per_page: 5)
+        assert_response :success
+        assert_select 'tbody tr', 5
+
+        get admin_users_path(per_page: 1_000)
+        assert_response :success
+        assert_select 'tbody tr', UsersController::MAX_PER_PAGE
+      end
+
+      test "renders the empty state without pagination when no users match" do
+        get admin_users_path(search: 'nobody-matches-this')
+
+        assert_response :success
+        assert_select '.admin-table-empty'
+        assert_select 'nav.series-nav', count: 0
+      end
     end
   end
 end

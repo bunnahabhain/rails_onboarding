@@ -148,9 +148,10 @@
 </div>
 
 <!-- Pagination -->
-<% if @users.respond_to?(:total_pages) && @users.total_pages > 1 %>
+<% if @pagy.count.positive? %>
   <div class="admin-pagination">
-    <%= paginate @users %>
+    <%= raw @pagy.info_tag(item_name: "users") %>
+    <%= raw @pagy.series_nav if @pagy.pages > 1 %>
   </div>
 <% end %>
 

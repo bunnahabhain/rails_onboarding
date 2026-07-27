@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "rails", ">= 8.0.0"
   spec.add_dependency "csv" # no longer a default gem as of Ruby 3.4, used for admin CSV exports
+  spec.add_dependency "pagy", "~> 43.6" # pagination for the admin index screens
 
   spec.add_development_dependency "minitest", "~> 6.0"
   spec.add_development_dependency "factory_bot_rails", "~> 6.0"
