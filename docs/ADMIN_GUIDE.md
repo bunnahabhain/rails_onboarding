@@ -459,8 +459,9 @@ Returns the analytics dashboard with:
 - `POST /onboarding/admin/users/:id/reset_onboarding` - Reset user
 - `POST /onboarding/admin/users/:id/complete_onboarding` - Complete user
 - `POST /onboarding/admin/users/bulk_action` - Bulk actions
+- `GET /onboarding/admin/users/export` - Export users as CSV
 
-**Query Parameters** (index):
+**Query Parameters** (index and export):
 - `status`: `completed`, `in_progress`, `not_started`, `skipped`
 - `step`: Filter by current step
 - `search`: Search term
@@ -472,6 +473,18 @@ Returns the analytics dashboard with:
 Pagination is provided by [pagy](https://github.com/ddnexus/pagy), a runtime
 dependency of the engine. Page links preserve the `search`, `status`, `sort`,
 and `direction` parameters that are in effect.
+
+**CSV export.** The "Export CSV" button carries the filters currently in effect
+(`search`, `status`, `step`, `sort`, `direction`) through to the export, so the
+file matches the table on screen. It is deliberately *not* paginated - `page` and
+`per_page` are ignored and every matching user is written out, in the chosen sort
+order. Columns: ID, Email (omitted when the user model has no `email` column),
+Status, Current Step, Progress (%), Completed At, Created At, Last Activity.
+
+Because the export honours the sort, it iterates the ordered relation rather than
+using `find_each`, which would replace the `ORDER BY` with a primary-key scan.
+That means the matching rows are loaded to build the file; if you expect to export
+very large result sets, filter first.
 
 All three admin index screens (users, flows, A/B tests) paginate through the same
 `Admin::BaseController#paginate` helper, so they share the `page`/`per_page`

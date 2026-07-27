@@ -1,7 +1,12 @@
 <% content_for :page_title, "User Management" %>
 
 <% content_for :header_actions do %>
-  <%= link_to "Export CSV", "#", class: "admin-btn admin-btn-secondary" %>
+  <%# Carries the active filters through so the export matches the table on screen.
+      page/per_page are deliberately left out - the export is never paginated. %>
+  <%= link_to "Export CSV",
+      export_admin_users_path(format: :csv,
+                              **request.query_parameters.slice("search", "status", "step", "sort", "direction")),
+      class: "admin-btn admin-btn-secondary" %>
 <% end %>
 
 <!-- Stats Summary -->
