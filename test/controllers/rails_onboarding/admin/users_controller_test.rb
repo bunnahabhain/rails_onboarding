@@ -92,6 +92,77 @@ module RailsOnboarding
         assert_includes response.body, @test_user.email
       end
 
+      test "should search users by id" do
+        get admin_users_path(search: @test_user.id.to_s)
+
+        assert_response :success
+        assert_includes response.body, @test_user.email
+      end
+
+      # A non-numeric term used to be cast against the id column too. That
+      # clause could never match - ids are digits - and the cast target it used
+      # (TEXT) is a syntax error on MySQL, so every search 500'd there.
+      test "should not cast the id column for a non-numeric search" do
+        other = User.create!(email: "unrelated@example.com")
+
+        assert_no_match(/CAST/i, capture_search_sql("david"))
+
+        get admin_users_path(search: "test@")
+        assert_response :success
+        assert_includes response.body, @test_user.email
+        assert_not_includes response.body, other.email
+      end
+
+      test "should cast the id column only for a numeric search" do
+        assert_match(/CAST/i, capture_search_sql("35"))
+      end
+
+      test "id cast type follows the adapter" do
+        assert_equal "CHAR", UsersController.id_cast_type_for("Mysql2")
+        assert_equal "CHAR", UsersController.id_cast_type_for("Trilogy")
+        assert_equal "TEXT", UsersController.id_cast_type_for("PostgreSQL")
+        assert_equal "TEXT", UsersController.id_cast_type_for("SQLite")
+      end
+
+      # With `encrypts :email` the column holds ciphertext, so a substring LIKE
+      # can't match the plaintext - and it *can* match ciphertext that happens
+      # to contain the term, which surfaces as confident nonsense. Deterministic
+      # encryption still supports exact equality, so that's what we fall back to.
+      test "deterministically encrypted email searches by equality, not LIKE" do
+        sql = with_encrypted_email(deterministic: true) { capture_search_sql("dave@example.com") }
+
+        assert_no_match(/email LIKE/i, sql)
+        assert_match(/email. = /i, sql)
+      end
+
+      test "non-deterministically encrypted email is not searched at all" do
+        sql = with_encrypted_email(deterministic: false) { capture_search_sql("dave@example.com") }
+
+        assert_no_match(/email/i, sql)
+      end
+
+      # The id half must survive either way - it isn't encrypted.
+      test "encrypted email still allows searching by id" do
+        with_encrypted_email(deterministic: false) do
+          get admin_users_path(search: @test_user.id.to_s)
+        end
+
+        assert_response :success
+        assert_includes response.body, @test_user.email
+      end
+
+      # Guards the no-email-column branch: with nothing left to match on, an
+      # empty WHERE would return every user rather than none.
+      test "search returns nothing when the user model has no email column" do
+        without_email_column do
+          get admin_users_path(search: "david")
+        end
+
+        assert_response :success
+        assert_not_includes response.body, @test_user.email
+      end
+
+
       test "should paginate users beyond the first page" do
         # setup already created 2 users; top up to 3 full pages worth.
         page_size = UsersController::DEFAULT_PER_PAGE
@@ -214,6 +285,53 @@ module RailsOnboarding
         assert_response :success
         assert_select ".admin-table-empty"
         assert_select "nav.series-nav", count: 0
+      end
+
+      private
+
+      # Returns the users-table SQL issued while running a search, so a test
+      # can assert on the shape of the query rather than only its results -
+      # the adapter-specific half of this can't be exercised on SQLite.
+      # Makes the controller believe the user model has no email column, which
+      # is a configuration the gem supports. Hand-rolled rather than stubbed:
+      # Minitest 6 dropped minitest/mock, and this isn't worth a new dependency.
+      def without_email_column
+        visible = User.column_names - [ "email" ]
+        User.define_singleton_method(:column_names) { visible }
+        yield
+      ensure
+        User.singleton_class.send(:remove_method, :column_names)
+      end
+
+      # Makes the controller see email as an encrypted attribute without
+      # actually encrypting the dummy app's column - the controller only asks
+      # `encrypted_attributes` and the attribute type whether it is, and
+      # encrypting for real would mean a key setup and a rewritten fixture set
+      # for no extra coverage of the branch under test.
+      def with_encrypted_email(deterministic:)
+        # A copy of the real attribute type with `deterministic?` bolted on,
+        # rather than a bare double: `where(email: ...)` drives the full
+        # ActiveModel::Type interface, so a stand-in has to behave like one.
+        type = User.type_for_attribute("email").dup
+        type.define_singleton_method(:deterministic?) { deterministic }
+
+        User.define_singleton_method(:encrypted_attributes) { Set[:email] }
+        User.define_singleton_method(:type_for_attribute) { |name, &b| name.to_s == "email" ? type : super(name, &b) }
+        yield
+      ensure
+        User.singleton_class.send(:remove_method, :encrypted_attributes)
+        User.singleton_class.send(:remove_method, :type_for_attribute)
+      end
+
+      def capture_search_sql(term)
+        statements = []
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+          statements << payload[:sql]
+        end
+        get admin_users_path(search: term)
+        statements.grep(/FROM .users./i).join("\n")
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
       end
     end
   end

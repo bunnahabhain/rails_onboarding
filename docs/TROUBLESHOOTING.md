@@ -258,6 +258,45 @@ rails dbconsole
 DROP INDEX index_users_on_onboarding_completed;
 ```
 
+### Problem: Admin search finds nothing when the email column is encrypted
+
+**Symptom:**
+
+Typing part of an email into User Management's "Search by email or ID..." box
+returns no results, even though a matching user plainly exists. Before this was
+handled, it could be worse than nothing — searches returned an arbitrary set of
+unrelated users.
+
+**Cause:**
+
+The host `User` model encrypts email:
+
+```ruby
+class User < ApplicationRecord
+  encrypts :email, deterministic: true
+end
+```
+
+The database column holds ciphertext, so `email LIKE '%dave%'` is comparing
+against encrypted bytes. It can't match the plaintext, and it *can* match
+ciphertext that happens to contain those characters — hence the unrelated hits.
+
+**Solution:**
+
+Nothing to configure; the admin detects this and adapts. What you get:
+
+| Encryption | Email search behavior |
+|------------|----------------------|
+| None | Substring match, as before |
+| `deterministic: true` | **Exact** address only — `dave@example.com` matches, `dave` does not |
+| Non-deterministic | Email is not searched; use the ID |
+
+Deterministic encryption maps a given plaintext to a stable ciphertext, so
+equality still works — substring matching is not recoverable in either case
+without a separate searchable index (e.g. a blind index of normalized values),
+which the gem does not add to your schema. Searching by user ID works
+regardless.
+
 ### Problem: Pre-existing users show as "Not Started" forever
 
 **Symptom:**

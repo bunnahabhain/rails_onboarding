@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Admin User Management search raised a SQL syntax error on MySQL.** The
+  search built `CAST(id AS TEXT)`, which is valid on PostgreSQL and SQLite but
+  a syntax error on MySQL — it spells that type `CHAR`. Every search on a
+  MySQL-backed app 500'd and redirected to the dashboard. The cast target now
+  follows the adapter (`CHAR` on mysql2/trilogy, `TEXT` elsewhere; PostgreSQL
+  can't simply use `CHAR`, which it reads as `character(1)` and would truncate
+  the id to its first digit). The dummy app runs on SQLite, which accepts
+  either spelling, so the test suite never saw it — the adapter mapping is now
+  unit-tested directly for all three.
+- **Search matched against ciphertext when the host app encrypts its email
+  column.** With `encrypts :email`, the column holds ciphertext, so a
+  substring `LIKE` can never match the plaintext an admin types — but it does
+  match ciphertext that happens to contain the term, which surfaced as
+  confident nonsense (in one real app, searching `4` returned 26 of 39 users).
+  Search is now encryption-aware: deterministic encryption falls back to exact
+  equality, which it supports; non-deterministic encryption drops the email
+  clause entirely, since there is nothing searchable there. Searching by ID is
+  unaffected either way.
+- **Non-numeric searches no longer cast the id column at all.** An id renders
+  as digits, so a term containing anything else can never be a substring of
+  one. The clause was pure work — a full-table cast scan on every email
+  search — and dropping it is exactly semantics-preserving.
+
 ## [0.3.1] - 2026-07-27
 
 Patch: no new dependencies and no API changes, but it unblocks the admin for
