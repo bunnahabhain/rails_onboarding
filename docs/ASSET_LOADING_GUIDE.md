@@ -188,18 +188,31 @@ All CSS in the Rails Onboarding gem follows strict namespacing to prevent confli
    .rails-onboarding-tooltip { }
    ```
 
-3. **No Global Selectors:** Element selectors are always scoped
+3. **No Global Selectors:** Element selectors are always scoped, using
+   `:where()` to carry the scope
    ```css
-   /* ❌ Avoid */
-   button { }
+   /* ❌ Avoid - restyles every link in the host application */
+   a { text-decoration: underline; }
 
    /* ✅ Correct */
-   .onboarding-container button { }
+   :where(.onboarding-container) a { text-decoration: underline; }
    ```
+
+   `:where()` contributes **zero specificity**, so the scoped rule competes
+   in the cascade exactly as the bare selector did. That matters in both
+   directions: the gem's own stylesheets keep their existing override
+   relationships (`mobile.css`'s media queries still win the ties they won
+   before), and your application's styles beat the gem's on equal footing
+   rather than having to out-specify an extra class.
+
+   A plain descendant prefix (`.onboarding-container a`) would work for
+   isolation but raise specificity from `(0,0,1)` to `(0,1,1)`, silently
+   changing which rule wins wherever the gem's own files overlap.
 
 ### Scoping Strategy
 
-All onboarding UI is wrapped in a `.onboarding-container` class:
+Onboarding UI lives under one of two scope roots. Engine pages are wrapped
+in `.onboarding-container` by the engine's layout:
 
 ```html
 <div class="onboarding-container">
@@ -207,7 +220,41 @@ All onboarding UI is wrapped in a `.onboarding-container` class:
 </div>
 ```
 
-This ensures styles only apply within onboarding contexts.
+The banner rendered on **your** pages
+(`render "rails_onboarding/shared/onboarding_banner"`) sits outside that
+wrapper, so it carries its own root, `.onboarding-banner`. Rules that need
+to reach it are scoped to both:
+
+```css
+:where(.onboarding-container, .onboarding-banner) .progress-fill { }
+```
+
+Together these ensure gem styles only apply within onboarding contexts. It
+is safe to bundle the gem's CSS into your global stylesheet.
+
+### Deliberate exceptions
+
+Three things are intentionally **not** scoped:
+
+1. **`--onboarding-*` custom properties on `:root`.** This is the supported
+   theming hook — redefine them from your own stylesheet to retheme the gem.
+   Nothing outside the gem reads them.
+
+2. **`.onboarding-sr-only` and `.onboarding-skip-link`.** These are opt-in
+   utilities meant for use outside the container; a skip link in particular
+   has to be the first focusable element in the document, which places it
+   above `.onboarding-container` in the DOM. The `onboarding-` prefix, not a
+   scope, is what keeps them from colliding. (Earlier versions named these
+   `.sr-only` and `.skip-link`, which collided with the identically named
+   classes in Bootstrap and Tailwind.)
+
+3. **`prefers-contrast` / `prefers-color-scheme` blocks that only reassign
+   `--onboarding-*` properties.** They can't affect anything the gem doesn't
+   style.
+
+Note that `prefers-reduced-motion` *is* scoped. Disabling animation across
+the whole page is the host application's decision, not a mounted engine's,
+so the gem only quiets its own components.
 
 ## JavaScript Integration
 
@@ -348,28 +395,46 @@ This ensures engine views are accessible from anywhere in your application.
 
 **Problem:** Styles conflict with host application
 
-**Solutions:**
-1. All onboarding styles are namespaced - ensure you're using the `onboarding-container` wrapper:
-   ```erb
-   <div class="onboarding-container">
-     <%= render "rails_onboarding/onboarding/show" %>
-   </div>
-   ```
+Every rule in the gem's stylesheets is scoped to markup the engine owns
+(see [CSS Isolation](#css-isolation)), so bundling the gem's CSS globally
+should not affect your own pages.
 
-2. If conflicts persist, you can override using CSS specificity:
+**Solutions:**
+
+1. **Retheme with custom properties.** This is the intended customization
+   path and needs no specificity fight:
    ```css
    /* In your application.css */
-   .onboarding-container .onboarding-button {
-     /* Your custom styles */
+   :root {
+     --onboarding-primary: #0f766e;
+     --onboarding-primary-hover: #115e59;
    }
    ```
 
-3. Use CSS custom properties for theming:
+2. **Override individual rules.** Because the gem scopes with `:where()`
+   (zero specificity), a single class in your own stylesheet is enough —
+   you do not need to match the gem's scope:
    ```css
-   :root {
-     --onboarding-primary: #your-color;
+   /* In your application.css, loaded after the gem's */
+   .primary-action {
+     border-radius: 0;
    }
    ```
+
+3. **If gem styles are reaching your own pages**, you are on a version
+   before the scoping fix. Symptoms: every link underlined and recoloured,
+   tables and fieldsets restyled, buttons forced to a 44px minimum, or
+   anything with `role="dialog"` yanked to the centre of the viewport.
+   Under Sprockets, `*= require rails_onboarding/application` pulls in
+   every gem stylesheet via `require_tree`, so one directive is enough to
+   apply all of it globally. Upgrade, or drop the `require` from your host
+   `application.css` and link only the stylesheets you need.
+
+4. **If your own styles are reaching onboarding pages**, that's the
+   host-app reset or framework applying to engine markup. The engine layout
+   only loads your `application.css` when
+   `config.include_host_styles` is enabled — turn it off if you want the
+   onboarding pages fully insulated.
 
 ### Importmap Issues
 

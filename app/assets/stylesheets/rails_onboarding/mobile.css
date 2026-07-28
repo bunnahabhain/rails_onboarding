@@ -165,16 +165,16 @@
 
 @media (hover: none) and (pointer: coarse) {
   /* Increase touch target sizes */
-  button,
-  input[type="button"],
-  input[type="submit"],
-  input[type="reset"],
-  a.primary-action,
-  a.secondary-action,
-  .skip-action,
-  .feature-button,
-  .tooltip-action,
-  .tour-btn {
+  :where(.onboarding-container) button,
+  :where(.onboarding-container) input[type="button"],
+  :where(.onboarding-container) input[type="submit"],
+  :where(.onboarding-container) input[type="reset"],
+  :where(.onboarding-container) a.primary-action,
+  :where(.onboarding-container) a.secondary-action,
+  :where(.onboarding-container) .skip-action,
+  :where(.onboarding-container) .feature-button,
+  :where(.onboarding-container) .tooltip-action,
+  :where(.onboarding-container) .tour-btn {
     min-height: 3rem; /* 48px minimum for better touch */
     min-width: 3rem;
     padding: var(--mobile-space-md) var(--mobile-space-lg);
@@ -190,8 +190,8 @@
   }
 
   /* Larger checkbox and radio inputs */
-  input[type="checkbox"],
-  input[type="radio"] {
+  :where(.onboarding-container) input[type="checkbox"],
+  :where(.onboarding-container) input[type="radio"] {
     width: 1.5rem;
     height: 1.5rem;
     min-width: 1.5rem;
@@ -203,10 +203,10 @@
     margin-bottom: var(--mobile-space-xl);
   }
 
-  input[type="text"],
-  input[type="email"],
-  select,
-  textarea {
+  :where(.onboarding-container) input[type="text"],
+  :where(.onboarding-container) input[type="email"],
+  :where(.onboarding-container) select,
+  :where(.onboarding-container) textarea {
     padding: var(--mobile-space-md) var(--mobile-space-lg);
     font-size: var(--mobile-text-base);
     min-height: 3rem;
@@ -741,12 +741,12 @@
 
 @media screen and (max-width: 47.9375em) {
   /* Prevent zoom on input focus (iOS) */
-  input[type="text"],
-  input[type="email"],
-  input[type="tel"],
-  input[type="number"],
-  select,
-  textarea {
+  :where(.onboarding-container) input[type="text"],
+  :where(.onboarding-container) input[type="email"],
+  :where(.onboarding-container) input[type="tel"],
+  :where(.onboarding-container) input[type="number"],
+  :where(.onboarding-container) select,
+  :where(.onboarding-container) textarea {
     font-size: 16px; /* Prevents iOS zoom */
   }
 
@@ -759,13 +759,13 @@
   }
 
   /* Larger select dropdowns on mobile */
-  select {
+  :where(.onboarding-container) select {
     background-size: 1.5rem;
     padding-right: 2.5rem;
   }
 
   /* Better textarea sizing */
-  textarea {
+  :where(.onboarding-container) textarea {
     min-height: 8rem;
     resize: vertical;
   }
@@ -788,9 +788,9 @@
   }
 
   /* Mobile-friendly validation messages */
-  input:invalid,
-  select:invalid,
-  textarea:invalid {
+  :where(.onboarding-container) input:invalid,
+  :where(.onboarding-container) select:invalid,
+  :where(.onboarding-container) textarea:invalid {
     border-width: 2px;
   }
 }

@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-28
+
+Minor: the gem's stylesheets no longer leak into the host application. If
+you bundle the gem's CSS globally, this version changes how your own pages
+look — by no longer restyling them. Two utility classes are renamed, which
+is the only reason this isn't a patch.
+
+### Fixed
+
+- **The gem's stylesheets no longer leak styles into the host application.**
+  `accessibility.css` in particular carried unscoped element selectors —
+  `a`, `table`, `th`, `td`, `fieldset`, `legend`, `button`, `input`,
+  `[role="dialog"]`, `ul[role="list"]` and others. Any host app that bundled
+  the gem's CSS globally (`*= require rails_onboarding/application` under
+  Sprockets pulls in every gem stylesheet via `require_tree`) had every link
+  on every page underlined and recoloured, every table and fieldset
+  restyled, a 44px floor forced onto every button, and `position: fixed`
+  centring applied to any element with `role="dialog"`. `application.css`
+  (bare `label`, `input[type="text"]`, `select`, `textarea`) and `mobile.css`
+  (bare `button` and input selectors inside media queries) had the same
+  problem in smaller form.
+
+  Every such rule is now confined to markup the engine owns, via
+  `:where(.onboarding-container)` or `:where(.onboarding-banner)`. `:where()`
+  contributes zero specificity, so scoping changed no cascade relationships —
+  `mobile.css`'s media-query overrides still win exactly the ties they won
+  before. This makes good on the isolation contract `application.css` already
+  documented at the top of the file ("No global element selectors without
+  namespace scoping"), which the code did not honour.
+
+  `@media (prefers-reduced-motion: reduce)` previously applied
+  `animation-duration: 0.01ms !important` to `*, *::before, *::after`,
+  disabling animation across the entire host application. It is now scoped to
+  the engine's own markup — honouring that preference page-wide is the host
+  app's call, not a mounted engine's.
+
+### Changed
+
+- **`.sr-only` and `.skip-link` are renamed** to `.onboarding-sr-only` and
+  `.onboarding-skip-link`. Both are utilities intended for use outside
+  `.onboarding-container` (a skip link has to be the first focusable element
+  in the document), so they can't be scoped — prefixing is what keeps them
+  from colliding. `.sr-only` in particular collided with the identically named
+  class in Bootstrap and Tailwind. `.sr-only-focusable` becomes
+  `.onboarding-sr-only-focusable`. The `.sr-only` definition here was also a
+  duplicate of `.onboarding-sr-only` in `utilities.css` and has been dropped.
+  If you referenced these gem classes in your own markup, rename them.
+
+- **The `pulse-ring` keyframe is renamed** to `onboarding-pulse-ring`.
+  Keyframe names share one global namespace with the host application.
+
 ## [0.3.4] - 2026-07-27
 
 Patch: one link added to the admin sidebar. No API changes, nothing to
@@ -587,7 +638,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.4...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.4...v0.4.0
 [0.3.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.1...v0.3.2

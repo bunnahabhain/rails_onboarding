@@ -1047,6 +1047,52 @@ yourself. You do still need to import and register the Stimulus controllers
 you use (see [Asset Loading Guide](docs/ASSET_LOADING_GUIDE.md)), since
 pinning a module only makes it loadable, not registered with Stimulus.
 
+### Gem styles bleeding into my app's pages
+
+They shouldn't, and as of 0.4.0 they don't. Every rule in
+the gem's stylesheets is confined to markup the engine owns, scoped with
+`:where(.onboarding-container)` for engine pages or
+`:where(.onboarding-banner)` for the banner rendered on your own pages. It
+is safe to bundle the gem's CSS globally.
+
+If you are on an older version and see symptoms like every link on your
+homepage suddenly underlined, tables and fieldsets restyled, or buttons
+forced to a 44px minimum, that's the pre-fix `accessibility.css` — it
+carried unscoped `a`, `table`, `fieldset`, `button` and `[role="dialog"]`
+selectors, and under Sprockets `*= require rails_onboarding/application`
+pulls in every gem stylesheet via `require_tree`. Upgrade, or drop the
+`require` from your host `application.css` and link the individual
+stylesheets you need.
+
+Two utility classes are namespaced rather than scoped, because they are
+meant to be used outside the container: `.onboarding-sr-only` (screen-reader
+text) and `.onboarding-skip-link` (a skip link has to be the first focusable
+element in the document). If you used the older `.sr-only` / `.skip-link`
+names in your own markup, rename them.
+
+The gem does define `--onboarding-*` custom properties on `:root`, which is
+intentional — that's the supported way to retheme it from your own
+stylesheet:
+
+```css
+:root {
+  --onboarding-primary: #0f766e;
+  --onboarding-primary-hover: #115e59;
+}
+```
+
+### Do I need to load accessibility.css?
+
+Yes — load it like any other gem stylesheet. It isn't gated on a user
+preference and there's no toggle to switch it on for people who need it.
+Most of it is unconditional baseline: focus indicators, 44px touch targets,
+screen-reader text, disabled-state contrast. Focus rings use `:focus-visible`,
+so browsers already paint them only for keyboard and assistive-technology
+users, not on mouse clicks. The parts that *are* preference-dependent —
+`prefers-contrast: high`, `prefers-reduced-motion: reduce`,
+`prefers-color-scheme: dark` — are gated by the browser off the user's OS
+setting, with nothing for your app to detect or configure.
+
 ### Stimulus controllers not working
 
 Ensure Stimulus is installed and configured:

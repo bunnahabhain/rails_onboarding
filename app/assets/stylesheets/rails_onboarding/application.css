@@ -476,7 +476,7 @@
   margin-bottom: 0;
 }
 
-label {
+:where(.onboarding-container) label {
   display: block;
   font-weight: 500;
   color: var(--onboarding-text);
@@ -484,10 +484,10 @@ label {
   font-size: var(--onboarding-text-base);
 }
 
-input[type="text"],
-input[type="email"],
-select,
-textarea {
+:where(.onboarding-container) input[type="text"],
+:where(.onboarding-container) input[type="email"],
+:where(.onboarding-container) select,
+:where(.onboarding-container) textarea {
   width: 100%;
   padding: var(--onboarding-space-md);
   border: 2px solid var(--onboarding-border);
@@ -499,16 +499,16 @@ textarea {
   transition: var(--onboarding-transition);
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
-select:focus,
-textarea:focus {
+:where(.onboarding-container) input[type="text"]:focus,
+:where(.onboarding-container) input[type="email"]:focus,
+:where(.onboarding-container) select:focus,
+:where(.onboarding-container) textarea:focus {
   outline: none;
   border-color: var(--onboarding-border-focus);
   box-shadow: var(--onboarding-focus-ring);
 }
 
-input[type="checkbox"] {
+:where(.onboarding-container) input[type="checkbox"] {
   width: 1.25rem;
   height: 1.25rem;
   margin-right: var(--onboarding-space-sm);
