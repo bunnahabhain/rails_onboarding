@@ -1049,7 +1049,7 @@ pinning a module only makes it loadable, not registered with Stimulus.
 
 ### Gem styles bleeding into my app's pages
 
-They shouldn't, and as of the Unreleased version they don't. Every rule in
+They shouldn't, and as of 0.4.0 they don't. Every rule in
 the gem's stylesheets is confined to markup the engine owns, scoped with
 `:where(.onboarding-container)` for engine pages or
 `:where(.onboarding-banner)` for the banner rendered on your own pages. It

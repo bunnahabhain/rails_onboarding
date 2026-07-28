@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-28
+
+Minor: the gem's stylesheets no longer leak into the host application. If
+you bundle the gem's CSS globally, this version changes how your own pages
+look — by no longer restyling them. Two utility classes are renamed, which
+is the only reason this isn't a patch.
+
 ### Fixed
 
 - **The gem's stylesheets no longer leak styles into the host application.**
@@ -631,7 +638,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.4...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.4...v0.4.0
 [0.3.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.1...v0.3.2
