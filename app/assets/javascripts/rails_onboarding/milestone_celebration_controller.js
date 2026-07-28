@@ -60,7 +60,7 @@ export default class extends Controller {
       left: ${left}%;
       top: -10px;
       border-radius: 50%;
-      animation: confetti-fall ${animationDuration}s linear forwards;
+      animation: onboarding-confetti-fall ${animationDuration}s linear forwards;
       transform: rotate(${rotation}deg);
       pointer-events: none;
     `

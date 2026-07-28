@@ -25,10 +25,10 @@
 /* Spotlight style - Creates cutout effect */
 .tour-spotlight-spotlight {
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
-  animation: spotlightPulse 2s ease-in-out infinite;
+  animation: onboarding-spotlightPulse 2s ease-in-out infinite;
 }
 
-@keyframes spotlightPulse {
+@keyframes onboarding-spotlightPulse {
   0%, 100% {
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
   }
@@ -41,10 +41,10 @@
 .tour-spotlight-border {
   border: 3px solid #3b82f6;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
-  animation: borderPulse 2s ease-in-out infinite;
+  animation: onboarding-borderPulse 2s ease-in-out infinite;
 }
 
-@keyframes borderPulse {
+@keyframes onboarding-borderPulse {
   0%, 100% {
     border-color: #3b82f6;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
@@ -61,10 +61,10 @@
     0 0 0 4px rgba(59, 130, 246, 0.3),
     0 0 20px 8px rgba(59, 130, 246, 0.4),
     inset 0 0 20px rgba(59, 130, 246, 0.2);
-  animation: glowPulse 2s ease-in-out infinite;
+  animation: onboarding-glowPulse 2s ease-in-out infinite;
 }
 
-@keyframes glowPulse {
+@keyframes onboarding-glowPulse {
   0%, 100% {
     box-shadow:
       0 0 0 4px rgba(59, 130, 246, 0.3),
@@ -465,7 +465,7 @@
 }
 
 /* Animation for tour entrance */
-@keyframes tourSlideIn {
+@keyframes onboarding-tourSlideIn {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -477,11 +477,11 @@
 }
 
 .tour-popup.animate-in {
-  animation: tourSlideIn 0.3s ease-out;
+  animation: onboarding-tourSlideIn 0.3s ease-out;
 }
 
 /* Pulse animation for interactive elements */
-@keyframes tourPulse {
+@keyframes onboarding-tourPulse {
   0%, 100% {
     opacity: 1;
   }
@@ -491,5 +491,5 @@
 }
 
 .tour-pulse {
-  animation: tourPulse 2s ease-in-out infinite;
+  animation: onboarding-tourPulse 2s ease-in-out infinite;
 }

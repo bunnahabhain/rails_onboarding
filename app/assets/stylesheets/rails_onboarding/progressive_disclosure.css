@@ -68,10 +68,10 @@
 
 .notification-icon {
   font-size: 1.5rem;
-  animation: sparkle 2s ease-in-out infinite;
+  animation: onboarding-sparkle 2s ease-in-out infinite;
 }
 
-@keyframes sparkle {
+@keyframes onboarding-sparkle {
   0%, 100% {
     transform: scale(1);
     opacity: 1;

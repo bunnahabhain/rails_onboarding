@@ -11,7 +11,7 @@ export default class extends Controller {
     
     if (iconLarge) {
       // Add bounce animation to the icon
-      iconLarge.style.animation = 'milestone-bounce 1s ease-in-out'
+      iconLarge.style.animation = 'onboarding-milestone-bounce 1s ease-in-out'
     }
     
     if (hero && hero.classList.contains('achieved')) {

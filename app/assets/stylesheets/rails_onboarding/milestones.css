@@ -174,7 +174,7 @@
 }
 
 .milestone-hero.celebration-glow {
-  animation: celebration-pulse 2s ease-in-out;
+  animation: onboarding-celebration-pulse 2s ease-in-out;
 }
 
 .milestone-icon-large {
@@ -321,7 +321,7 @@
   position: relative;
   text-align: center;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  animation: celebration-appear 0.5s ease-out;
+  animation: onboarding-celebration-appear 0.5s ease-out;
 }
 
 .confetti-container {
@@ -354,14 +354,14 @@
   height: 120px;
   background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
   border-radius: 50%;
-  animation: glow-pulse 2s ease-in-out infinite;
+  animation: onboarding-glow-pulse 2s ease-in-out infinite;
 }
 
 .achievement-icon {
   font-size: 4rem;
   position: relative;
   z-index: 1;
-  animation: icon-bounce 1s ease-out;
+  animation: onboarding-icon-bounce 1s ease-out;
 }
 
 .achievement-title {
@@ -406,7 +406,7 @@
 }
 
 /* Animations */
-@keyframes confetti-fall {
+@keyframes onboarding-confetti-fall {
   0% {
     transform: translateY(-100vh) rotate(0deg);
     opacity: 1;
@@ -417,7 +417,7 @@
   }
 }
 
-@keyframes celebration-appear {
+@keyframes onboarding-celebration-appear {
   0% {
     opacity: 0;
     transform: scale(0.8) translateY(20px);
@@ -428,7 +428,7 @@
   }
 }
 
-@keyframes glow-pulse {
+@keyframes onboarding-glow-pulse {
   0%, 100% {
     opacity: 0.5;
     transform: translate(-50%, -50%) scale(1);
@@ -439,7 +439,7 @@
   }
 }
 
-@keyframes icon-bounce {
+@keyframes onboarding-icon-bounce {
   0%, 100% {
     transform: translateY(0);
   }
@@ -454,7 +454,7 @@
   }
 }
 
-@keyframes milestone-bounce {
+@keyframes onboarding-milestone-bounce {
   0%, 100% {
     transform: translateY(0);
   }
@@ -469,7 +469,7 @@
   }
 }
 
-@keyframes celebration-pulse {
+@keyframes onboarding-celebration-pulse {
   0%, 100% {
     box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
   }

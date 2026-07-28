@@ -209,6 +209,21 @@ All CSS in the Rails Onboarding gem follows strict namespacing to prevent confli
    isolation but raise specificity from `(0,0,1)` to `(0,1,1)`, silently
    changing which rule wins wherever the gem's own files overlap.
 
+4. **Keyframes:** All `@keyframes` use the `onboarding-` prefix
+   ```css
+   /* ❌ Avoid - one global namespace, shared with the host app */
+   @keyframes spin { }
+
+   /* ✅ Correct */
+   @keyframes onboarding-spin { }
+   ```
+
+   Keyframe names are not scoped by selectors — they live in a single
+   global namespace, and a later definition of the same name silently
+   replaces an earlier one. An unprefixed `spin` in the gem and an
+   unprefixed `spin` in the host application will clobber each other based
+   on nothing but stylesheet order.
+
 ### Scoping Strategy
 
 Onboarding UI lives under one of two scope roots. Engine pages are wrapped

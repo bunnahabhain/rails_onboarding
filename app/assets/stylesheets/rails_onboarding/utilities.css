@@ -246,18 +246,18 @@
 
 /* Animation utilities */
 .onboarding-animate-fade-in {
-  animation: fadeInUp 0.3s ease-out;
+  animation: onboarding-fadeInUp 0.3s ease-out;
 }
 
 .onboarding-animate-bounce {
-  animation: bounce 1s infinite;
+  animation: onboarding-bounce 1s infinite;
 }
 
 .onboarding-animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: onboarding-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes bounce {
+@keyframes onboarding-bounce {
   0%, 100% {
     transform: translateY(-25%);
     animation-timing-function: cubic-bezier(0.8,0,1,1);
@@ -268,7 +268,7 @@
   }
 }
 
-@keyframes pulse {
+@keyframes onboarding-pulse {
   0%, 100% {
     opacity: 1;
   }
@@ -338,11 +338,11 @@
   border: 2px solid var(--onboarding-border);
   border-top-color: var(--onboarding-primary);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: onboarding-spin 1s linear infinite;
   z-index: 2;
 }
 
-@keyframes spin {
+@keyframes onboarding-spin {
   to {
     transform: rotate(360deg);
   }

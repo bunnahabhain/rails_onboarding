@@ -19,7 +19,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   pointer-events: auto;
-  animation: slideInRight 0.3s ease-out;
+  animation: onboarding-slideInRight 0.3s ease-out;
   position: relative;
   transition: all 0.3s ease;
 }
@@ -60,7 +60,7 @@
 .milestone-celebration {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-left: 4px solid #5a67d8;
-  animation: celebrationPulse 0.5s ease-out, slideInRight 0.3s ease-out;
+  animation: onboarding-celebrationPulse 0.5s ease-out, onboarding-slideInRight 0.3s ease-out;
 }
 
 /* Flash icon */
@@ -109,7 +109,7 @@
 }
 
 /* Animations */
-@keyframes slideInRight {
+@keyframes onboarding-slideInRight {
   from {
     transform: translateX(100%);
     opacity: 0;
@@ -120,7 +120,7 @@
   }
 }
 
-@keyframes celebrationPulse {
+@keyframes onboarding-celebrationPulse {
   0%, 100% {
     transform: scale(1);
   }
@@ -129,7 +129,7 @@
   }
 }
 
-@keyframes fadeOut {
+@keyframes onboarding-fadeOut {
   from {
     opacity: 1;
     transform: translateX(0);
@@ -142,7 +142,7 @@
 
 /* Auto-dismiss animation */
 .flash.flash-dismissing {
-  animation: fadeOut 0.3s ease-out forwards;
+  animation: onboarding-fadeOut 0.3s ease-out forwards;
 }
 
 /* Mobile responsive */
@@ -227,10 +227,10 @@
   border: 3px solid rgba(0, 0, 0, 0.1);
   border-top-color: #3b82f6;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: onboarding-flash-spin 0.8s linear infinite;
 }
 
-@keyframes spin {
+@keyframes onboarding-flash-spin {
   to {
     transform: translate(-50%, -50%) rotate(360deg);
   }

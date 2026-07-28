@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The utilities spinner no longer jumps out of position.** `spin` was
+  defined twice with different bodies — `flash_messages.css` used
+  `transform: translate(-50%, -50%) rotate(360deg)` to hold its own
+  centring, `utilities.css` used a plain `rotate(360deg)`. Keyframe names
+  share one global namespace and last definition wins, and
+  `flash_messages` loads after `utilities` in every bundle order the gem
+  ships, so `.onboarding-spin` was silently animating with the flash
+  variant. That spinner centres via negative margins rather than a
+  transform, so the inherited `translate(-50%, -50%)` displaced it by half
+  its own size for the whole animation. The two are now distinct
+  (`onboarding-spin` and `onboarding-flash-spin`) and each behaves as
+  written.
+
+### Changed
+
+- **All `@keyframes` are namespaced with an `onboarding-` prefix.**
+  Keyframe names are a single global namespace shared with the host
+  application, so the gem's `spin`, `pulse`, `fadeInUp`, `bounce`,
+  `fadeOut`, `skeleton` and `sparkle` could be silently redefined by — or
+  silently redefine — an identically named keyframe in the host app,
+  depending only on stylesheet order. All 23 are now prefixed.
+
+  Original names are preserved after the prefix rather than normalised to
+  kebab-case, because the gem contains genuinely distinct pairs that
+  normalising would have collided: `glowPulse` (tour) vs `glow-pulse`
+  (milestones), and `celebrationPulse` (flash) vs `celebration-pulse`
+  (milestones). The casing is therefore mixed, but no two names collapse
+  onto each other.
+
+  This is internal unless you referenced a gem keyframe by name from your
+  own CSS or JS, in which case add the prefix.
+
 ## [0.4.0] - 2026-07-28
 
 Minor: the gem's stylesheets no longer leak into the host application. If

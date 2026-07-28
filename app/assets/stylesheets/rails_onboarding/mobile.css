@@ -474,10 +474,10 @@
 @media screen and (max-width: 47.9375em) {
   /* Reduce animation complexity on mobile */
   .onboarding-container[data-step-changed] .step-content {
-    animation: mobileFadeIn 0.2s ease-out;
+    animation: onboarding-mobileFadeIn 0.2s ease-out;
   }
 
-  @keyframes mobileFadeIn {
+  @keyframes onboarding-mobileFadeIn {
     from {
       opacity: 0;
     }
@@ -722,10 +722,10 @@
       var(--onboarding-surface) 100%
     );
     background-size: 200% 100%;
-    animation: skeleton 1.5s ease-in-out infinite;
+    animation: onboarding-skeleton 1.5s ease-in-out infinite;
   }
 
-  @keyframes skeleton {
+  @keyframes onboarding-skeleton {
     0% {
       background-position: 200% 0;
     }

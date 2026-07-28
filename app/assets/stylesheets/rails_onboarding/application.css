@@ -281,7 +281,7 @@
 }
 
 .step-marker-pulse {
-  animation: pulse 1s ease-in-out;
+  animation: onboarding-pulse 1s ease-in-out;
 }
 
 .step-label {
@@ -1084,7 +1084,7 @@
 /* ======================
    Animation Classes
    ====================== */
-@keyframes fadeInUp {
+@keyframes onboarding-fadeInUp {
   from {
     opacity: 0;
     transform: translateY(1rem);
@@ -1096,7 +1096,7 @@
 }
 
 .onboarding-container[data-step-changed] .step-content {
-  animation: fadeInUp 0.3s ease-out;
+  animation: onboarding-fadeInUp 0.3s ease-out;
 }
 
 /* ======================
