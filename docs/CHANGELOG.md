@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-07-28
+
+Patch: finishes the CSS isolation work started in 0.4.0. That release
+scoped the gem's selectors; this one namespaces its `@keyframes`, the
+remaining piece of the gem's CSS that lived in a global namespace. Also
+fixes a spinner that had been animating out of position because of a
+keyframe name collision inside the gem.
+
+Treated as a patch rather than a minor: keyframe names are internal, and
+this lands as a continuation of 0.4.0's naming changes rather than as a
+separate break for anyone to absorb.
+
 ### Fixed
 
 - **The utilities spinner no longer jumps out of position.** `spin` was
@@ -672,7 +684,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.4...v0.4.0
 [0.3.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.2...v0.3.3
