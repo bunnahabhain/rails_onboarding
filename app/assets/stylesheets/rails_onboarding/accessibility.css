@@ -1,9 +1,28 @@
 /* ======================
    Accessibility Enhancements
-   ====================== */
+   ======================
 
-/* Skip links for keyboard navigation */
-.skip-link {
+   Scoping: every rule here is confined to markup the engine owns, via
+   `:where(.onboarding-container)` (engine pages) or `:where(.onboarding-banner)`
+   (chrome rendered on host-app pages). `:where()` carries zero specificity, so
+   scoping a rule does not change how it competes in the cascade with the gem's
+   other stylesheets - mobile.css's media-query overrides still win the same ties
+   they won before.
+
+   Bare element selectors (`a`, `table`, `fieldset`, `[role="dialog"]`, ...) must
+   never appear unscoped in this file. Host apps bundle this stylesheet into
+   their global CSS, so an unscoped `a { text-decoration: underline }` restyles
+   every link in the host application.
+
+   Utility classes meant to be used outside the container (screen-reader text,
+   skip links) are namespaced with `onboarding-` instead of scoped, since they
+   are opt-in by class name and cannot collide unintentionally. */
+
+/* Skip links for keyboard navigation.
+   Deliberately unscoped: a skip link has to be the first focusable element in
+   the document, which puts it above .onboarding-container in the DOM. The
+   `onboarding-` prefix is what keeps it from colliding with host styles. */
+.onboarding-skip-link {
   position: absolute;
   top: -2.5rem;
   left: var(--onboarding-space-md);
@@ -17,7 +36,7 @@
   transition: top 0.3s ease;
 }
 
-.skip-link:focus {
+.onboarding-skip-link:focus {
   top: var(--onboarding-space-md);
 }
 
@@ -29,36 +48,44 @@
 }
 
 /* High contrast focus for interactive elements */
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-a:focus-visible,
-[tabindex]:focus-visible {
+:where(.onboarding-container) button:focus-visible,
+:where(.onboarding-container) input:focus-visible,
+:where(.onboarding-container) select:focus-visible,
+:where(.onboarding-container) textarea:focus-visible,
+:where(.onboarding-container) a:focus-visible,
+:where(.onboarding-container) [tabindex]:focus-visible {
   outline: 3px solid var(--onboarding-primary);
   outline-offset: 2px;
 }
 
 /* Ensure minimum touch target size */
-button,
-input[type="button"],
-input[type="submit"],
-input[type="reset"],
-.primary-action,
-.secondary-action,
-.skip-action,
-.help-action,
-.feature-button,
-.tooltip-action {
+:where(.onboarding-container) button,
+:where(.onboarding-container) input[type="button"],
+:where(.onboarding-container) input[type="submit"],
+:where(.onboarding-container) input[type="reset"],
+:where(.onboarding-container) .primary-action,
+:where(.onboarding-container) .secondary-action,
+:where(.onboarding-container) .skip-action,
+:where(.onboarding-container) .help-action,
+:where(.onboarding-container) .feature-button,
+:where(.onboarding-container) .tooltip-action {
   min-height: 2.75rem; /* 44px minimum touch target */
   min-width: 2.75rem;
 }
 
+/* The banner renders on host-app pages, outside .onboarding-container, so its
+   controls need the touch-target floor applied on their own scope rather than
+   inheriting it from the rule above. */
+:where(.onboarding-banner) .onboarding-banner-continue,
+:where(.onboarding-banner) .onboarding-banner-skip {
+  min-height: 2.75rem;
+}
+
 /* Enhanced button states for better accessibility */
-button:disabled,
-input:disabled,
-select:disabled,
-textarea:disabled {
+:where(.onboarding-container) button:disabled,
+:where(.onboarding-container) input:disabled,
+:where(.onboarding-container) select:disabled,
+:where(.onboarding-container) textarea:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   background-color: var(--onboarding-surface);
@@ -85,22 +112,12 @@ textarea:disabled {
   overflow: hidden;
 }
 
-/* Screen reader only content */
-.sr-only {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
-
-/* Screen reader only content that can be focused */
-.sr-only-focusable:focus,
-.sr-only-focusable:active {
+/* Screen reader only content that can be focused.
+   Unscoped for the same reason as .onboarding-skip-link - these are opt-in
+   utilities that may be used outside the container. The base
+   `.onboarding-sr-only` lives in utilities.css. */
+.onboarding-sr-only-focusable:focus,
+.onboarding-sr-only-focusable:active {
   position: static !important;
   width: auto !important;
   height: auto !important;
@@ -111,7 +128,7 @@ textarea:disabled {
 }
 
 /* Enhanced error messaging */
-.error-message {
+:where(.onboarding-container) .error-message {
   color: var(--onboarding-danger);
   font-size: var(--onboarding-text-sm);
   margin-top: var(--onboarding-space-xs);
@@ -120,21 +137,21 @@ textarea:disabled {
   gap: var(--onboarding-space-xs);
 }
 
-.error-icon {
+:where(.onboarding-container) .error-icon {
   flex-shrink: 0;
   margin-top: 0.125rem;
   font-size: var(--onboarding-text-base);
 }
 
 /* Required field indicators */
-.required-indicator {
+:where(.onboarding-container) .required-indicator {
   color: var(--onboarding-danger);
   margin-left: var(--onboarding-space-xs);
   font-weight: 600;
 }
 
 /* Field descriptions and help text */
-.field-description {
+:where(.onboarding-container) .field-description {
   font-size: var(--onboarding-text-sm);
   color: var(--onboarding-text-muted);
   margin-top: var(--onboarding-space-xs);
@@ -142,25 +159,25 @@ textarea:disabled {
 }
 
 /* Progress indicators with better semantics */
-.progress-container[role="progressbar"] {
+:where(.onboarding-container, .onboarding-banner) .progress-container[role="progressbar"] {
   background: var(--onboarding-surface);
   border: 1px solid var(--onboarding-border);
   border-radius: 0.5rem;
   overflow: hidden;
 }
 
-.progress-container[role="progressbar"]::before {
+:where(.onboarding-container, .onboarding-banner) .progress-container[role="progressbar"]::before {
   content: attr(aria-label);
   position: absolute;
   left: -10000px;
 }
 
 /* Enhanced step indicators */
-.step-marker[aria-current="step"] {
+:where(.onboarding-container) .step-marker[aria-current="step"] {
   position: relative;
 }
 
-.step-marker[aria-current="step"]::after {
+:where(.onboarding-container) .step-marker[aria-current="step"]::after {
   content: '';
   position: absolute;
   top: -0.25rem;
@@ -169,10 +186,12 @@ textarea:disabled {
   bottom: -0.25rem;
   border: 2px solid var(--onboarding-primary);
   border-radius: 50%;
-  animation: pulse-ring 2s infinite;
+  animation: onboarding-pulse-ring 2s infinite;
 }
 
-@keyframes pulse-ring {
+/* Keyframe names are a single global namespace shared with the host app, so
+   this one is prefixed like the custom properties are. */
+@keyframes onboarding-pulse-ring {
   0% {
     transform: scale(1);
     opacity: 1;
@@ -184,47 +203,39 @@ textarea:disabled {
 }
 
 /* Enhanced tooltip accessibility */
-.tooltip[role="tooltip"] {
+:where(.onboarding-container) .tooltip[role="tooltip"] {
   /* Ensure tooltips are announced by screen readers */
   pointer-events: auto;
 }
 
-.tooltip-trigger[aria-describedby] {
+:where(.onboarding-container) .tooltip-trigger[aria-describedby] {
   position: relative;
 }
 
-/* Landmark roles styling */
-[role="banner"],
-[role="main"],
-[role="navigation"],
-[role="contentinfo"] {
-  outline: none;
-}
-
 /* Enhanced form styling for accessibility */
-fieldset {
+:where(.onboarding-container) fieldset {
   border: 2px solid var(--onboarding-border);
   border-radius: 0.5rem;
   padding: var(--onboarding-space-lg);
   margin: 0 0 var(--onboarding-space-lg);
 }
 
-legend {
+:where(.onboarding-container) legend {
   font-weight: 600;
   color: var(--onboarding-text);
   padding: 0 var(--onboarding-space-sm);
 }
 
 /* Radio and checkbox groups */
-.radio-group,
-.checkbox-group {
+:where(.onboarding-container) .radio-group,
+:where(.onboarding-container) .checkbox-group {
   display: flex;
   flex-direction: column;
   gap: var(--onboarding-space-sm);
 }
 
-.radio-option,
-.checkbox-option {
+:where(.onboarding-container) .radio-option,
+:where(.onboarding-container) .checkbox-option {
   display: flex;
   align-items: flex-start;
   gap: var(--onboarding-space-sm);
@@ -234,25 +245,25 @@ legend {
   transition: var(--onboarding-transition);
 }
 
-.radio-option:hover,
-.checkbox-option:hover {
+:where(.onboarding-container) .radio-option:hover,
+:where(.onboarding-container) .checkbox-option:hover {
   background: var(--onboarding-surface);
 }
 
-.radio-option:focus-within,
-.checkbox-option:focus-within {
+:where(.onboarding-container) .radio-option:focus-within,
+:where(.onboarding-container) .checkbox-option:focus-within {
   background: var(--onboarding-surface);
   outline: 2px solid var(--onboarding-primary);
   outline-offset: 2px;
 }
 
 /* Enhanced table accessibility */
-table {
+:where(.onboarding-container) table {
   border-collapse: collapse;
   width: 100%;
 }
 
-th {
+:where(.onboarding-container) th {
   text-align: left;
   font-weight: 600;
   background: var(--onboarding-surface);
@@ -260,89 +271,94 @@ th {
   border: 1px solid var(--onboarding-border);
 }
 
-td {
+:where(.onboarding-container) td {
   padding: var(--onboarding-space-md);
   border: 1px solid var(--onboarding-border);
 }
 
 /* Caption styling */
-caption {
+:where(.onboarding-container) caption {
   font-weight: 600;
   margin-bottom: var(--onboarding-space-md);
   text-align: left;
 }
 
 /* Enhanced link styling */
-a:not(.primary-action):not(.secondary-action):not(.skip-action) {
+:where(.onboarding-container) a:not(.primary-action):not(.secondary-action):not(.skip-action) {
   color: var(--onboarding-primary);
   text-decoration: underline;
   text-underline-offset: 0.125em;
   transition: var(--onboarding-transition);
 }
 
-a:not(.primary-action):not(.secondary-action):not(.skip-action):hover {
+:where(.onboarding-container) a:not(.primary-action):not(.secondary-action):not(.skip-action):hover {
   color: var(--onboarding-primary-hover);
   text-decoration-thickness: 2px;
 }
 
-a:not(.primary-action):not(.secondary-action):not(.skip-action):focus-visible {
+:where(.onboarding-container) a:not(.primary-action):not(.secondary-action):not(.skip-action):focus-visible {
   outline: 2px solid var(--onboarding-primary);
   outline-offset: 0.125em;
   border-radius: 0.125rem;
 }
 
-/* High contrast mode enhancements */
+/* High contrast mode enhancements.
+   The :root block only reassigns --onboarding-* custom properties, which
+   nothing outside this gem reads, so it stays unscoped. */
 @media (prefers-contrast: high) {
   :root {
     --onboarding-border: #000000;
     --onboarding-text-muted: #000000;
   }
-  
+
   .onboarding-container {
     background: #ffffff;
     color: #000000;
   }
-  
-  .primary-action,
-  .secondary-action {
+
+  :where(.onboarding-container) .primary-action,
+  :where(.onboarding-container) .secondary-action {
     border-width: 2px;
     font-weight: 700;
   }
-  
-  .progress-fill {
+
+  :where(.onboarding-container, .onboarding-banner) .progress-fill {
     background: #000000;
   }
-  
-  .step-marker {
+
+  :where(.onboarding-container) .step-marker {
     border-width: 3px;
   }
-  
-  .tooltip {
+
+  :where(.onboarding-container) .tooltip {
     border: 2px solid #000000;
   }
 }
 
-/* Reduced motion preferences */
+/* Reduced motion preferences.
+   Scoped to the engine's own markup: honouring prefers-reduced-motion across
+   the whole page is the host application's call, not a mounted engine's. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :where(.onboarding-container, .onboarding-banner),
+  :where(.onboarding-container, .onboarding-banner) *,
+  :where(.onboarding-container, .onboarding-banner) *::before,
+  :where(.onboarding-container, .onboarding-banner) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  
-  .step-marker[aria-current="step"]::after {
+
+  :where(.onboarding-container) .step-marker[aria-current="step"]::after {
     animation: none;
   }
-  
+
   .onboarding-container[data-step-changed] .step-content {
     animation: none;
   }
 }
 
-/* Enhanced color contrast for dark mode */
+/* Enhanced color contrast for dark mode - --onboarding-* properties only. */
 @media (prefers-color-scheme: dark) and (prefers-contrast: high) {
   :root {
     --onboarding-background: #000000;
@@ -354,19 +370,19 @@ a:not(.primary-action):not(.secondary-action):not(.skip-action):focus-visible {
 
 /* Print accessibility */
 @media print {
-  .skip-link,
+  .onboarding-skip-link,
   .onboarding-live-region,
-  .sr-only {
+  .onboarding-sr-only {
     display: none;
   }
-  
-  a {
+
+  :where(.onboarding-container) a {
     color: #000000 !important;
     text-decoration: underline !important;
   }
-  
-  .primary-action,
-  .secondary-action {
+
+  :where(.onboarding-container) .primary-action,
+  :where(.onboarding-container) .secondary-action {
     border: 2px solid #000000 !important;
     background: transparent !important;
     color: #000000 !important;
@@ -374,11 +390,11 @@ a:not(.primary-action):not(.secondary-action):not(.skip-action):focus-visible {
 }
 
 /* Screen reader improvements for interactive elements */
-.interactive-element {
+:where(.onboarding-container) .interactive-element {
   position: relative;
 }
 
-.interactive-element::before {
+:where(.onboarding-container) .interactive-element::before {
   content: attr(aria-label);
   position: absolute;
   left: -10000px;
@@ -389,32 +405,32 @@ a:not(.primary-action):not(.secondary-action):not(.skip-action):focus-visible {
 }
 
 /* Enhanced status messages */
-.status-message {
+:where(.onboarding-container) .status-message {
   padding: var(--onboarding-space-md);
   border-radius: 0.5rem;
   margin: var(--onboarding-space-md) 0;
   border: 1px solid;
 }
 
-.status-message.success {
+:where(.onboarding-container) .status-message.success {
   background: #f0fdf4;
   border-color: var(--onboarding-success);
   color: #166534;
 }
 
-.status-message.error {
+:where(.onboarding-container) .status-message.error {
   background: #fef2f2;
   border-color: var(--onboarding-danger);
   color: #dc2626;
 }
 
-.status-message.warning {
+:where(.onboarding-container) .status-message.warning {
   background: #fffbeb;
   border-color: var(--onboarding-warning);
   color: #92400e;
 }
 
-.status-message.info {
+:where(.onboarding-container) .status-message.info {
   background: #eff6ff;
   border-color: var(--onboarding-primary);
   color: #1e40af;
@@ -431,21 +447,21 @@ a:not(.primary-action):not(.secondary-action):not(.skip-action):focus-visible {
 }
 
 /* Enhanced input validation states */
-input:invalid,
-select:invalid,
-textarea:invalid {
+:where(.onboarding-container) input:invalid,
+:where(.onboarding-container) select:invalid,
+:where(.onboarding-container) textarea:invalid {
   border-color: var(--onboarding-danger);
   box-shadow: inset 0 1px 2px rgba(239, 68, 68, 0.1);
 }
 
-input:valid:not(:placeholder-shown),
-select:valid,
-textarea:valid:not(:placeholder-shown) {
+:where(.onboarding-container) input:valid:not(:placeholder-shown),
+:where(.onboarding-container) select:valid,
+:where(.onboarding-container) textarea:valid:not(:placeholder-shown) {
   border-color: var(--onboarding-success);
 }
 
 /* Loading state accessibility */
-.loading-announcement {
+:where(.onboarding-container) .loading-announcement {
   position: absolute;
   left: -10000px;
   width: 1px;
@@ -453,11 +469,11 @@ textarea:valid:not(:placeholder-shown) {
   overflow: hidden;
 }
 
-[aria-busy="true"] {
+:where(.onboarding-container) [aria-busy="true"] {
   position: relative;
 }
 
-[aria-busy="true"]::after {
+:where(.onboarding-container) [aria-busy="true"]::after {
   content: '';
   position: absolute;
   top: 0;
@@ -472,7 +488,7 @@ textarea:valid:not(:placeholder-shown) {
 }
 
 /* Enhanced dialog/modal accessibility */
-[role="dialog"] {
+:where(.onboarding-container) [role="dialog"] {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -488,7 +504,7 @@ textarea:valid:not(:placeholder-shown) {
   overflow: auto;
 }
 
-.dialog-backdrop {
+:where(.onboarding-container) .dialog-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -499,22 +515,22 @@ textarea:valid:not(:placeholder-shown) {
 }
 
 /* Focus trap for modals */
-.focus-trap {
+:where(.onboarding-container) .focus-trap {
   outline: none;
 }
 
 /* Enhanced list accessibility */
-ul[role="list"],
-ol[role="list"] {
+:where(.onboarding-container) ul[role="list"],
+:where(.onboarding-container) ol[role="list"] {
   list-style: none;
   padding: 0;
 }
 
-li[role="listitem"] {
+:where(.onboarding-container) li[role="listitem"] {
   padding: var(--onboarding-space-sm) 0;
   border-bottom: 1px solid var(--onboarding-border);
 }
 
-li[role="listitem"]:last-child {
+:where(.onboarding-container) li[role="listitem"]:last-child {
   border-bottom: none;
 }

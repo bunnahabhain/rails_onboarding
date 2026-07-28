@@ -191,7 +191,7 @@ export default class extends Controller {
         const announcement = document.createElement('div')
         announcement.setAttribute('aria-live', 'polite')
         announcement.setAttribute('aria-atomic', 'true')
-        announcement.className = 'sr-only'
+        announcement.className = 'onboarding-sr-only'
         announcement.style.cssText = 'position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;'
 
         const stepTitle = this.element.querySelector('.step-title')
