@@ -163,6 +163,42 @@ If you don't use the admin dashboard, you can skip
 This works whether or not cssbundling-rails is installed - it isn't
 involved here at all, since these tags bypass your build pipeline entirely.
 
+### Will these affect the rest of my app?
+
+No. Every rule in these stylesheets is scoped to markup the engine owns -
+`.onboarding-container` on engine pages, `.onboarding-banner` for the banner
+rendered on your own pages - so it's safe to load them site-wide from your
+layout, which is what the tags above do.
+
+The scoping uses `:where()`, which contributes zero specificity. Practically
+that means overriding a gem style takes a single class in your own
+stylesheet; you don't have to out-specify anything.
+
+Two exceptions, both deliberate. The gem defines `--onboarding-*` custom
+properties on `:root` - that's the supported way to retheme it:
+
+```css
+:root {
+  --onboarding-primary: #0f766e;
+}
+```
+
+And `.onboarding-sr-only` / `.onboarding-skip-link` are namespaced rather
+than scoped, since a skip link has to be the first focusable element in the
+document and so lives above the container. If you're upgrading from a
+version that named these `.sr-only` / `.skip-link` and referenced them in
+your own markup, rename them.
+
+If you're on a version before the scoping fix and see every link on your
+homepage underlined, that's `accessibility.css` - it carried unscoped `a`,
+`table`, `fieldset` and `button` selectors. Upgrading resolves it.
+
+`accessibility.css` is not optional and isn't gated on a user preference:
+focus indicators, touch targets and screen-reader text apply to everyone,
+and the parts that *are* preference-dependent (`prefers-contrast`,
+`prefers-reduced-motion`, `prefers-color-scheme`) are gated by the browser
+off the user's OS setting, with nothing for your app to configure.
+
 ## 4. Alternative: Use Asset Pipeline
 
 If you prefer to use the asset pipeline for the JavaScript files, add this to your layout:
