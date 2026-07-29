@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-07-29
+
+Patch: fixes the milestone dashboard and celebration JavaScript, which
+assumed the engine was mounted at the application root and injected an
+empty celebration overlay.
+
+Nothing to configure and no API change. These paths are reachable only once
+an application renders the milestone views — nothing in the gem does — so if
+you are not using milestones yet, this changes nothing for you.
+
 ### Fixed
 
 - **Milestone JavaScript no longer assumes the engine is mounted at root.**
@@ -941,7 +951,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.4...HEAD
+[0.5.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.0...v0.5.1
