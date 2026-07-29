@@ -1,0 +1,350 @@
+<!doctype html>
+<!--
+  Manual visual check for the gem's CSS animations.
+
+  Run it from the repository root:
+
+      python3 -m http.server 8899
+      open http://localhost:8899/test/manual/animations.html
+
+  It must be served over HTTP, not opened as a file:// URL. The automated
+  check in section 1 reads @keyframes rules out of document.styleSheets,
+  and Chrome treats file:// stylesheets as separate opaque origins, which
+  makes .cssRules throw. The page detects that case and says so rather
+  than reporting phantom failures.
+
+  There is no build step and nothing to install - the <link> tags point at
+  the real stylesheets in app/assets, so editing one and reloading shows
+  the change immediately.
+
+  Not shipped in the packaged gem: the gemspec's spec.files only includes
+  {app,config,db,lib}.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rails_onboarding — animation harness</title>
+
+<!-- The REAL gem stylesheets, in the gem's own load order (application first
+     for the --onboarding-* tokens, mobile last for its media-query overrides).
+     These are live file references, so re-saving a stylesheet and reloading
+     this page shows the change. -->
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/application.css">
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/tooltips.css">
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/utilities.css">
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/accessibility.css">
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/milestones.css">
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/tour.css">
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/flash_messages.css">
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/progressive_disclosure.css">
+<link rel="stylesheet" href="../../app/assets/stylesheets/rails_onboarding/mobile.css">
+
+<style>
+  /* Harness chrome only. Deliberately namespaced with h- so nothing here can
+     be confused with, or interfere with, the gem's own styles. */
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0; padding: 2rem 1.5rem 4rem;
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #fbfbfd; color: #1d1d22;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #131317; color: #e8e8ec; }
+  }
+  .h-wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .35rem; letter-spacing: -.01em; }
+  .h-sub { opacity: .65; margin: 0 0 2rem; font-size: .9rem; }
+  h2 {
+    font-size: 1.05rem; margin: 2.5rem 0 .35rem;
+    padding-bottom: .5rem; border-bottom: 1px solid rgba(128,128,140,.25);
+  }
+  .h-note { font-size: .85rem; opacity: .7; margin: .5rem 0 1.25rem; }
+  .h-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); }
+  .h-card {
+    border: 1px solid rgba(128,128,140,.25); border-radius: 10px;
+    background: rgba(128,128,140,.06); padding: .85rem;
+  }
+  .h-name {
+    font: 600 11.5px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+    word-break: break-all; margin-bottom: .1rem;
+  }
+  .h-where { font-size: 10.5px; opacity: .55; margin-bottom: .7rem; }
+  /* Every demo sits in a fixed-size box with a centre crosshair, so any
+     drift away from centre (the 0.4.1 spinner bug) is immediately visible. */
+  .h-stage {
+    position: relative; height: 110px; border-radius: 7px; overflow: hidden;
+    background: repeating-conic-gradient(rgba(128,128,140,.10) 0% 25%, transparent 0% 50%) 50%/16px 16px;
+  }
+  .h-stage::before, .h-stage::after {
+    content: ""; position: absolute; background: rgba(128,128,140,.45);
+  }
+  .h-stage::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+  .h-stage::after { top: 50%; left: 0; right: 0; height: 1px; }
+  .h-target {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 74px; height: 74px; border-radius: 8px;
+    background: rgba(99,102,241,.16); border: 1px solid rgba(99,102,241,.45);
+    display: grid; place-items: center; font-size: 22px;
+  }
+  .h-btn {
+    margin-top: .7rem; width: 100%; padding: .4rem; cursor: pointer;
+    border: 1px solid rgba(128,128,140,.35); border-radius: 6px;
+    background: transparent; color: inherit; font-size: 12px;
+  }
+  .h-btn:hover { background: rgba(128,128,140,.15); }
+
+  /* Automated keyframe-resolution check */
+  #h-check { margin: 1rem 0 0; padding: 1rem 1.15rem; border-radius: 10px; font-size: .9rem; }
+  #h-check.pass { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.5); }
+  #h-check.fail { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.55); }
+  #h-check h3 { margin: 0 0 .4rem; font-size: .95rem; }
+  #h-check ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+  #h-check code { font: 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  .h-side { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 620px) { .h-side { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="h-wrap">
+
+  <h1>rails_onboarding — animation harness</h1>
+  <p class="h-sub">
+    Loads the gem's real stylesheets from <code>app/assets</code>. Every box has a
+    centre crosshair: a correct animation spins or pulses <em>in place</em>, centred
+    on the cross. Serve over HTTP from the repo root
+    (<code>python3 -m http.server 8899</code>) — not <code>file://</code>.
+  </p>
+
+  <!-- ============================================================= -->
+  <h2>1. Automated check — do all 23 keyframes resolve?</h2>
+  <p class="h-note">
+    Reads the <code>@keyframes</code> rules straight out of the loaded stylesheets
+    (recursing into <code>@media</code> blocks) and compares them against the expected
+    list. Catches the three ways the prefixing pass could have gone wrong: a name
+    renamed at the reference but not the definition, a name left unprefixed, and two
+    files defining the same name — the last of which is the <code>spin</code> bug 0.4.1
+    fixed.
+  </p>
+  <div id="h-check">Running…</div>
+
+  <!-- ============================================================= -->
+  <h2>2. The 0.4.1 regression — two spinners that used to collide</h2>
+  <p class="h-note">
+    Both were named <code>spin</code> before 0.4.1, so the last definition loaded
+    (flash's) won for both. <strong>Watch the left one:</strong> it centres with negative
+    margins, so inheriting flash's <code>translate(-50%,-50%)</code> shoved it up-left by
+    half its size for the whole rotation. Both should now stay pinned to the crosshair.
+  </p>
+  <div class="h-side">
+    <div class="h-card">
+      <div class="h-name">onboarding-spin</div>
+      <div class="h-where">utilities.css · .onboarding-loading::after · centres via margin</div>
+      <div class="h-stage"><div class="h-target onboarding-loading"></div></div>
+      <button class="h-btn" data-replay>replay</button>
+    </div>
+    <div class="h-card">
+      <div class="h-name">onboarding-flash-spin</div>
+      <div class="h-where">flash_messages.css · .turbo-loading::after · centres via transform</div>
+      <div class="h-stage"><div class="h-target turbo-loading"></div></div>
+      <button class="h-btn" data-replay>replay</button>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <h2>3. Referenced only from JavaScript</h2>
+  <p class="h-note">
+    These two are never named in any stylesheet — only in Stimulus controllers.
+    A CSS-only rename would have left them silently dead, so they matter most.
+    The confetti below reproduces <code>milestone_celebration_controller.js</code>'s
+    inline style exactly.
+  </p>
+  <div class="h-side">
+    <div class="h-card">
+      <div class="h-name">onboarding-confetti-fall</div>
+      <div class="h-where">milestone_celebration_controller.js:63</div>
+      <div class="h-stage" id="confetti-stage"></div>
+      <button class="h-btn" id="confetti-btn">drop confetti</button>
+    </div>
+    <div class="h-card">
+      <div class="h-name">onboarding-milestone-bounce</div>
+      <div class="h-where">milestone_detail_controller.js:14</div>
+      <div class="h-stage"><div class="h-target" id="bounce-target">🏆</div></div>
+      <button class="h-btn" id="bounce-btn">bounce</button>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <h2>4. Every other renamed keyframe</h2>
+  <p class="h-note">Applied directly by name. Each should animate, then settle.</p>
+  <div class="h-grid" id="h-rest"></div>
+
+</div>
+
+<script>
+// Every keyframe the gem defines, with the file it lives in.
+const KEYFRAMES = [
+  ["onboarding-fadeInUp",           "application.css"],
+  ["onboarding-pulse",              "utilities.css"],
+  ["onboarding-bounce",             "utilities.css"],
+  ["onboarding-spin",               "utilities.css"],
+  ["onboarding-flash-spin",         "flash_messages.css"],
+  ["onboarding-slideInRight",       "flash_messages.css"],
+  ["onboarding-celebrationPulse",   "flash_messages.css"],
+  ["onboarding-fadeOut",            "flash_messages.css"],
+  ["onboarding-pulse-ring",         "accessibility.css"],
+  ["onboarding-sparkle",            "progressive_disclosure.css"],
+  ["onboarding-confetti-fall",      "milestones.css"],
+  ["onboarding-celebration-appear", "milestones.css"],
+  ["onboarding-glow-pulse",         "milestones.css"],
+  ["onboarding-icon-bounce",        "milestones.css"],
+  ["onboarding-milestone-bounce",   "milestones.css"],
+  ["onboarding-celebration-pulse",  "milestones.css"],
+  ["onboarding-spotlightPulse",     "tour.css"],
+  ["onboarding-borderPulse",        "tour.css"],
+  ["onboarding-glowPulse",          "tour.css"],
+  ["onboarding-tourSlideIn",        "tour.css"],
+  ["onboarding-tourPulse",          "tour.css"],
+  ["onboarding-mobileFadeIn",       "mobile.css"],
+  ["onboarding-skeleton",           "mobile.css"],
+];
+
+// Read the actual @keyframes rules out of the loaded stylesheets. This is
+// deterministic and instant, unlike probing for animationstart events —
+// Chrome throttles timers and animation events in unfocused windows, which
+// makes event-based detection report false negatives.
+//
+// Requires same-origin stylesheets. Over http://localhost that is satisfied.
+// Opening this file directly via file:// may make Chrome treat each sheet as
+// a separate opaque origin and throw on .cssRules; if that happens the check
+// says so rather than reporting phantom failures.
+function collectKeyframes(rules, out, sheetName) {
+  for (const r of rules) {
+    if (r instanceof CSSKeyframesRule) {
+      out.push({ name: r.name, sheet: sheetName });
+    } else if (r.cssRules) {
+      collectKeyframes(r.cssRules, out, sheetName);   // recurse into @media
+    }
+  }
+}
+
+(function runCheck() {
+  const box = document.getElementById("h-check");
+  const found = [];
+  let blocked = 0, readable = 0;
+
+  for (const sheet of document.styleSheets) {
+    const label = (sheet.href || "inline").split("/").pop();
+    try { collectKeyframes(sheet.cssRules, found, label); readable++; }
+    catch (e) { blocked++; }
+  }
+
+  if (readable === 0) {
+    box.className = "fail";
+    box.innerHTML = "<h3>Cannot read stylesheets</h3><div>All " + blocked +
+      " sheets threw on <code>.cssRules</code>, which happens when the page is " +
+      "opened over <code>file://</code>. Serve the directory over HTTP instead:" +
+      "<br><code>python3 -m http.server 8899</code></div>";
+    return;
+  }
+
+  const names    = found.map(f => f.name).sort();
+  const expected = KEYFRAMES.map(k => k[0]).sort();
+  const missing  = expected.filter(n => !names.includes(n));
+  const extra    = names.filter(n => !expected.includes(n));
+  const unprefixed = names.filter(n => !n.startsWith("onboarding-"));
+  const duplicates = [...new Set(names.filter((n, i) => names.indexOf(n) !== i))];
+
+  const problems = [];
+  if (missing.length)     problems.push(["Expected but not defined", missing]);
+  if (unprefixed.length)  problems.push(["Defined without the onboarding- prefix", unprefixed]);
+  if (duplicates.length)  problems.push(["Defined more than once — these collide, last one wins", duplicates]);
+  if (extra.length)       problems.push(["Defined but not in this harness's list (add it)", extra]);
+
+  if (problems.length === 0) {
+    box.className = "pass";
+    box.innerHTML = "<h3>✓ all " + names.length + " keyframes present and namespaced</h3>" +
+      "<ul>" +
+      "<li>" + names.length + " <code>@keyframes</code> rules found across " +
+        readable + " stylesheets</li>" +
+      "<li>0 unprefixed — none can collide with a host application</li>" +
+      "<li>0 duplicate names — the <code>spin</code> collision fixed in 0.4.1 has not returned</li>" +
+      "</ul>";
+  } else {
+    box.className = "fail";
+    box.innerHTML = "<h3>✗ " + problems.length + " problem(s) found</h3>" +
+      problems.map(([label, list]) =>
+        "<div><strong>" + label + ":</strong><ul><li><code>" +
+        list.join("</code></li><li><code>") + "</code></li></ul></div>").join("");
+  }
+})();
+
+// --- Section 4: one card per remaining keyframe -------------------------
+const SHOWN = new Set([
+  "onboarding-spin", "onboarding-flash-spin",
+  "onboarding-confetti-fall", "onboarding-milestone-bounce",
+]);
+const rest = document.getElementById("h-rest");
+for (const [name, file] of KEYFRAMES) {
+  if (SHOWN.has(name)) continue;
+  const card = document.createElement("div");
+  card.className = "h-card";
+  card.innerHTML =
+    '<div class="h-name">' + name + '</div>' +
+    '<div class="h-where">' + file + '</div>' +
+    '<div class="h-stage"><div class="h-target">◆</div></div>' +
+    '<button class="h-btn" data-replay>replay</button>';
+  const target = card.querySelector(".h-target");
+  const play = () => {
+    target.style.animation = "none";
+    void target.offsetWidth;               // force reflow so replay restarts it
+    target.style.animation = name + " 1.6s ease-in-out";
+  };
+  card.querySelector("[data-replay]").addEventListener("click", play);
+  rest.appendChild(card);
+  play();
+}
+
+// --- Section 2 replay ---------------------------------------------------
+document.querySelectorAll(".h-side [data-replay]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const t = btn.closest(".h-card").querySelector(".h-target");
+    const cls = t.className;
+    t.className = "h-target";
+    void t.offsetWidth;
+    t.className = cls;
+  });
+});
+
+// --- Confetti: mirrors milestone_celebration_controller.js --------------
+document.getElementById("confetti-btn").addEventListener("click", () => {
+  const container = document.getElementById("confetti-stage");
+  const colors = ["#FFD700", "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"];
+  for (let i = 0; i < 40; i++) {
+    setTimeout(() => {
+      const c = document.createElement("div");
+      const size = Math.random() * 8 + 4;
+      const dur  = Math.random() * 2 + 2;
+      c.style.cssText =
+        "position:absolute;width:" + size + "px;height:" + size + "px;" +
+        "background-color:" + colors[Math.floor(Math.random() * colors.length)] + ";" +
+        "left:" + (Math.random() * 100) + "%;top:-10px;border-radius:50%;" +
+        "animation: onboarding-confetti-fall " + dur + "s linear forwards;" +
+        "transform:rotate(" + (Math.random() * 360) + "deg);pointer-events:none;";
+      container.appendChild(c);
+      setTimeout(() => c.remove(), dur * 1000);
+    }, i * 50);
+  }
+});
+
+// --- Bounce: mirrors milestone_detail_controller.js ---------------------
+document.getElementById("bounce-btn").addEventListener("click", () => {
+  const el = document.getElementById("bounce-target");
+  el.style.animation = "none";
+  void el.offsetWidth;
+  el.style.animation = "onboarding-milestone-bounce 1s ease-in-out";
+});
+</script>
+</body>
+</html>
