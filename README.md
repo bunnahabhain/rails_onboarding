@@ -653,6 +653,47 @@ Useful sources for the milestone hashes:
 Note that `achieved_milestones` returns keys rather than hashes; pass each
 through `milestone_by_key` to get something the partials can render.
 
+### Flash Messages
+
+The engine reports some conditions — a step that can't be skipped, a "back"
+from the first step — by replacing a `flash-messages` element over Turbo.
+That element only exists if you render the gem's flash partial, so without it
+those messages are silently dropped. Render it once in your layout:
+
+```erb
+<body>
+  <%= render "rails_onboarding/shared/flash" %>
+  <%= yield %>
+</body>
+```
+
+Rendered with no locals it displays `flash[:notice]` and `flash[:alert]`,
+because `notice` and `alert` are the standard Rails view helpers. You can
+also pass messages explicitly, which is what the engine's own Turbo responses
+do:
+
+```erb
+<%= render "rails_onboarding/shared/flash", alert: "This step cannot be skipped." %>
+```
+
+| Local | Style | Notes |
+|---|---|---|
+| `notice:` | success (green, ✓) | falls back to `flash[:notice]` |
+| `alert:` | warning (amber, ⚠) | falls back to `flash[:alert]` |
+| `error:` | error (red, ✕) | explicit only — there is no `error` view helper |
+
+Each message renders with `role="alert"` and its own dismiss button, which
+needs no JavaScript from you. Styling comes from
+`rails_onboarding/flash_messages.css`.
+
+Two things worth knowing. The partial's root element carries
+`id="flash-messages"`, and that is what the engine's Turbo Stream responses
+replace — so keep the id if you copy the partial into your own app, or those
+updates will stop landing. And unlike the onboarding banner, this partial is
+not self-guarding: rendered with no flash set and no locals it emits an empty
+container, which is harmless but not nothing, so place it where an empty
+`div` won't disturb your layout.
+
 ### Analytics and Reporting
 
 ```ruby

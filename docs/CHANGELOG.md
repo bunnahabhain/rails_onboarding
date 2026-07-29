@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- **The flash partial is documented.** `_flash.html.erb` is the third
+  host-rendered partial, and the one with a consequence for skipping it: the
+  engine reports several conditions by replacing a `flash-messages` element
+  over Turbo, and that element exists only if an application renders this
+  partial. Without it those messages are silently dropped. The README now
+  covers where to render it, its `notice:` / `alert:` / `error:` locals, that
+  it falls back to `flash[:notice]` and `flash[:alert]` when given none, and
+  that its root `id` is the Turbo target and must survive being copied.
+
 - **The milestone partials are documented.** `_milestone_badge` and
   `_milestone_celebration` are rendered by host applications, like
   `_onboarding_banner`, but only the banner had instructions — the others
