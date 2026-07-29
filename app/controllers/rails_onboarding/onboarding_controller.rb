@@ -110,20 +110,9 @@ module RailsOnboarding
           awarded_milestones.concat(completion_milestones)
         end
 
-        respond_to do |format|
-          format.html { redirect_to_after_completion(awarded_milestones) }
-          format.turbo_stream do
-            render turbo_stream: turbo_stream.action(
-              :redirect,
-              main_app.send(RailsOnboarding.configuration.redirect_after_completion)
-            )
-          end
-        end
+        redirect_to_after_completion(awarded_milestones)
       else
-        respond_to do |format|
-          format.html { redirect_to onboarding_path(awarded_milestones: awarded_milestones.map { |m| m[:key] }) }
-          format.turbo_stream { render :next }
-        end
+        redirect_to onboarding_path(awarded_milestones: awarded_milestones.map { |m| m[:key] })
       end
     end
 
@@ -135,15 +124,7 @@ module RailsOnboarding
 
       current_user.complete_onboarding!
 
-      respond_to do |format|
-        format.html { redirect_to_after_completion(completion_milestones) }
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.action(
-            :redirect,
-            main_app.send(RailsOnboarding.configuration.redirect_after_completion)
-          )
-        end
-      end
+      redirect_to_after_completion(completion_milestones)
     end
 
     def skip
@@ -153,20 +134,9 @@ module RailsOnboarding
       elsif @current_step && @current_step[:skippable]
         current_user.skip_onboarding_step!(@current_step[:name])
         if current_user.onboarding_completed?
-          respond_to do |format|
-            format.html { redirect_to_after_completion }
-            format.turbo_stream do
-              render turbo_stream: turbo_stream.action(
-                :redirect,
-                main_app.send(RailsOnboarding.configuration.redirect_after_completion)
-              )
-            end
-          end
+          redirect_to_after_completion
         else
-          respond_to do |format|
-            format.html { redirect_to onboarding_path }
-            format.turbo_stream { render :skip }
-          end
+          redirect_to onboarding_path
         end
       else
         respond_to do |format|
@@ -202,10 +172,7 @@ module RailsOnboarding
       session_id = RailsOnboarding::SessionManager.session_id(current_user, session)
       current_user.go_back!(session_id: session_id)
 
-      respond_to do |format|
-        format.html { redirect_to onboarding_path }
-        format.turbo_stream { render :back }
-      end
+      redirect_to onboarding_path
     end
 
     def restart
@@ -213,12 +180,7 @@ module RailsOnboarding
       current_user.restart_onboarding!(session_id: session_id)
       RailsOnboarding::SessionManager.clear_session(current_user, session)
 
-      respond_to do |format|
-        format.html { redirect_to onboarding_path, notice: "Onboarding has been restarted." }
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.action(:redirect, onboarding_path)
-        end
-      end
+      redirect_to onboarding_path, notice: "Onboarding has been restarted."
     end
 
     private

@@ -7,21 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **The non-functional Turbo Stream navigation branches.** `next`, `skip`,
+  `back`, `complete` and `restart` each had a `format.turbo_stream` branch
+  alongside a correct `format.html` redirect, and none of them worked:
+
+  - `turbo_stream.replace "onboarding-content"` and `"progress-indicator"`
+    targeted ids that appear on no rendered page. The only
+    `id="onboarding-content"` lived inside the partial being rendered *into*
+    it, and `_progress_indicator.html.erb`'s root carries no id at all.
+  - `turbo_stream.action(:redirect, …)` is a custom Turbo Stream action, and
+    the gem registers no client-side handler for it, so Turbo ignores it.
+  - `back` rendered `:back`, and `back.turbo_stream.erb` does not exist.
+
+  In a host app with turbo-rails, submitting one of these forms therefore
+  did nothing visible (or raised, for `back`), while the HTML path beneath
+  it was correct all along. Removing the branches lets Turbo Drive follow
+  the ordinary redirect, which is its native behaviour and needs no ids,
+  partials or custom actions.
+
+  The `flash-messages` streams are kept: `_flash.html.erb` carries that id
+  and is a partial host applications render themselves, so those have a
+  real target.
+
+  Also removes `next.turbo_stream.erb`, `skip.turbo_stream.erb` and
+  `_step_content.html.erb`, which nothing renders any more.
+
 ### Fixed
 
-- **Step content is styled again after a Turbo step transition.**
-  `_step_content.html.erb` and the admin flow preview wrapped their content
-  in `.onboarding-step-content`, a class with no rules in any stylesheet,
-  while `.step-content` — the class that actually carries the step layout
-  (`max-width: 42rem`, centring, the responsive and print overrides, and the
-  `data-step-changed` entry animation), and the one `step.html.erb` uses —
-  matched nothing. They now use `.step-content`, so every step view is laid
-  out the same way.
+- **The admin flow preview uses the styled step class.** It wrapped its
+  content in `.onboarding-step-content`, a class with no rules in any
+  stylesheet, while `.step-content` — the class that actually carries the
+  step layout (`max-width: 42rem`, centring, the responsive and print
+  overrides, and the `data-step-changed` entry animation), and the one
+  `step.html.erb` uses — matched nothing. The preview now matches how a real
+  step renders.
 
-  Note that `_step_content.html.erb` is rendered only by the `next` and
-  `skip` Turbo Stream responses, and those currently replace an element that
-  does not exist on the page (see below), so this correction is not yet
-  visible in a browser.
+  `_step_content.html.erb` had the same mismatch and was corrected too, but
+  that partial has since been removed along with the Turbo Stream branches
+  that were its only caller (see Removed above).
 
 ## [0.5.1] - 2026-07-29
 
