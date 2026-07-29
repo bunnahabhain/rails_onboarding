@@ -458,7 +458,7 @@ RailsOnboarding.configure do |config|
 
   config.milestones = [
     {
-      id: 'profile_complete',
+      key: :profile_complete,
       title: 'Profile Master',
       description: 'Completed your profile',
       points: 100,
@@ -466,7 +466,7 @@ RailsOnboarding.configure do |config|
       trigger: :profile_completed
     },
     {
-      id: 'first_post',
+      key: :first_post,
       title: 'Content Creator',
       description: 'Created your first post',
       points: 50,
@@ -476,6 +476,14 @@ RailsOnboarding.configure do |config|
   ]
 end
 ```
+
+Each milestone is identified by `key:`, not `id:` — `milestone_by_key`,
+`milestone_achieved?` and the achievement records all look it up by that
+field. A milestone without `key:` fails configuration validation at boot with
+`InvalidMilestoneError`, so a typo here surfaces immediately rather than
+producing achievements nothing can find. `trigger:` is required as well;
+`title`, `description`, `points` and `icon` are what the milestone views
+display.
 
 ### Analytics Configuration
 
@@ -576,17 +584,74 @@ present.
 
 ```ruby
 # Check milestone achievement
-current_user.milestone_achieved?('profile_complete') # => false
+current_user.milestone_achieved?(:profile_complete) # => false
 
-# Trigger milestone
-current_user.achieve_milestone!('profile_complete', 100)
+# Record an achievement. Points come from the milestone's configuration -
+# they are not passed in. Returns false if milestones are disabled, the key
+# is unknown, or it was already achieved.
+current_user.achieve_milestone!(:profile_complete) # => true
 
 # Get user's points
-current_user.onboarding_milestone_points # => 150
+current_user.total_milestone_points # => 150
 
-# List achieved milestones
-current_user.onboarding_milestones_achieved # => ['first_login', 'profile_complete']
+# List achieved milestone keys
+current_user.achieved_milestones # => ['first_login', 'profile_complete']
+
+# Turn those keys into renderable hashes
+current_user.achieved_milestones.filter_map { |key|
+  RailsOnboarding.configuration.milestone_by_key(key)
+}
 ```
+
+#### Displaying milestones
+
+The engine ships a milestones dashboard at `rails_onboarding.milestones_path`,
+and two partials you render yourself when you want achievements to appear
+inside your own pages. Both take a milestone hash in the shape
+`config.milestones` uses — `key`, `title`, `description`, `points`, `icon`.
+
+**A badge**, for listing achievements in a profile or sidebar. `achieved:`
+decides whether it renders unlocked or with a lock overlay:
+
+```erb
+<% RailsOnboarding.configuration.milestones.each do |milestone| %>
+  <%= render "rails_onboarding/shared/milestone_badge",
+             milestone: milestone,
+             achieved: current_user.milestone_achieved?(milestone[:key]) %>
+<% end %>
+```
+
+**A celebration**, a modal overlay that shows itself as soon as it connects,
+fires confetti, and auto-dismisses after eight seconds. Render it only when
+you have something to celebrate — it is not self-guarding the way the
+onboarding banner is:
+
+```erb
+<% if (milestone = current_user.recent_milestones(limit: 1).first) %>
+  <%= render "rails_onboarding/shared/milestone_celebration",
+             milestone: milestone %>
+<% end %>
+```
+
+Both partials need `rails_onboarding/milestones.css` loaded, and the
+celebration additionally needs its Stimulus controller registered — without
+it the overlay stays hidden, since it is rendered with `is-hidden` and the
+controller is what reveals it. See the
+[Asset Loading Guide](docs/ASSET_LOADING_GUIDE.md) for both.
+
+Useful sources for the milestone hashes:
+
+| Call | Returns |
+|---|---|
+| `RailsOnboarding.configuration.milestones` | every configured milestone |
+| `RailsOnboarding.configuration.milestone_by_key(key)` | one milestone, or `nil` |
+| `current_user.milestones_available` | configured milestones not yet achieved |
+| `current_user.recent_milestones(limit: 5)` | most recently achieved, newest last |
+| `current_user.achieved_milestones` | achieved **keys**, not hashes |
+| `current_user.total_milestone_points` | integer |
+
+Note that `achieved_milestones` returns keys rather than hashes; pass each
+through `milestone_by_key` to get something the partials can render.
 
 ### Analytics and Reporting
 
@@ -881,10 +946,12 @@ RailsOnboarding::Templates.apply('saas')
 - `reset_tooltips!` - Reset all tooltips
 
 #### Milestone Methods
-- `milestone_achieved?(milestone_id)` - Check achievement status
-- `achieve_milestone!(milestone_id, points)` - Record achievement
-- `onboarding_milestone_points` - Get total points
-- `onboarding_milestones_achieved` - Get list of achievements
+- `milestone_achieved?(key)` - Check achievement status
+- `achieve_milestone!(key, session_id: nil)` - Record achievement; points are read from the milestone's configuration
+- `total_milestone_points` - Get total points
+- `achieved_milestones` - Get achieved milestone **keys** (not hashes)
+- `milestones_available` - Configured milestones not yet achieved, as hashes
+- `recent_milestones(limit: 5)` - Most recently achieved, as hashes, newest last
 
 ### Controller Helpers
 

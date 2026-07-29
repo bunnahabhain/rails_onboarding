@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **The milestone partials are documented.** `_milestone_badge` and
+  `_milestone_celebration` are rendered by host applications, like
+  `_onboarding_banner`, but only the banner had instructions — the others
+  could be found only by reading the source. The README now covers the
+  locals each takes, where to get the milestone hashes, and the fact that
+  the celebration is not self-guarding (unlike the banner) and needs its
+  Stimulus controller registered, since it renders `is-hidden` and the
+  controller is what reveals it.
+
+- **Corrected the milestone API documentation, which described methods that
+  do not exist.** Writing the above turned up four errors, each of which
+  would fail for anyone following the README:
+
+  - The configuration example identified milestones with `id:`; the field is
+    `key:`. Configuration validation rejects a milestone without one, so this
+    raised `InvalidMilestoneError` at boot.
+  - `achieve_milestone!` was shown taking points as a second positional
+    argument. Its signature is `achieve_milestone!(key, session_id: nil)`
+    and points come from the milestone's configuration, so the documented
+    call raised `ArgumentError`.
+  - `onboarding_milestone_points` and `onboarding_milestones_achieved` were
+    listed in both the usage section and the API reference. Neither exists;
+    the real methods are `total_milestone_points` and `achieved_milestones`.
+
+  The API reference also now notes that `achieved_milestones` returns keys
+  rather than hashes, and lists `milestones_available` and
+  `recent_milestones`, which were previously undocumented.
+
 ## [0.5.4] - 2026-07-29
 
 Patch: fixes the milestone dashboard and celebration JavaScript, which
