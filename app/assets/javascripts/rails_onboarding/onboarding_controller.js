@@ -107,13 +107,23 @@ export default class extends Controller {
 
         const tooltip = document.createElement('div')
         tooltip.className = 'feature-tooltip'
+        // The class names here are the ones tooltips.css already styles.
+        // Previously this emitted a bare <h4>/<p>, which picked up
+        // .tooltip-content h4/p from application.css - rules coloured for a light
+        // background (var(--onboarding-text)) - leaving dark text on the feature
+        // tooltip's saturated gradient. .tooltip-title/.tooltip-body carry the
+        // white-on-gradient treatment that was written for this component.
+        // "Got it" is a text button, so it uses .tooltip-action rather than
+        // .tooltip-close, which is sized 1.5rem square for an icon and clipped it.
         tooltip.innerHTML = `
       <div class="tooltip-content">
-        <h4>${tooltipData.title}</h4>
-        <p>${tooltipData.content}</p>
-        <button type="button" class="tooltip-close" data-action="click->onboarding#hideTooltips">
-          Got it
-        </button>
+        <h4 class="tooltip-title">${tooltipData.title}</h4>
+        <p class="tooltip-body">${tooltipData.content}</p>
+        <div class="tooltip-actions">
+          <button type="button" class="tooltip-action onboarding-secondary" data-action="click->onboarding#hideTooltips">
+            Got it
+          </button>
+        </div>
       </div>
     `
 
@@ -130,7 +140,10 @@ export default class extends Controller {
         const rect = target.getBoundingClientRect()
         const tooltipRect = tooltip.getBoundingClientRect()
 
+        // Sits below the target by default, flipping above when it would run off
+        // the bottom of the viewport.
         let top = rect.bottom + 10
+        let placedAbove = false
         let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2)
 
         // Adjust if tooltip would be off-screen
@@ -140,7 +153,14 @@ export default class extends Controller {
         }
         if (top + tooltipRect.height > window.innerHeight - 10) {
             top = rect.top - tooltipRect.height - 10
+            placedAbove = true
         }
+
+        // Tell the stylesheet which way the arrow should point. The naming
+        // matches tooltip_controller.js: onboarding-top means the tooltip sits
+        // above its target, so the arrow hangs off the bottom edge.
+        tooltip.classList.remove("onboarding-top", "onboarding-bottom")
+        tooltip.classList.add(placedAbove ? "onboarding-top" : "onboarding-bottom")
 
         tooltip.style.position = 'fixed'
         tooltip.style.top = `${top}px`

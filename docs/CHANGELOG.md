@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Feature tooltips render as designed.** The second tooltip implementation,
+  built by `onboarding_controller.js` as `.feature-tooltip`, had drifted from
+  the stylesheet in three ways:
+
+  - **Unreadable heading and body text.** The markup emitted a bare `<h4>`
+    and `<p>`, which matched `.tooltip-content h4` / `p` in
+    `application.css` — rules coloured for a light background
+    (`var(--onboarding-text)`). That put near-black text on the tooltip's
+    saturated indigo-to-green gradient. `tooltips.css` already contained
+    `.feature-tooltip .tooltip-title` and `.tooltip-body` with the intended
+    white-on-gradient treatment, but nothing ever carried those classes.
+    The markup now uses them.
+  - **A clipped "Got it" button.** It was given `.tooltip-close`, which is
+    sized `1.5rem` square for an "×" icon, so the label overflowed its box.
+    It now uses `.tooltip-action` inside `.tooltip-actions`, which is built
+    for text buttons and supplies the separator and alignment.
+  - **A missing arrow.** `.feature-tooltip::before` set only a border
+    colour, with no `content`, `position` or `border-style`, so the
+    pseudo-element was never generated. The base is now declared, and the
+    controller adds `onboarding-bottom` or `onboarding-top` depending on
+    whether it placed the tooltip below or above its target, so the arrow
+    points the right way.
+
 ## [0.5.0] - 2026-07-29
 
 Minor: completes the CSS isolation work. 0.4.0 stopped the gem's styles

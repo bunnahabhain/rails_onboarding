@@ -206,20 +206,39 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Arrow. These rules previously set only a border colour, with no `content`,
+   `position` or `border-style`, so the pseudo-element was never generated and no
+   arrow ever appeared. onboarding_controller.js positions the tooltip with
+   `position: fixed` and adds onboarding-top or onboarding-bottom, so the base is
+   declared here and each direction supplies its own offset and colour.
+
+   The body is a 135deg gradient from --onboarding-primary to
+   --onboarding-success, so a border-triangle cannot reproduce it exactly; each
+   arrow takes the colour of the gradient nearest the edge it sits on. */
 .feature-tooltip::before {
-  border-top-color: var(--onboarding-primary);
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0.5rem solid transparent;
 }
 
-.feature-tooltip.onboarding-top::before {
+/* Tooltip below its target - arrow points up, off the top edge. */
+.feature-tooltip.onboarding-bottom::before {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-width: 0;
   border-bottom-color: var(--onboarding-primary);
 }
 
-.feature-tooltip.onboarding-left::before {
-  border-left-color: var(--onboarding-primary);
-}
-
-.feature-tooltip.onboarding-right::before {
-  border-right-color: var(--onboarding-primary);
+/* Tooltip above its target - arrow points down, off the bottom edge. */
+.feature-tooltip.onboarding-top::before {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-width: 0;
+  border-top-color: var(--onboarding-success);
 }
 
 /* Warning tooltips */
