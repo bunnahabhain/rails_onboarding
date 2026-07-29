@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-07-29
+
+Makes the progress indicator visible. It was already written and styled but
+nothing rendered it, so onboarding ran with no progress display at all.
+
+Nothing to configure and no API change, but **expect onboarding pages to look
+different**: with the header row now occupied, page content moves into the
+grid's `1fr` row and is vertically centred, where it previously sat at the top
+with that row left empty. See the entry below for the measurements.
+
 ### Added
 
 - **The progress indicator now renders on onboarding pages.** The partial
@@ -897,7 +907,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.2...v0.5.0
