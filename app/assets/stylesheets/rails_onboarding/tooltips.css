@@ -37,6 +37,13 @@
   padding: var(--onboarding-space-md);
 }
 
+/* Reserve room on the right for the absolutely-positioned dismiss button so
+   multi-line content doesn't wrap underneath it. The button sits at
+   right: 0.25rem and is 1.5rem wide, so pad the inner past its left edge. */
+.onboarding-tooltip .tooltip-inner:has(.tooltip-dismiss) {
+  padding-right: calc(var(--onboarding-space-md) + 1.5rem);
+}
+
 /* Arrow element. styleArrowForPosition() sets the offsets and the border width
    and style, but deliberately not the border colour - an inline `border-top`
    shorthand would always beat a stylesheet's `border-top-color`, which is what
