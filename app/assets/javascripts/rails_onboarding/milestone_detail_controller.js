@@ -14,7 +14,7 @@ export default class extends Controller {
       iconLarge.style.animation = 'onboarding-milestone-bounce 1s ease-in-out'
     }
     
-    if (hero && hero.classList.contains('achieved')) {
+    if (hero && hero.classList.contains('onboarding-achieved')) {
       // Add celebration effect for achieved milestones
       this.addCelebrationGlow()
     }

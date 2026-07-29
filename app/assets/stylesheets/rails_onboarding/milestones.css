@@ -54,7 +54,7 @@
 }
 
 /* Section Titles */
-.section-title {
+.onboarding-section-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: #2c3e50;
@@ -168,7 +168,7 @@
   overflow: hidden;
 }
 
-.milestone-hero.achieved {
+.milestone-hero.onboarding-achieved {
   background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
   border: 3px solid #10b981;
 }
@@ -200,12 +200,12 @@
   font-weight: 600;
 }
 
-.achievement-status.achieved {
+.achievement-status.onboarding-achieved {
   background: #dcfce7;
   color: #16a34a;
 }
 
-.achievement-status.pending {
+.achievement-status.onboarding-pending {
   background: #fef3c7;
   color: #d97706;
 }
@@ -228,16 +228,16 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.milestone-badge.achieved {
+.milestone-badge.onboarding-achieved {
   border: 2px solid #10b981;
   background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
 }
 
-.milestone-badge.locked {
+.milestone-badge.onboarding-locked {
   opacity: 0.6;
 }
 
-.badge-icon {
+.onboarding-badge-icon {
   font-size: 1.5rem;
   position: relative;
 }
@@ -257,11 +257,11 @@
   justify-content: center;
 }
 
-.badge-content {
+.onboarding-badge-content {
   flex: 1;
 }
 
-.badge-title {
+.onboarding-badge-title {
   font-weight: 600;
   color: #1f2937;
   font-size: 0.875rem;
@@ -394,13 +394,13 @@
 }
 
 /* Empty State */
-.empty-state {
+.onboarding-empty-state {
   text-align: center;
   padding: 4rem 2rem;
   color: #6b7280;
 }
 
-.empty-icon {
+.onboarding-empty-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
 }
@@ -509,7 +509,7 @@
 }
 
 /* Buttons */
-.btn {
+.onboarding-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -523,23 +523,23 @@
   font-size: 0.875rem;
 }
 
-.btn-primary {
+.onboarding-btn-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.btn-primary:hover {
+.onboarding-btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.btn-secondary {
+.onboarding-btn-secondary {
   background: #f3f4f6;
   color: #374151;
   border: 1px solid #d1d5db;
 }
 
-.btn-secondary:hover {
+.onboarding-btn-secondary:hover {
   background: #e5e7eb;
   transform: translateY(-1px);
 }

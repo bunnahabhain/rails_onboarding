@@ -5,7 +5,7 @@
 
 <% if params[:awarded_milestones].present? %>
   <%= turbo_stream.prepend "flash-messages" do %>
-    <div class="flash flash-success milestone-celebration" role="alert">
+    <div class="onboarding-flash flash-success milestone-celebration" role="alert">
       <span class="flash-icon">🎉</span>
       <span class="flash-message">
         Milestones achieved: <%= params[:awarded_milestones].join(", ") %>

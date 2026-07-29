@@ -1,5 +1,5 @@
 <div class="milestone-detail" data-controller="milestone-detail">
-  <div class="milestone-hero <%= 'achieved' if @achieved %>">
+  <div class="milestone-hero <%= 'onboarding-achieved' if @achieved %>">
     <div class="milestone-icon-large">
       <%= @milestone[:icon] %>
     </div>
@@ -13,12 +13,12 @@
       </div>
       
       <% if @achieved %>
-        <div class="achievement-status achieved">
+        <div class="achievement-status onboarding-achieved">
           <span class="status-icon">✅</span>
           <span class="status-text">Achieved</span>
         </div>
       <% else %>
-        <div class="achievement-status pending">
+        <div class="achievement-status onboarding-pending">
           <span class="status-icon">⏳</span>
           <span class="status-text">Not Yet Achieved</span>
         </div>
@@ -46,11 +46,11 @@
   </div>
 
   <div class="milestone-actions">
-    <%= link_to "← Back to Achievements", milestones_path, class: "btn btn-secondary" %>
+    <%= link_to "← Back to Achievements", milestones_path, class: "onboarding-btn onboarding-btn-secondary" %>
     
     <% unless @achieved %>
       <% if current_user.needs_onboarding? %>
-        <%= link_to "Continue Onboarding", onboarding_path, class: "btn btn-primary" %>
+        <%= link_to "Continue Onboarding", onboarding_path, class: "onboarding-btn onboarding-btn-primary" %>
       <% end %>
     <% end %>
   </div>

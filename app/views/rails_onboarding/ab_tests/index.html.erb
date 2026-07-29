@@ -5,9 +5,9 @@
   </div>
 
   <% if @ab_tests.empty? %>
-    <div class="empty-state">
+    <div class="onboarding-empty-state">
       <p>No A/B tests configured yet.</p>
-      <p class="help-text">Configure A/B tests in your Rails initializer:</p>
+      <p class="onboarding-help-text">Configure A/B tests in your Rails initializer:</p>
       <pre><code>RailsOnboarding.configure do |config|
   config.enable_ab_testing = true
   config.ab_tests = {

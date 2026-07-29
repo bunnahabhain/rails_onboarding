@@ -1,6 +1,6 @@
 <div id="flash-messages" class="flash-container">
   <% if defined?(notice) && notice %>
-    <div class="flash flash-notice" role="alert">
+    <div class="onboarding-flash flash-notice" role="alert">
       <span class="flash-icon">✓</span>
       <span class="flash-message"><%= notice %></span>
       <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
@@ -8,7 +8,7 @@
   <% end %>
 
   <% if defined?(alert) && alert %>
-    <div class="flash flash-alert" role="alert">
+    <div class="onboarding-flash flash-alert" role="alert">
       <span class="flash-icon">⚠</span>
       <span class="flash-message"><%= alert %></span>
       <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
@@ -16,7 +16,7 @@
   <% end %>
 
   <% if defined?(error) && error %>
-    <div class="flash flash-error" role="alert">
+    <div class="onboarding-flash flash-error" role="alert">
       <span class="flash-icon">✕</span>
       <span class="flash-message"><%= error %></span>
       <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>

@@ -43,7 +43,7 @@
     <div class="admin-stat-content">
       <div class="admin-stat-label">Completed</div>
       <div class="admin-stat-value"><%= number_with_delimiter(@onboarding_completed) %></div>
-      <div class="admin-stat-change <%= @completion_rate >= 50 ? 'positive' : 'negative' %>">
+      <div class="admin-stat-change <%= @completion_rate >= 50 ? 'onboarding-positive' : 'onboarding-negative' %>">
         <%= @completion_rate %>% completion rate
       </div>
     </div>

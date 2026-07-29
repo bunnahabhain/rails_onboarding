@@ -97,7 +97,7 @@
   color: #ffffff;
 }
 
-.admin-nav-item.active {
+.admin-nav-item.onboarding-active {
   background: rgba(59, 130, 246, 0.1);
   color: #60a5fa;
   border-left-color: #3b82f6;
@@ -353,11 +353,11 @@
   margin-top: 0.25rem;
 }
 
-.admin-stat-change.positive {
+.admin-stat-change.onboarding-positive {
   color: var(--admin-success);
 }
 
-.admin-stat-change.negative {
+.admin-stat-change.onboarding-negative {
   color: var(--admin-danger);
 }
 
@@ -714,7 +714,9 @@
   color: var(--admin-text-secondary);
 }
 
-/* Pagination (markup comes from pagy: `.pagy.info` and `.pagy.series-nav`) */
+/* Pagination. The markup comes from pagy (`.pagy.info` and `.pagy.series-nav`),
+   so these class names are pagy's, not ours - they must NOT be namespaced with
+   an onboarding- prefix or the rules stop matching what pagy renders. */
 .admin-pagination {
   display: flex;
   align-items: center;

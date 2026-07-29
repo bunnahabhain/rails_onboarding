@@ -3,16 +3,16 @@
   Usage: <%= render 'rails_onboarding/shared/milestone_badge', milestone: milestone_config, achieved: true/false %>
 %>
 
-<div class="milestone-badge <%= 'achieved' if achieved %> <%= 'locked' unless achieved %>">
-  <div class="badge-icon">
+<div class="milestone-badge <%= 'onboarding-achieved' if achieved %> <%= 'onboarding-locked' unless achieved %>">
+  <div class="onboarding-badge-icon">
     <%= milestone[:icon] %>
     <% unless achieved %>
       <div class="lock-overlay">🔒</div>
     <% end %>
   </div>
   
-  <div class="badge-content">
-    <div class="badge-title"><%= milestone[:title] %></div>
+  <div class="onboarding-badge-content">
+    <div class="onboarding-badge-title"><%= milestone[:title] %></div>
     <div class="badge-points">+<%= milestone[:points] %></div>
   </div>
   

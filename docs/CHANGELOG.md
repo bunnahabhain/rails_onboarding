@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **55 generic CSS class names are namespaced with an `onboarding-` prefix.**
+  0.4.0 scoped the gem's selectors so its styles could not escape into the
+  host application. This closes the other direction: a host app that defines
+  `.active`, `.error`, `.btn`, `.form-group`, `.progress-bar` or `.tooltip`
+  would style the gem's own elements, because those elements carried exactly
+  those class names.
+
+  The pass covers bare state and position words (`active`, `completed`,
+  `current`, `error`, `success`, `warning`, `info`, `show`, `hide`, `top`,
+  `bottom`, `left`, `right`, and similar), names that clash with Bootstrap
+  and Tailwind conventions (`btn`, `btn-primary`, `btn-secondary`,
+  `form-group`, `progress-bar`, `progress-fill`), and generic component
+  names (`tooltip`, `flash`, `empty-state`, `status-message`, `radio-group`,
+  `checkbox-group`, `error-message`, `help-text`).
+
+  Left alone: the ~190 already semi-namespaced names (`tour-*`,
+  `milestone-*`, `feature-*`, `step-*`), which are unlikely to collide, and
+  pagy's `.info` in the admin pagination, which is third-party markup the
+  gem only styles.
+
+  **Breaking** if your application targets any of these class names in its
+  own CSS or JavaScript, or renders gem markup by hand. Add the
+  `onboarding-` prefix. The four `status-message` modifiers became
+  `onboarding-status-success` / `-error` / `-warning` / `-info` rather than
+  `onboarding-success` / `-error`, because the latter two already existed as
+  unrelated utility classes in `utilities.css` and would have merged.
+
+### Fixed
+
+- **Tooltip position classes no longer strip themselves incorrectly.**
+  `tooltip_controller.js` cleared its position class with
+  `className.replace(/\b(top|bottom|left|right)\b/g, "")`. `\b` treats `-` as
+  a word boundary, so once the classes were namespaced that regex would also
+  match inside other names. It now removes the exact classes via
+  `classList.remove` and adds `onboarding-${position}`.
+
 ## [0.4.2] - 2026-07-28
 
 Patch: dependency and CI maintenance only. No gem code changed, and

@@ -23,22 +23,22 @@
       </div>
 
       <nav class="admin-nav">
-        <%= link_to admin_dashboard_path, class: "admin-nav-item #{current_page?(admin_dashboard_path) ? 'active' : ''}" do %>
+        <%= link_to admin_dashboard_path, class: "admin-nav-item #{current_page?(admin_dashboard_path) ? 'onboarding-active' : ''}" do %>
           <span class="admin-nav-icon">📈</span>
           Dashboard
         <% end %>
 
-        <%= link_to admin_users_path, class: "admin-nav-item #{current_page?(admin_users_path) ? 'active' : ''}" do %>
+        <%= link_to admin_users_path, class: "admin-nav-item #{current_page?(admin_users_path) ? 'onboarding-active' : ''}" do %>
           <span class="admin-nav-icon">👥</span>
           Users
         <% end %>
 
-        <%= link_to admin_flows_path, class: "admin-nav-item #{current_page?(admin_flows_path) ? 'active' : ''}" do %>
+        <%= link_to admin_flows_path, class: "admin-nav-item #{current_page?(admin_flows_path) ? 'onboarding-active' : ''}" do %>
           <span class="admin-nav-icon">🔄</span>
           Flows
         <% end %>
 
-        <%= link_to admin_ab_tests_path, class: "admin-nav-item #{current_page?(admin_ab_tests_path) ? 'active' : ''}" do %>
+        <%= link_to admin_ab_tests_path, class: "admin-nav-item #{current_page?(admin_ab_tests_path) ? 'onboarding-active' : ''}" do %>
           <span class="admin-nav-icon">🧪</span>
           A/B Tests
         <% end %>

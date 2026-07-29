@@ -128,7 +128,7 @@
 }
 
 /* Enhanced error messaging */
-:where(.onboarding-container) .error-message {
+:where(.onboarding-container) .onboarding-error-message {
   color: var(--onboarding-danger);
   font-size: var(--onboarding-text-sm);
   margin-top: var(--onboarding-space-xs);
@@ -137,7 +137,7 @@
   gap: var(--onboarding-space-xs);
 }
 
-:where(.onboarding-container) .error-icon {
+:where(.onboarding-container) .onboarding-error-icon {
   flex-shrink: 0;
   margin-top: 0.125rem;
   font-size: var(--onboarding-text-base);
@@ -159,14 +159,14 @@
 }
 
 /* Progress indicators with better semantics */
-:where(.onboarding-container, .onboarding-banner) .progress-container[role="progressbar"] {
+:where(.onboarding-container, .onboarding-banner) .onboarding-progress-container[role="progressbar"] {
   background: var(--onboarding-surface);
   border: 1px solid var(--onboarding-border);
   border-radius: 0.5rem;
   overflow: hidden;
 }
 
-:where(.onboarding-container, .onboarding-banner) .progress-container[role="progressbar"]::before {
+:where(.onboarding-container, .onboarding-banner) .onboarding-progress-container[role="progressbar"]::before {
   content: attr(aria-label);
   position: absolute;
   left: -10000px;
@@ -203,7 +203,7 @@
 }
 
 /* Enhanced tooltip accessibility */
-:where(.onboarding-container) .tooltip[role="tooltip"] {
+:where(.onboarding-container) .onboarding-tooltip[role="tooltip"] {
   /* Ensure tooltips are announced by screen readers */
   pointer-events: auto;
 }
@@ -227,15 +227,15 @@
 }
 
 /* Radio and checkbox groups */
-:where(.onboarding-container) .radio-group,
-:where(.onboarding-container) .checkbox-group {
+:where(.onboarding-container) .onboarding-radio-group,
+:where(.onboarding-container) .onboarding-checkbox-group {
   display: flex;
   flex-direction: column;
   gap: var(--onboarding-space-sm);
 }
 
-:where(.onboarding-container) .radio-option,
-:where(.onboarding-container) .checkbox-option {
+:where(.onboarding-container) .onboarding-radio-option,
+:where(.onboarding-container) .onboarding-checkbox-option {
   display: flex;
   align-items: flex-start;
   gap: var(--onboarding-space-sm);
@@ -245,13 +245,13 @@
   transition: var(--onboarding-transition);
 }
 
-:where(.onboarding-container) .radio-option:hover,
-:where(.onboarding-container) .checkbox-option:hover {
+:where(.onboarding-container) .onboarding-radio-option:hover,
+:where(.onboarding-container) .onboarding-checkbox-option:hover {
   background: var(--onboarding-surface);
 }
 
-:where(.onboarding-container) .radio-option:focus-within,
-:where(.onboarding-container) .checkbox-option:focus-within {
+:where(.onboarding-container) .onboarding-radio-option:focus-within,
+:where(.onboarding-container) .onboarding-checkbox-option:focus-within {
   background: var(--onboarding-surface);
   outline: 2px solid var(--onboarding-primary);
   outline-offset: 2px;
@@ -322,7 +322,7 @@
     font-weight: 700;
   }
 
-  :where(.onboarding-container, .onboarding-banner) .progress-fill {
+  :where(.onboarding-container, .onboarding-banner) .onboarding-progress-fill {
     background: #000000;
   }
 
@@ -330,7 +330,7 @@
     border-width: 3px;
   }
 
-  :where(.onboarding-container) .tooltip {
+  :where(.onboarding-container) .onboarding-tooltip {
     border: 2px solid #000000;
   }
 }
@@ -405,32 +405,32 @@
 }
 
 /* Enhanced status messages */
-:where(.onboarding-container) .status-message {
+:where(.onboarding-container) .onboarding-status-message {
   padding: var(--onboarding-space-md);
   border-radius: 0.5rem;
   margin: var(--onboarding-space-md) 0;
   border: 1px solid;
 }
 
-:where(.onboarding-container) .status-message.success {
+:where(.onboarding-container) .onboarding-status-message.onboarding-status-success {
   background: #f0fdf4;
   border-color: var(--onboarding-success);
   color: #166534;
 }
 
-:where(.onboarding-container) .status-message.error {
+:where(.onboarding-container) .onboarding-status-message.onboarding-status-error {
   background: #fef2f2;
   border-color: var(--onboarding-danger);
   color: #dc2626;
 }
 
-:where(.onboarding-container) .status-message.warning {
+:where(.onboarding-container) .onboarding-status-message.onboarding-status-warning {
   background: #fffbeb;
   border-color: var(--onboarding-warning);
   color: #92400e;
 }
 
-:where(.onboarding-container) .status-message.info {
+:where(.onboarding-container) .onboarding-status-message.onboarding-status-info {
   background: #eff6ff;
   border-color: var(--onboarding-primary);
   color: #1e40af;

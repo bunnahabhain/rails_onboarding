@@ -144,7 +144,7 @@
   min-width: 12rem;
 }
 
-.onboarding-banner-progress .progress-bar {
+.onboarding-banner-progress .onboarding-progress-bar {
   margin-bottom: var(--onboarding-space-sm);
 }
 
@@ -216,7 +216,7 @@
   margin: 0 auto;
 }
 
-.progress-bar {
+.onboarding-progress-bar {
   width: 100%;
   height: 0.5rem;
   background: var(--onboarding-border);
@@ -225,7 +225,7 @@
   margin-bottom: var(--onboarding-space-lg);
 }
 
-.progress-fill {
+.onboarding-progress-fill {
   height: 100%;
   width: var(--onboarding-progress-width, 0%);
   background: linear-gradient(90deg, var(--onboarding-primary), var(--onboarding-success));
@@ -262,19 +262,19 @@
   transition: var(--onboarding-transition);
 }
 
-.progress-step.upcoming .step-marker {
+.progress-step.onboarding-upcoming .step-marker {
   background: var(--onboarding-surface);
   border: 2px solid var(--onboarding-border);
   color: var(--onboarding-text-muted);
 }
 
-.progress-step.current .step-marker {
+.progress-step.onboarding-current .step-marker {
   background: var(--onboarding-primary);
   border: 2px solid var(--onboarding-primary);
   color: white;
 }
 
-.progress-step.completed .step-marker {
+.progress-step.onboarding-completed .step-marker {
   background: var(--onboarding-success);
   border: 2px solid var(--onboarding-success);
   color: white;
@@ -291,7 +291,7 @@
   line-height: 1.3;
 }
 
-.progress-step.current .step-label {
+.progress-step.onboarding-current .step-label {
   color: var(--onboarding-text);
   font-weight: 500;
 }
@@ -302,7 +302,7 @@
   text-align: center;
 }
 
-.progress-text {
+.onboarding-progress-text {
   text-align: center;
   font-size: var(--onboarding-text-sm);
   color: var(--onboarding-text-muted);
@@ -468,11 +468,11 @@
   padding: 0 var(--onboarding-space-md);
 }
 
-.form-group {
+.onboarding-form-group {
   margin-bottom: var(--onboarding-space-lg);
 }
 
-.form-group:last-child {
+.onboarding-form-group:last-child {
   margin-bottom: 0;
 }
 
@@ -515,13 +515,13 @@
   accent-color: var(--onboarding-primary);
 }
 
-.checkbox-label {
+.onboarding-checkbox-label {
   font-weight: 500;
   color: var(--onboarding-text);
   cursor: pointer;
 }
 
-.help-text {
+.onboarding-help-text {
   font-size: var(--onboarding-text-sm);
   color: var(--onboarding-text-muted);
   margin-top: var(--onboarding-space-xs);
@@ -855,7 +855,7 @@
   color: var(--onboarding-text);
 }
 
-.help-icon {
+.onboarding-help-icon {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 50%;

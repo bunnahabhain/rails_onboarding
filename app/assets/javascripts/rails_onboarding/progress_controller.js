@@ -25,7 +25,7 @@ export default class extends Controller {
     // changing it here still animates via the stylesheet's `transition:
     // width` - no inline width/transition needed.
     updateProgressDisplay() {
-        const progressFill = this.element.querySelector('.progress-fill')
+        const progressFill = this.element.querySelector('.onboarding-progress-fill')
         const progressText = this.element.querySelector('.current-progress')
 
         if (progressFill) {
@@ -49,11 +49,11 @@ export default class extends Controller {
             const numberElement = step.querySelector('.step-number')
 
             // Remove all state classes
-            step.classList.remove('completed', 'current', 'upcoming')
+            step.classList.remove('onboarding-completed', 'current', 'upcoming')
 
             // Add appropriate class based on progress
             if (stepNumber < currentStep) {
-                step.classList.add('completed')
+                step.classList.add('onboarding-completed')
 
                 // Show checkmark for completed steps
                 if (numberElement && !checkElement) {
@@ -61,7 +61,7 @@ export default class extends Controller {
                     numberElement.className = 'step-check'
                 }
             } else if (stepNumber === currentStep) {
-                step.classList.add('current')
+                step.classList.add('onboarding-current')
 
                 // Show number for current step
                 if (numberElement) {
@@ -69,7 +69,7 @@ export default class extends Controller {
                     numberElement.className = 'step-number'
                 }
             } else {
-                step.classList.add('upcoming')
+                step.classList.add('onboarding-upcoming')
 
                 // Show number for upcoming steps
                 if (numberElement) {
@@ -88,7 +88,7 @@ export default class extends Controller {
 
     // Pulse animation for current step
     pulseCurrentStep() {
-        const currentStepElement = this.element.querySelector('.progress-step.current .step-marker')
+        const currentStepElement = this.element.querySelector('.progress-step.onboarding-current .step-marker')
         if (currentStepElement) {
             currentStepElement.classList.add('step-marker-pulse')
 

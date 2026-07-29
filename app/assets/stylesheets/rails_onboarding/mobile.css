@@ -199,7 +199,7 @@
   }
 
   /* Better spacing for form fields */
-  .form-group {
+  .onboarding-form-group {
     margin-bottom: var(--mobile-space-xl);
   }
 
@@ -487,7 +487,7 @@
   }
 
   /* Simplify gradient animations */
-  .progress-fill,
+  .onboarding-progress-fill,
   .time-estimate,
   .milestone-points {
     background: var(--onboarding-primary);
@@ -714,7 +714,7 @@
   }
 
   /* Mobile-friendly skeleton screens */
-  .skeleton {
+  .onboarding-skeleton {
     background: linear-gradient(
       90deg,
       var(--onboarding-surface) 0%,
@@ -776,7 +776,7 @@
    ====================== */
 
 @media screen and (max-width: 47.9375em) {
-  .error-message {
+  .onboarding-error-message {
     padding: var(--mobile-space-md);
     font-size: var(--mobile-text-sm);
     margin-top: var(--mobile-space-sm);

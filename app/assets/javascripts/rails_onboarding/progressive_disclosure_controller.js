@@ -75,7 +75,7 @@ export default class extends Controller {
 
     // Animate in
     setTimeout(() => {
-      notification.classList.add('show')
+      notification.classList.add('onboarding-show')
     }, 100)
 
     // Auto-dismiss after 10 seconds if not interacted with
@@ -101,10 +101,10 @@ export default class extends Controller {
         </div>
         <p>${feature.description || 'A new feature is now available for you!'}</p>
         <div class="notification-actions">
-          <button class="btn btn-primary" data-action="click->progressive-disclosure#revealFeature" data-feature-key="${feature.key}">
+          <button class="onboarding-btn onboarding-btn-primary" data-action="click->progressive-disclosure#revealFeature" data-feature-key="${feature.key}">
             Explore Now
           </button>
-          <button class="btn btn-secondary" data-action="click->progressive-disclosure#dismissNotification">
+          <button class="onboarding-btn onboarding-btn-secondary" data-action="click->progressive-disclosure#dismissNotification">
             Later
           </button>
         </div>
@@ -186,8 +186,8 @@ export default class extends Controller {
 
     if (!notification) return
 
-    notification.classList.remove('show')
-    notification.classList.add('hide')
+    notification.classList.remove('onboarding-show')
+    notification.classList.add('onboarding-hide')
 
     setTimeout(() => {
       if (notification.parentElement) {

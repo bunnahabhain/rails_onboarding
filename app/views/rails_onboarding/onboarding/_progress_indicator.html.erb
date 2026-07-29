@@ -1,6 +1,6 @@
 <div class="progress-indicator" data-controller="progress" data-progress-value="<%= @progress %>">
-  <div class="progress-bar">
-    <div class="progress-fill" style="--onboarding-progress-width: <%= @progress %>%"></div>
+  <div class="onboarding-progress-bar">
+    <div class="onboarding-progress-fill" style="--onboarding-progress-width: <%= @progress %>%"></div>
   </div>
 
   <div class="progress-steps">
@@ -13,9 +13,9 @@
       <% step_number = index + 1 %>
       <%
         step_class = "progress-step"
-        step_class += " completed" if step_number < current_step_index
-        step_class += " current" if step_number == current_step_index
-        step_class += " upcoming" if step_number > current_step_index
+        step_class += " onboarding-completed" if step_number < current_step_index
+        step_class += " onboarding-current" if step_number == current_step_index
+        step_class += " onboarding-upcoming" if step_number > current_step_index
       %>
 
       <div class="<%= step_class %>" data-step="<%= step_number %>">
@@ -36,7 +36,7 @@
     <% end %>
   </div>
 
-  <div class="progress-text">
+  <div class="onboarding-progress-text">
     <span class="current-progress">Step <%= current_step_index %></span>
     <span class="total-steps">of <%= @total_steps %></span>
     

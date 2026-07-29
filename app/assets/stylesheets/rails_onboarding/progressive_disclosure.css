@@ -14,44 +14,44 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.progressive-feature-notification.show {
+.progressive-feature-notification.onboarding-show {
   opacity: 1;
   transform: translateY(0);
 }
 
-.progressive-feature-notification.hide {
+.progressive-feature-notification.onboarding-hide {
   opacity: 0;
   transform: translateY(-20px);
 }
 
 /* Position variants */
-.progressive-feature-notification.top-right {
+.progressive-feature-notification.onboarding-top-right {
   top: 20px;
   right: 20px;
 }
 
-.progressive-feature-notification.top-left {
+.progressive-feature-notification.onboarding-top-left {
   top: 20px;
   left: 20px;
 }
 
-.progressive-feature-notification.bottom-right {
+.progressive-feature-notification.onboarding-bottom-right {
   bottom: 20px;
   right: 20px;
 }
 
-.progressive-feature-notification.bottom-left {
+.progressive-feature-notification.onboarding-bottom-left {
   bottom: 20px;
   left: 20px;
 }
 
-.progressive-feature-notification.top-center {
+.progressive-feature-notification.onboarding-top-center {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.progressive-feature-notification.top-center.show {
+.progressive-feature-notification.onboarding-top-center.onboarding-show {
   transform: translateX(-50%) translateY(0);
 }
 
@@ -124,7 +124,7 @@
   gap: 0.5rem;
 }
 
-.notification-actions .btn {
+.notification-actions .onboarding-btn {
   flex: 1;
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -135,21 +135,21 @@
   transition: all 0.2s;
 }
 
-.notification-actions .btn-primary {
+.notification-actions .onboarding-btn-primary {
   background: #007bff;
   color: white;
 }
 
-.notification-actions .btn-primary:hover {
+.notification-actions .onboarding-btn-primary:hover {
   background: #0056b3;
 }
 
-.notification-actions .btn-secondary {
+.notification-actions .onboarding-btn-secondary {
   background: #f0f0f0;
   color: #666;
 }
 
-.notification-actions .btn-secondary:hover {
+.notification-actions .onboarding-btn-secondary:hover {
   background: #e0e0e0;
   color: #333;
 }
@@ -168,12 +168,12 @@
   transition: all 0.2s;
 }
 
-.progressive-feature-card.revealed {
+.progressive-feature-card.onboarding-revealed {
   border-color: #28a745;
   background: #f8fff9;
 }
 
-.progressive-feature-card.ready {
+.progressive-feature-card.onboarding-ready {
   border-color: #007bff;
   background: #f0f8ff;
 }
@@ -192,17 +192,17 @@
   letter-spacing: 0.5px;
 }
 
-.feature-status-badge.revealed {
+.feature-status-badge.onboarding-revealed {
   background: #d4edda;
   color: #155724;
 }
 
-.feature-status-badge.ready {
+.feature-status-badge.onboarding-ready {
   background: #d1ecf1;
   color: #0c5460;
 }
 
-.feature-status-badge.locked {
+.feature-status-badge.onboarding-locked {
   background: #f8d7da;
   color: #721c24;
 }
@@ -226,11 +226,11 @@
     transform: none;
   }
 
-  .progressive-feature-notification.top-center {
+  .progressive-feature-notification.onboarding-top-center {
     transform: none;
   }
 
-  .progressive-feature-notification.show {
+  .progressive-feature-notification.onboarding-show {
     transform: none;
   }
 
@@ -238,7 +238,7 @@
     flex-direction: column;
   }
 
-  .notification-actions .btn {
+  .notification-actions .onboarding-btn {
     width: 100%;
   }
 }
@@ -267,12 +267,12 @@
     color: #f0f0f0;
   }
 
-  .notification-actions .btn-secondary {
+  .notification-actions .onboarding-btn-secondary {
     background: #3a3a3a;
     color: #b0b0b0;
   }
 
-  .notification-actions .btn-secondary:hover {
+  .notification-actions .onboarding-btn-secondary:hover {
     background: #4a4a4a;
     color: #f0f0f0;
   }
@@ -282,12 +282,12 @@
     border-color: #3a3a3a;
   }
 
-  .progressive-feature-card.revealed {
+  .progressive-feature-card.onboarding-revealed {
     border-color: #28a745;
     background: #1a2a1f;
   }
 
-  .progressive-feature-card.ready {
+  .progressive-feature-card.onboarding-ready {
     border-color: #007bff;
     background: #1a2a3a;
   }

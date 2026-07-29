@@ -15,7 +15,7 @@
 
   <% if @achieved_milestones.any? %>
     <section class="achieved-milestones">
-      <h2 class="section-title">🎉 Achieved Milestones</h2>
+      <h2 class="onboarding-section-title">🎉 Achieved Milestones</h2>
       <div class="milestone-grid">
         <% @achieved_milestones.each do |milestone| %>
           <div class="milestone-card milestone-achieved">
@@ -33,7 +33,7 @@
 
   <% if @available_milestones.any? %>
     <section class="available-milestones">
-      <h2 class="section-title">🎯 Available Milestones</h2>
+      <h2 class="onboarding-section-title">🎯 Available Milestones</h2>
       <div class="milestone-grid">
         <% @available_milestones.each do |milestone| %>
           <div class="milestone-card milestone-available">
@@ -50,8 +50,8 @@
   <% end %>
 
   <% if @achieved_milestones.empty? && @available_milestones.empty? %>
-    <div class="empty-state">
-      <div class="empty-icon">🎯</div>
+    <div class="onboarding-empty-state">
+      <div class="onboarding-empty-icon">🎯</div>
       <h2>No milestones available</h2>
       <p>Complete onboarding steps to start earning achievements!</p>
     </div>

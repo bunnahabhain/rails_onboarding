@@ -749,9 +749,14 @@ export default class extends Controller {
             this.styleArrowForPosition(arrow, position, arrowPosition, targetRect, tooltipRect)
         }
 
-        // Add position class for CSS styling
-        this.tooltip.className = this.tooltip.className.replace(/\b(top|bottom|left|right)\b/g, '')
-        this.tooltip.classList.add(position)
+        // Add position class for CSS styling. The class names are namespaced
+        // (onboarding-top, onboarding-left, ...), so strip by exact class rather
+        // than with a \b word boundary - \b treats "-" as a boundary, so the old
+        // /\b(top|bottom|left|right)\b/ would also match inside a namespaced name.
+        this.tooltip.classList.remove(
+            "onboarding-top", "onboarding-bottom", "onboarding-left", "onboarding-right"
+        )
+        this.tooltip.classList.add(`onboarding-${position}`)
 
         // Animate in with enhanced animations
         this.animateTooltipIn()
