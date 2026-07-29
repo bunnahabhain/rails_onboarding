@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Step content is styled again after a Turbo step transition.**
+  `_step_content.html.erb` and the admin flow preview wrapped their content
+  in `.onboarding-step-content`, a class with no rules in any stylesheet,
+  while `.step-content` — the class that actually carries the step layout
+  (`max-width: 42rem`, centring, the responsive and print overrides, and the
+  `data-step-changed` entry animation), and the one `step.html.erb` uses —
+  matched nothing. They now use `.step-content`, so every step view is laid
+  out the same way.
+
+  Note that `_step_content.html.erb` is rendered only by the `next` and
+  `skip` Turbo Stream responses, and those currently replace an element that
+  does not exist on the page (see below), so this correction is not yet
+  visible in a browser.
+
 ## [0.5.1] - 2026-07-29
 
 Patch: rendering fixes to the feature tooltip. Nothing to configure, no API

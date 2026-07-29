@@ -7,7 +7,7 @@
 
   <% if @steps.any? %>
     <% @steps.each_with_index do |step, index| %>
-      <div class="onboarding-step-content">
+      <div class="step-content">
         <div class="step-header">
           <% if step[:icon] %>
             <span class="step-icon"><%= step[:icon] %></span>
@@ -33,7 +33,7 @@
       </div>
     <% end %>
   <% else %>
-    <div class="onboarding-step-content">
+    <div class="step-content">
       <p class="admin-empty-state">This flow has no steps configured yet.</p>
     </div>
   <% end %>

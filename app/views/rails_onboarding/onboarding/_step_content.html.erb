@@ -3,7 +3,7 @@
     <%= render partial: "rails_onboarding/onboarding/progress_indicator",
                locals: { progress: progress, total_steps: total_steps } %>
 
-    <div class="onboarding-step-content">
+    <div class="step-content">
       <% if current_step %>
         <div class="step-header">
           <% if current_step[:icon] %>
