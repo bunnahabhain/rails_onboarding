@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-29
+
+Minor: completes the CSS isolation work. 0.4.0 stopped the gem's styles
+leaking out into the host application; this release stops the host's styles
+reaching in, by namespacing the 55 generic class names the gem's own
+elements carried. It also fixes tooltips, which had been styled by hardcoded
+inline values and ignored the theme entirely.
+
+**Breaking** in two ways, both CSS-only: if your application targets any of
+the renamed class names, or overrode `.rails-onboarding-tooltip`, those
+selectors need updating. No Ruby API, configuration, or database change.
+
 ### Changed
 
 - **55 generic CSS class names are namespaced with an `onboarding-` prefix.**
@@ -765,7 +777,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.4...v0.4.0
