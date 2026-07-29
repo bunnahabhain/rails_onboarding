@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-07-28
+
+Patch: dependency and CI maintenance only. No gem code changed, and
+nothing here affects host applications — the gem's own dependency
+constraints are unchanged, so what your app resolves is unaffected.
+
+### Changed
+
+- **csv 3.3.5 → 3.3.6** and **sqlite3 2.9.4 → 2.9.5** in `Gemfile.lock`
+  (#105, #104). `csv` is a runtime dependency but is unconstrained in the
+  gemspec, and `sqlite3` is only used by the dummy app's test database, so
+  neither changes resolution for a host application.
+- **`actions/checkout` v6 → v7** in the CI workflow (#103). Affects this
+  repository's own builds only.
+
 ## [0.4.1] - 2026-07-28
 
 Patch: finishes the CSS isolation work started in 0.4.0. That release
@@ -684,7 +699,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.4...v0.4.0
 [0.3.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.3.3...v0.3.4
