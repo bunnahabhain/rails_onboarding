@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-07-29
+
+Patch: rendering fixes to the feature tooltip. Nothing to configure, no API
+change, and no effect outside that component.
+
 ### Fixed
 
 - **Feature tooltips render as designed.** The second tooltip implementation,
@@ -802,7 +807,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.0...v0.4.1
