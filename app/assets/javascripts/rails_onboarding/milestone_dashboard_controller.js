@@ -2,6 +2,9 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["milestoneCard", "pointsValue", "countValue"]
+  // Supplied by the view via milestones_path. The engine is mounted at a
+  // host-chosen prefix, so this cannot be a literal path.
+  static values = { milestonesPath: String }
   
   connect() {
     this.animateStats()
@@ -84,8 +87,13 @@ export default class extends Controller {
   }
 
   async fetchAndShowMilestone(milestoneKey) {
+    // Without the mounted path there is nothing safe to guess at - bail rather
+    // than fire a request at the host app's root.
+    if (!this.hasMilestonesPathValue || !this.milestonesPathValue) return
+
+    const base = this.milestonesPathValue.replace(/\/+$/, "")
     try {
-      const response = await fetch(`/milestones/${milestoneKey}`, {
+      const response = await fetch(`${base}/${encodeURIComponent(milestoneKey)}`, {
         headers: { 'Accept': 'application/json' }
       })
       
@@ -99,17 +107,21 @@ export default class extends Controller {
   }
 
   showMilestoneCelebration(milestone) {
-    // Create temporary celebration element
-    const celebrationHTML = `
-      <div class="milestone-celebration-overlay" 
-           data-controller="milestone-celebration" 
-           data-milestone-celebration-milestone-value='${JSON.stringify(milestone)}'
-           data-temporary="true">
-        <!-- Celebration content will be rendered by the controller -->
-      </div>
-    `
-    
-    document.body.insertAdjacentHTML('beforeend', celebrationHTML)
+    // An empty shell on purpose: milestone_celebration_controller builds the
+    // same structure the server-rendered partial produces when it connects to
+    // an overlay with no .celebration-modal. Attributes are set as properties
+    // rather than interpolated into markup so milestone data cannot break out
+    // of the attribute.
+    const overlay = document.createElement("div")
+    overlay.className = "milestone-celebration-overlay"
+    overlay.dataset.controller = "milestone-celebration"
+    overlay.dataset.milestoneCelebrationMilestoneValue = JSON.stringify(milestone)
+    overlay.dataset.temporary = "true"
+    if (this.hasMilestonesPathValue && this.milestonesPathValue) {
+      overlay.dataset.milestoneCelebrationMilestonesPathValue = this.milestonesPathValue
+    }
+
+    document.body.appendChild(overlay)
   }
 
   cleanUrl() {

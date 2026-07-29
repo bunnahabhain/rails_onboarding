@@ -2,10 +2,77 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["confetti"]
-  static values = { milestone: Object }
+  // milestonesPath is supplied by the view. The engine is mounted at a
+  // host-chosen prefix, so a literal "/milestones" is wrong in most apps.
+  static values = { milestone: Object, milestonesPath: String }
 
   connect() {
+    this.renderContentIfEmpty()
     this.showCelebration()
+  }
+
+  // The celebration is normally rendered server-side by
+  // rails_onboarding/shared/_milestone_celebration. It can also be injected
+  // at runtime by milestone_dashboard_controller, which knows only the
+  // milestone's JSON - that injected element is an empty shell, and without
+  // this it showed as a full-screen backdrop containing nothing, with no
+  // dismiss control and no confetti container. Build the same structure the
+  // partial produces so the existing CSS applies either way.
+  renderContentIfEmpty() {
+    if (this.element.querySelector(".celebration-modal")) return
+
+    const milestone = this.hasMilestoneValue ? this.milestoneValue : {}
+    const el = (tag, className, text) => {
+      const node = document.createElement(tag)
+      if (className) node.className = className
+      if (text !== undefined && text !== null) node.textContent = text
+      return node
+    }
+
+    const backdrop = el("div", "celebration-backdrop")
+    backdrop.dataset.action = "click->milestone-celebration#dismiss"
+
+    const iconContainer = el("div", "achievement-icon-container")
+    iconContainer.append(el("div", "achievement-icon-glow"),
+                         el("div", "achievement-icon", milestone.icon))
+
+    const points = el("div", "points-earned")
+    points.append(el("span", "points-label", "You earned"),
+                  el("span", "points-value", `+${milestone.points ?? 0}`),
+                  el("span", "points-label", "points!"))
+
+    const announcement = el("div", "achievement-announcement")
+    announcement.append(iconContainer,
+                        el("h2", "achievement-title", "Milestone Achieved!"),
+                        el("h3", "milestone-name", milestone.title),
+                        el("p", "milestone-description", milestone.description),
+                        points)
+
+    const confetti = el("div", "confetti-container")
+    confetti.dataset.milestoneCelebrationTarget = "confetti"
+
+    const continueBtn = el("button", "onboarding-btn onboarding-btn-primary", "Continue")
+    continueBtn.type = "button"
+    continueBtn.dataset.action = "click->milestone-celebration#dismiss"
+
+    const actions = el("div", "celebration-actions")
+    actions.append(continueBtn)
+
+    // Only offer "View All" when the view told us where that lives.
+    if (this.hasMilestonesPathValue && this.milestonesPathValue) {
+      const allBtn = el("button", "onboarding-btn onboarding-btn-secondary", "View All Achievements")
+      allBtn.type = "button"
+      allBtn.dataset.action = "click->milestone-celebration#viewAllMilestones"
+      actions.append(allBtn)
+    }
+
+    const content = el("div", "celebration-content")
+    content.append(confetti, announcement, actions)
+
+    const modal = el("div", "celebration-modal")
+    modal.append(content)
+
+    this.element.append(backdrop, modal)
   }
 
   showCelebration() {
@@ -30,9 +97,12 @@ export default class extends Controller {
   }
 
   startConfetti() {
-    if (!this.hasConfettiTarget) return
-    
-    const confettiContainer = this.confettiTarget
+    // Fall back to a direct lookup: when renderContentIfEmpty() has just
+    // inserted the container, Stimulus may not have registered the target yet.
+    const confettiContainer = this.hasConfettiTarget
+      ? this.confettiTarget
+      : this.element.querySelector(".confetti-container")
+    if (!confettiContainer) return
     const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']
     
     // Create confetti pieces
@@ -93,8 +163,11 @@ export default class extends Controller {
 
   viewAllMilestones() {
     this.dismiss()
-    // Navigate to milestones page
-    window.location.href = "/milestones"
+    // Supplied by the view via the engine's route helper; a literal
+    // "/milestones" only resolves when the engine is mounted at root.
+    if (this.hasMilestonesPathValue && this.milestonesPathValue) {
+      window.location.href = this.milestonesPathValue
+    }
   }
 
   // Prevent dismissal when clicking inside the modal

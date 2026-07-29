@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Milestone JavaScript no longer assumes the engine is mounted at root.**
+  `milestone_dashboard_controller` fetched `/milestones/:key` and
+  `milestone_celebration_controller` navigated to `/milestones`, both
+  literal paths. A Rails engine is mounted wherever the host chooses, so
+  those resolved only in an app mounting at `/` — against the dummy app,
+  `/milestones/first_step` returns 404 while
+  `/rails_onboarding/milestones/first_step` is the real endpoint. Both
+  controllers now take the path from the view, which builds it with the
+  engine's route helper.
+
+- **The runtime milestone celebration is no longer an empty overlay.**
+  When `milestone_dashboard_controller` shows a celebration for a milestone
+  named in `awarded_milestones`, it injected an overlay whose only content
+  was the comment *"Celebration content will be rendered by the
+  controller"* — but `milestone_celebration_controller` renders no content;
+  it toggles classes and adds confetti. The injected element also had no
+  `confetti` target and neither dismiss control, so it appeared as a
+  full-screen dark backdrop containing nothing, with no confetti and no way
+  to dismiss it before the eight-second auto-timer.
+
+  The celebration controller now builds the same structure the
+  `_milestone_celebration` partial produces when it connects to an overlay
+  that has none, so both paths render identically and share the existing
+  CSS. Server-rendered celebrations are untouched.
+
+- **The milestone dashboard's Stimulus targets are connected.**
+  `milestones/index.html.erb` declared `data-controller="milestone-dashboard"`
+  but no `data-milestone-dashboard-target` attributes, while the controller
+  declares `pointsValue`, `countValue` and `milestoneCard`. The points and
+  milestone counters never animated and the card hover lift never attached —
+  silently, since Stimulus returns empty target lists rather than raising.
+
 ## [0.5.3] - 2026-07-29
 
 Makes the progress indicator visible. It was already written and styled but

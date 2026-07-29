@@ -1,13 +1,18 @@
-<div class="milestones-dashboard" data-controller="milestone-dashboard">
+<%# milestonesPath is passed in rather than hardcoded in the controller: the
+    engine is mounted at a host-chosen prefix, so a literal "/milestones/..."
+    fetch 404s in every app that does not mount at root. %>
+<div class="milestones-dashboard"
+     data-controller="milestone-dashboard"
+     data-milestone-dashboard-milestones-path-value="<%= milestones_path %>">
   <div class="milestone-header">
     <h1 class="milestone-title">🏆 Your Achievements</h1>
     <div class="milestone-stats">
       <div class="total-points">
-        <span class="points-value"><%= @total_points %></span>
+        <span class="points-value" data-milestone-dashboard-target="pointsValue"><%= @total_points %></span>
         <span class="points-label">Total Points</span>
       </div>
       <div class="achievement-count">
-        <span class="count-value"><%= @achieved_milestones.length %></span>
+        <span class="count-value" data-milestone-dashboard-target="countValue"><%= @achieved_milestones.length %></span>
         <span class="count-label">Milestones</span>
       </div>
     </div>
@@ -18,7 +23,7 @@
       <h2 class="onboarding-section-title">🎉 Achieved Milestones</h2>
       <div class="milestone-grid">
         <% @achieved_milestones.each do |milestone| %>
-          <div class="milestone-card milestone-achieved">
+          <div class="milestone-card milestone-achieved" data-milestone-dashboard-target="milestoneCard">
             <div class="milestone-icon"><%= milestone[:icon] %></div>
             <div class="milestone-content">
               <h3 class="milestone-name"><%= milestone[:title] %></h3>
@@ -36,7 +41,7 @@
       <h2 class="onboarding-section-title">🎯 Available Milestones</h2>
       <div class="milestone-grid">
         <% @available_milestones.each do |milestone| %>
-          <div class="milestone-card milestone-available">
+          <div class="milestone-card milestone-available" data-milestone-dashboard-target="milestoneCard">
             <div class="milestone-icon milestone-locked"><%= milestone[:icon] %></div>
             <div class="milestone-content">
               <h3 class="milestone-name"><%= milestone[:title] %></h3>

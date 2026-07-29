@@ -1,6 +1,9 @@
+<%# Host applications render this partial from their own views, so the path is
+    resolved through the engine's mount proxy rather than assumed. %>
 <div class="milestone-celebration-overlay is-hidden"
      data-controller="milestone-celebration"
-     data-milestone-celebration-milestone-value="<%= milestone.to_json %>">
+     data-milestone-celebration-milestone-value="<%= milestone.to_json %>"
+     data-milestone-celebration-milestones-path-value="<%= rails_onboarding.milestones_path %>">
   
   <div class="celebration-backdrop" data-action="click->milestone-celebration#dismiss"></div>
   
