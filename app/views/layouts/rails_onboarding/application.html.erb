@@ -43,6 +43,19 @@
     viewports (there's empty space outside the content's own max-width
     either way) but runs text edge-to-edge on mobile. %>
 <div class="onboarding-container">
+  <%# .onboarding-container is a three-row grid (auto 1fr auto) - header,
+      content, footer - and this fills the header row. The progress indicator
+      reads @current_step/@progress/@total_steps, which only the onboarding
+      controller assigns; milestones and A/B test pages share this layout and
+      set none of them, so it renders only when that context is present.
+      Putting it here rather than in each step template means host-supplied
+      step templates get it too, without having to know about it. %>
+  <% if @current_step && @total_steps %>
+    <header class="onboarding-header">
+      <%= render "rails_onboarding/onboarding/progress_indicator" %>
+    </header>
+  <% end %>
+
   <div class="onboarding-content">
     <%= yield %>
   </div>

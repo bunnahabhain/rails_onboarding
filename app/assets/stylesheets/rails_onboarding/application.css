@@ -113,6 +113,14 @@
   text-align: center;
 }
 
+/* Header row of the .onboarding-container grid, holding the progress
+   indicator. The @media rules further down already assumed this existed -
+   tightening its padding on small screens and hiding it in print - but no
+   base rule was ever declared, because nothing rendered it. */
+.onboarding-header {
+  padding: var(--onboarding-space-lg);
+}
+
 .onboarding-footer {
   display: flex;
   background: var(--onboarding-surface-elevated);

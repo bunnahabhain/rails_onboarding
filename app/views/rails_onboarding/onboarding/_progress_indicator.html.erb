@@ -29,9 +29,11 @@
           <% end %>
         </div>
 
-        <div class="step-label">
-          <span class="step-title"><%= step[:title] %></span>
-        </div>
+        <%# No .step-title here: that class is the page heading everywhere else
+            (application.css pairs it with .step-heading at 3xl/700), so using it
+            for a progress label rendered each step name at heading size. The
+            surrounding .step-label already supplies the intended styling. %>
+        <div class="step-label"><%= step[:title] %></div>
       </div>
     <% end %>
   </div>

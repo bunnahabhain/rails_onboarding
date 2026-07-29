@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The progress indicator now renders on onboarding pages.** The partial
+  existed and was styled, but nothing displayed it — neither `welcome.html.erb`
+  nor `step.html.erb` rendered it, so onboarding ran with no visible progress
+  at all. It is now rendered from the engine layout, which means
+  host-supplied step templates get it without having to know about it.
+
+  It fills the header row of `.onboarding-container`, whose
+  `grid-template-rows: auto 1fr auto` always anticipated one — the responsive
+  and print rules already referenced `.onboarding-header`, but no base rule
+  existed because nothing rendered it. One is now declared, matching
+  `.onboarding-footer`.
+
+  A side effect worth expecting: with the header row occupied, page content
+  moves into the `1fr` row and fills it, so `.onboarding-content`'s existing
+  `justify-content: center` finally takes effect. Previously content sat at
+  the top of the viewport with the `1fr` row left empty, because the element
+  was only as tall as its own content.
+
+  The indicator only renders where `@current_step` and `@total_steps` are
+  assigned, so milestone and A/B test pages sharing this layout are
+  unaffected.
+
+### Fixed
+
+- **Progress step labels are no longer rendered at heading size.** The
+  progress indicator wrapped each step name in `.step-title`, which
+  `application.css` pairs with `.step-heading` as the page heading
+  (`3xl`/700). Each label therefore rendered at 30px instead of the 12px its
+  surrounding `.step-label` specifies. The label text now sits directly in
+  `.step-label`.
+
 ## [0.5.2] - 2026-07-29
 
 Patch: removes Turbo Stream code paths that never worked, so onboarding
