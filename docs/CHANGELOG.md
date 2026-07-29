@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-07-29
+
+Patch: removes Turbo Stream code paths that never worked, so onboarding
+navigation falls back to the plain redirects underneath them — which is what
+already happened in practice, since the streams targeted elements that were
+never on the page.
+
+Treated as a patch because nothing that functioned is being taken away. In a
+host app running turbo-rails, `Next`, `Skip` and `Back` should now actually
+advance; without turbo-rails, behaviour is unchanged.
+
+Note: `config.turbo_streams_enabled` governs nothing and did not before this
+release either — no code has ever consulted it. Left in place rather than
+removed, since taking a public config setting away is not a patch-level
+change.
+
 ### Removed
 
 - **The non-functional Turbo Stream navigation branches.** `next`, `skip`,
@@ -848,7 +864,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.4.1...v0.4.2
