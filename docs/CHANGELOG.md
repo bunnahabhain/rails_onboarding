@@ -38,6 +38,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Tooltips now follow the theme instead of hardcoded colours.**
+  `tooltip_controller.js` built its element as `.rails-onboarding-tooltip`,
+  a class with no rules anywhere, and then styled it entirely through an
+  inline `cssText` with literal values (`background: #1f2937`). Meanwhile
+  `tooltips.css` styled `.tooltip`, which nothing ever rendered. Tooltips
+  therefore looked fine but ignored every `--onboarding-*` custom property
+  and the dark-mode block, and editing `tooltips.css` had no effect at all.
+
+  The controller now emits `.onboarding-tooltip`, matching the stylesheet,
+  and appearance (background, colour, radius, shadow, padding, dismiss
+  button) comes from CSS using the design tokens. Only the animation state
+  stays inline, because `animateTooltipIn`/`Out` drive opacity and transform
+  imperatively, and only positioning stays computed — the controller places
+  the tooltip against the viewport with collision detection, so the old
+  CSS-positioned variants (`bottom: calc(100% + …)`, `translateX(-50%)`)
+  were removed rather than revived; they would have fought the computed
+  `top`/`left`.
+
+  The arrow colour was the subtlest part: the controller set
+  `border-top: 6px solid #1f2937` as a shorthand, and an inline shorthand
+  always beats a stylesheet longhand, so no CSS rule could recolour it. It
+  now sets only the border width and style, leaving the colour to CSS, which
+  keeps the arrow matching the tooltip body in both light and dark mode.
+
+  If your application restyled tooltips by overriding
+  `.rails-onboarding-tooltip`, switch to `.onboarding-tooltip` — or better,
+  set the `--onboarding-*` properties, which now actually reach it.
+
 - **Tooltip position classes no longer strip themselves incorrectly.**
   `tooltip_controller.js` cleared its position class with
   `className.replace(/\b(top|bottom|left|right)\b/g, "")`. `\b` treats `-` as

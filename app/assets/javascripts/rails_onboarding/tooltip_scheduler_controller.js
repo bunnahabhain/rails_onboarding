@@ -88,13 +88,13 @@ export default class extends Controller {
         // Track hovering over tooltips
         if (this.pauseOnHoverValue) {
             document.addEventListener('mouseenter', (event) => {
-                if (event.target.closest('.rails-onboarding-tooltip')) {
+                if (event.target.closest('.onboarding-tooltip')) {
                     this.pause()
                 }
             }, true)
             
             document.addEventListener('mouseleave', (event) => {
-                if (event.target.closest('.rails-onboarding-tooltip')) {
+                if (event.target.closest('.onboarding-tooltip')) {
                     if (this.isPaused && !this.userInteracting) {
                         this.resume()
                     }

@@ -346,7 +346,7 @@ export default class extends Controller {
 
         // Create tooltip element
         this.tooltip = document.createElement('div')
-        this.tooltip.className = 'rails-onboarding-tooltip'
+        this.tooltip.className = 'onboarding-tooltip'
         this.tooltip.innerHTML = `
       <div class="tooltip-arrow"></div>
       <div class="tooltip-inner">
@@ -635,85 +635,17 @@ export default class extends Controller {
     }
 
     // Style the tooltip
+    // Appearance (colours, radius, shadow, padding) lives in tooltips.css under
+    // .onboarding-tooltip, so tooltips follow the --onboarding-* design tokens and
+    // the dark-mode block like the rest of the gem. Only the animation state is set
+    // here, because animateTooltipIn/Out drive opacity and transform imperatively;
+    // position comes from positionTooltip(), which computes top/left in pixels.
     styleTooltip() {
         if (!this.tooltip) return
 
-        this.tooltip.style.cssText = `
-      position: absolute;
-      z-index: 1050;
-      background: #1f2937;
-      color: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      font-size: 0.875rem;
-      line-height: 1.4;
-      max-width: 16rem;
-      opacity: 0;
-      transform: scale(0.95) translateY(-5px);
-      transition: opacity 0.15s ease, transform 0.15s ease;
-      pointer-events: auto;
-    `
-
-        // Style inner content
-        const inner = this.tooltip.querySelector('.tooltip-inner')
-        if (inner) {
-            inner.style.cssText = `
-        padding: 0.75rem;
-        position: relative;
-      `
-        }
-
-        // Style arrow
-        const arrow = this.tooltip.querySelector('.tooltip-arrow')
-        if (arrow) {
-            arrow.style.cssText = `
-        position: absolute;
-        width: 0;
-        height: 0;
-      `
-        }
-
-        // Style dismiss button
-        const dismiss = this.tooltip.querySelector('.tooltip-dismiss')
-        if (dismiss) {
-            dismiss.style.cssText = `
-        position: absolute;
-        top: 0.25rem;
-        right: 0.25rem;
-        background: none;
-        border: none;
-        color: #d1d5db;
-        font-size: 1.25rem;
-        line-height: 1;
-        cursor: pointer;
-        padding: 0.25rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      `
-        }
-
-        // Style title and text
-        const title = this.tooltip.querySelector('.tooltip-title')
-        if (title) {
-            title.style.cssText = `
-        margin: 0 0 0.5rem;
-        font-weight: 600;
-        font-size: 0.875rem;
-        color: white;
-      `
-        }
-
-        const text = this.tooltip.querySelector('.tooltip-text')
-        if (text) {
-            text.style.cssText = `
-        margin: 0;
-        color: #d1d5db;
-        font-size: 0.8125rem;
-      `
-        }
+        this.tooltip.style.opacity = "0"
+        this.tooltip.style.transform = "scale(0.95) translateY(-5px)"
+        this.tooltip.style.transition = "opacity 0.15s ease, transform 0.15s ease"
     }
 
     // Position tooltip relative to trigger element with smart collision detection
@@ -958,7 +890,8 @@ export default class extends Controller {
                 arrow.style.transform = arrowPosition.x === '50%' ? 'translateX(-50%)' : 'none'
                 arrow.style.borderLeft = `${arrowSize}px solid transparent`
                 arrow.style.borderRight = `${arrowSize}px solid transparent`
-                arrow.style.borderTop = `${arrowSize}px solid #1f2937`
+                arrow.style.borderTopWidth = `${arrowSize}px`
+                arrow.style.borderTopStyle = 'solid'
                 break
                 
             case 'bottom':
@@ -967,7 +900,8 @@ export default class extends Controller {
                 arrow.style.transform = arrowPosition.x === '50%' ? 'translateX(-50%)' : 'none'
                 arrow.style.borderLeft = `${arrowSize}px solid transparent`
                 arrow.style.borderRight = `${arrowSize}px solid transparent`
-                arrow.style.borderBottom = `${arrowSize}px solid #1f2937`
+                arrow.style.borderBottomWidth = `${arrowSize}px`
+                arrow.style.borderBottomStyle = 'solid'
                 break
                 
             case 'left':
@@ -976,7 +910,8 @@ export default class extends Controller {
                 arrow.style.transform = arrowPosition.y === '50%' ? 'translateY(-50%)' : 'none'
                 arrow.style.borderTop = `${arrowSize}px solid transparent`
                 arrow.style.borderBottom = `${arrowSize}px solid transparent`
-                arrow.style.borderLeft = `${arrowSize}px solid #1f2937`
+                arrow.style.borderLeftWidth = `${arrowSize}px`
+                arrow.style.borderLeftStyle = 'solid'
                 break
                 
             case 'right':
@@ -985,7 +920,8 @@ export default class extends Controller {
                 arrow.style.transform = arrowPosition.y === '50%' ? 'translateY(-50%)' : 'none'
                 arrow.style.borderTop = `${arrowSize}px solid transparent`
                 arrow.style.borderBottom = `${arrowSize}px solid transparent`
-                arrow.style.borderRight = `${arrowSize}px solid #1f2937`
+                arrow.style.borderRightWidth = `${arrowSize}px`
+                arrow.style.borderRightStyle = 'solid'
                 break
         }
     }
@@ -1002,11 +938,13 @@ export default class extends Controller {
         if (side === 'top' || side === 'bottom') {
             arrow.style.borderLeft = `${arrowSize}px solid transparent`
             arrow.style.borderRight = `${arrowSize}px solid transparent`
-            arrow.style[side === 'top' ? 'borderBottom' : 'borderTop'] = `${arrowSize}px solid #1f2937`
+            arrow.style[side === 'top' ? 'borderBottomWidth' : 'borderTopWidth'] = `${arrowSize}px`
+            arrow.style[side === 'top' ? 'borderBottomStyle' : 'borderTopStyle'] = 'solid'
         } else {
             arrow.style.borderTop = `${arrowSize}px solid transparent`
             arrow.style.borderBottom = `${arrowSize}px solid transparent`
-            arrow.style[side === 'left' ? 'borderRight' : 'borderLeft'] = `${arrowSize}px solid #1f2937`
+            arrow.style[side === 'left' ? 'borderRightWidth' : 'borderLeftWidth'] = `${arrowSize}px`
+            arrow.style[side === 'left' ? 'borderRightStyle' : 'borderLeftStyle'] = 'solid'
         }
     }
 
@@ -1107,7 +1045,7 @@ export default class extends Controller {
         if (!behaviorData) return true
         
         // Don't overwhelm users - limit concurrent tooltips
-        const activeTooltips = document.querySelectorAll('.rails-onboarding-tooltip')
+        const activeTooltips = document.querySelectorAll('.onboarding-tooltip')
         if (activeTooltips.length >= 2) return false
         
         // Respect user interaction patterns

@@ -71,7 +71,7 @@ window.RailsOnboarding = {
 
     // Hide all tooltips
     hideAllTooltips: function() {
-        document.querySelectorAll('.rails-onboarding-tooltip').forEach(tooltip => {
+        document.querySelectorAll('.onboarding-tooltip').forEach(tooltip => {
             if (tooltip.parentNode) {
                 tooltip.parentNode.removeChild(tooltip)
             }

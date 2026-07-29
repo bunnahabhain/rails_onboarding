@@ -8,123 +8,71 @@
   display: inline-block;
 }
 
-/* Main tooltip element */
+/* Main tooltip element.
+ *
+ * tooltip_controller.js appends the tooltip to <body> and computes top/left in
+ * pixels with viewport collision detection, so this block must NOT set
+ * top/left/bottom/right or a centring transform - those would fight the computed
+ * position. Appearance only; the controller sets opacity/transform/transition
+ * inline because animateTooltipIn/Out drive them imperatively.
+ *
+ * The onboarding-top / -bottom / -left / -right classes the controller adds are
+ * kept for the arrow direction and for host-app styling hooks. They intentionally
+ * carry no positioning of their own. */
 .onboarding-tooltip {
   position: absolute;
+  z-index: 10000;
+  max-width: 20rem;
   background: var(--onboarding-text);
   color: var(--onboarding-background);
-  padding: var(--onboarding-space-md) var(--onboarding-space-lg);
   border-radius: 0.75rem;
   font-size: var(--onboarding-text-sm);
   line-height: 1.4;
   box-shadow: var(--onboarding-shadow-lg);
-  z-index: 10000;
-  max-width: 20rem;
-  min-width: 12rem;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(0.5rem);
-  transition: all 0.2s ease-in-out;
-  pointer-events: none;
-}
-
-/* Show tooltip */
-.onboarding-tooltip.onboarding-show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
   pointer-events: auto;
 }
 
-/* Tooltip arrow - default bottom */
-.onboarding-tooltip::before {
-  content: '';
+.onboarding-tooltip .tooltip-inner {
+  position: relative;
+  padding: var(--onboarding-space-md);
+}
+
+/* Arrow element. styleArrowForPosition() sets the offsets and the border width
+   and style, but deliberately not the border colour - an inline `border-top`
+   shorthand would always beat a stylesheet's `border-top-color`, which is what
+   previously pinned the arrow to a hardcoded #1f2937 and left it mismatched in
+   dark mode. The colour is supplied here so it tracks the tooltip background. */
+.onboarding-tooltip .tooltip-arrow {
   position: absolute;
   width: 0;
   height: 0;
-  border-style: solid;
 }
 
-/* Tooltip positioning variants */
+.onboarding-tooltip.onboarding-top .tooltip-arrow { border-top-color: var(--onboarding-text); }
+.onboarding-tooltip.onboarding-bottom .tooltip-arrow { border-bottom-color: var(--onboarding-text); }
+.onboarding-tooltip.onboarding-left .tooltip-arrow { border-left-color: var(--onboarding-text); }
+.onboarding-tooltip.onboarding-right .tooltip-arrow { border-right-color: var(--onboarding-text); }
 
-/* Bottom tooltip (default) */
-.onboarding-tooltip.onboarding-bottom {
-  bottom: calc(100% + var(--onboarding-space-sm));
-  left: 50%;
-  transform: translateX(-50%) translateY(0.5rem);
+.onboarding-tooltip .tooltip-dismiss {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  color: var(--onboarding-text-light);
+  font-size: var(--onboarding-text-xl);
+  line-height: 1;
+  cursor: pointer;
 }
 
-.onboarding-tooltip.onboarding-bottom.onboarding-show {
-  transform: translateX(-50%) translateY(0);
-}
-
-.onboarding-tooltip.onboarding-bottom::before {
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 0.5rem solid transparent;
-  border-right: 0.5rem solid transparent;
-  border-top: 0.5rem solid var(--onboarding-text);
-}
-
-/* Top tooltip */
-.onboarding-tooltip.onboarding-top {
-  top: calc(100% + var(--onboarding-space-sm));
-  left: 50%;
-  transform: translateX(-50%) translateY(-0.5rem);
-}
-
-.onboarding-tooltip.onboarding-top.onboarding-show {
-  transform: translateX(-50%) translateY(0);
-}
-
-.onboarding-tooltip.onboarding-top::before {
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 0.5rem solid transparent;
-  border-right: 0.5rem solid transparent;
-  border-bottom: 0.5rem solid var(--onboarding-text);
-}
-
-/* Left tooltip */
-.onboarding-tooltip.onboarding-left {
-  right: calc(100% + var(--onboarding-space-sm));
-  top: 50%;
-  transform: translateY(-50%) translateX(0.5rem);
-}
-
-.onboarding-tooltip.onboarding-left.onboarding-show {
-  transform: translateY(-50%) translateX(0);
-}
-
-.onboarding-tooltip.onboarding-left::before {
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border-top: 0.5rem solid transparent;
-  border-bottom: 0.5rem solid transparent;
-  border-left: 0.5rem solid var(--onboarding-text);
-}
-
-/* Right tooltip */
-.onboarding-tooltip.onboarding-right {
-  left: calc(100% + var(--onboarding-space-sm));
-  top: 50%;
-  transform: translateY(-50%) translateX(-0.5rem);
-}
-
-.onboarding-tooltip.onboarding-right.onboarding-show {
-  transform: translateY(-50%) translateX(0);
-}
-
-.onboarding-tooltip.onboarding-right::before {
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border-top: 0.5rem solid transparent;
-  border-bottom: 0.5rem solid transparent;
-  border-right: 0.5rem solid var(--onboarding-text);
+.onboarding-tooltip .tooltip-dismiss:hover {
+  color: var(--onboarding-background);
 }
 
 /* Tooltip content structure */
@@ -437,19 +385,22 @@
     border: 1px solid var(--onboarding-border);
   }
   
-  .onboarding-tooltip::before {
+  /* Keep the arrow the same colour as the tooltip body in dark mode. These
+     target .tooltip-arrow, the element the controller actually renders - the
+     ::before pseudo-element these rules used to target was never created. */
+  .onboarding-tooltip.onboarding-top .tooltip-arrow {
     border-top-color: var(--onboarding-surface-elevated);
   }
-  
-  .onboarding-tooltip.onboarding-top::before {
+
+  .onboarding-tooltip.onboarding-bottom .tooltip-arrow {
     border-bottom-color: var(--onboarding-surface-elevated);
   }
-  
-  .onboarding-tooltip.onboarding-left::before {
+
+  .onboarding-tooltip.onboarding-left .tooltip-arrow {
     border-left-color: var(--onboarding-surface-elevated);
   }
-  
-  .onboarding-tooltip.onboarding-right::before {
+
+  .onboarding-tooltip.onboarding-right .tooltip-arrow {
     border-right-color: var(--onboarding-surface-elevated);
   }
   
