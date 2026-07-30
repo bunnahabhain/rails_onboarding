@@ -74,6 +74,11 @@ module RailsOnboarding
     config.after_initialize do |app|
       Engine.setup_stimulus_integration(app) if Engine.stimulus_available?(app)
       Engine.setup_importmap_integration(app) if Engine.importmap_available?(app)
+
+      # Bundler apps (esbuild/webpack/vite) vendor a *copy* of the gem's Stimulus
+      # controllers, so unlike the engine-served CSS/views they don't auto-update
+      # on a gem bump. Nudge the developer when that copy has drifted. Dev only.
+      Engine.warn_if_controllers_stale(app) if Rails.env.development?
     end
 
     # NOTE: everything below is internal to the engine, not part of its public API.
@@ -185,6 +190,42 @@ module RailsOnboarding
       rescue => e
         Rails.logger.warn "RailsOnboarding: Could not setup importmap integration: #{e.message}"
       end
+    end
+
+    # Warn (dev only) when a bundler app's vendored copy of the Stimulus
+    # controllers has drifted from the installed gem version. The copy is stamped
+    # with a version marker by `rails g rails_onboarding:update`; we compare that
+    # marker to RailsOnboarding::VERSION. Only inspects the gem's own namespaced
+    # controller folder, so it can't mistake the host's controllers for stale
+    # copies, and never raises - a warning must not take down boot.
+    def self.warn_if_controllers_stale(app)
+      dir = app.root.join("app", "javascript", "controllers", "rails_onboarding")
+      return unless Dir.exist?(dir)
+      return if Dir.glob(dir.join("**", "*_controller.js")).empty?
+
+      marker  = dir.join(".rails_onboarding_version")
+      current = RailsOnboarding::VERSION
+      cmd     = "bin/rails generate rails_onboarding:update"
+
+      unless File.exist?(marker)
+        Rails.logger.warn(
+          "[rails_onboarding] Vendored Stimulus controllers in #{dir} have no version " \
+          "marker, so they may be stale relative to gem v#{current}. Run `#{cmd}` to " \
+          "re-sync and stamp them, then rebuild your JS bundle."
+        )
+        return
+      end
+
+      stamped = File.read(marker).strip
+      if stamped != current
+        Rails.logger.warn(
+          "[rails_onboarding] Vendored Stimulus controllers in #{dir} were generated for " \
+          "v#{stamped} but the gem is v#{current}. Run `#{cmd}` to re-sync, then rebuild " \
+          "your JS bundle."
+        )
+      end
+    rescue => e
+      Rails.logger.debug "RailsOnboarding: controller staleness check skipped: #{e.message}"
     end
   end
 end
