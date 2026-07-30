@@ -64,7 +64,18 @@ export default class extends Controller {
             case 'contextual':
                 this.setupContextualTriggers()
                 break
-                
+
+            case 'auto':
+                // Shown programmatically the instant it connects, with no user
+                // interaction - this is what the tooltip scheduler relies on when
+                // it appends a trigger:auto tooltip for a guided-tour step. Defer
+                // one macrotask so the freshly-appended element has settled before
+                // positionTooltip measures it; setTimeout (not requestAnimationFrame)
+                // so it still fires in a backgrounded tab. Hiding is driven by the
+                // scheduler via forceHide().
+                setTimeout(() => this.show(), 0)
+                break
+
             default: // hover
                 target.addEventListener('mouseenter', this.show.bind(this))
                 target.addEventListener('mouseleave', this.hide.bind(this))
