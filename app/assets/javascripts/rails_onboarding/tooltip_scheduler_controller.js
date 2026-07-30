@@ -458,8 +458,13 @@ export default class extends Controller {
             this.behaviorData[todayKey].tooltipsShown = {}
         }
         
-        this.behaviorData[todayKey].tooltipsShown[tooltipId] = Date.now()
-        
+        // Store a running COUNT, not a timestamp: shouldShowTooltip compares this
+        // against tooltip.maxDaily as a count, so storing Date.now() here made every
+        // value astronomically larger than maxDaily and suppressed the tooltip after
+        // a single show (breaking the guided tour on any subsequent load).
+        const shownToday = this.behaviorData[todayKey].tooltipsShown
+        shownToday[tooltipId] = (shownToday[tooltipId] || 0) + 1
+
         localStorage.setItem('rails_onboarding_behavior', JSON.stringify(this.behaviorData))
     }
 
