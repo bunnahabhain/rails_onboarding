@@ -370,7 +370,11 @@ export default class extends Controller {
                  data-tooltip-animation-value="${config.animation}"
                  data-tooltip-trigger-value="auto"
                  data-tooltip-dismissible-value="${config.dismissible}">
-                <div data-tooltip-target="content">
+                <!-- hidden: the tooltip controller reads this element's innerHTML to
+                     build the floating popup, so it must exist in the DOM, but it must
+                     not render inline inside the target element (which bled the step's
+                     copy into the page, e.g. the dashboard title). -->
+                <div data-tooltip-target="content" hidden>
                     ${config.content}
                 </div>
             </div>
