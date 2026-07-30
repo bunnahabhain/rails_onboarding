@@ -7,7 +7,91 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-30
+
+Minor: the guided tour runs, tooltips can be dismissed, and bundler apps get
+a supported way to re-sync the Stimulus controllers they vendor.
+
+**If you install with esbuild, webpack or vite, run
+`rails g rails_onboarding:update` after upgrading.** Those apps hold a copy
+of the engine's controllers rather than importing them from the gem, so the
+JavaScript fixes below do not reach you on a gem bump alone. The gem now
+warns in development when that copy has drifted. Importmap apps import the
+controllers from the gem and need no action.
+
+The controllers also standardized on flat Stimulus identifiers (`tooltip`,
+`tour`) rather than the prefixed `rails-onboarding--*` form. If you installed
+into `app/javascript/controllers/rails_onboarding/`, the same `update`
+generator moves you across — see the entry below.
+
+### Added
+
+- **`rails g rails_onboarding:update` re-syncs vendored Stimulus
+  controllers.** Bundler apps copy the engine's controllers into their own
+  tree, so unlike the engine-served CSS and views they don't pick up a gem
+  bump and quietly go stale — with no signal beyond the behaviour being
+  wrong. The generator force-copies every shipped controller (including
+  `admin/`) into the host and writes a `.rails_onboarding_version` marker.
+  It is scoped to those controllers alone: the initializer, migrations,
+  `rails_onboarding_custom.css` and step views are never touched. The
+  destination defaults to `app/javascript/controllers` and is overridable
+  with `--path`.
+
+- **A development-only warning when the vendored controllers are stale.**
+  `Engine.warn_if_controllers_stale` logs at boot when the version marker is
+  missing or doesn't match `RailsOnboarding::VERSION`, and points at the
+  update command. It never raises, and it is silent in other environments.
+
+### Changed
+
+- **The flat Stimulus controller layout is now the standard.** The gem's own
+  views have always used flat identifiers (`progress`, `navigation`,
+  `milestone-*`, `tooltip`, …), but the update generator, the docs and two
+  controllers still assumed the prefixed `rails-onboarding--*` form that a
+  `rails_onboarding/` subfolder produces. In a correctly-flat install the
+  scheduler and the tour therefore failed to connect — silently, the way an
+  unresolved Stimulus identifier always does. Everything is now consistently
+  flat: `tooltip_scheduler_controller` and `tour_controller` no longer
+  hardcode the prefixed identifiers in the markup they generate or the
+  controller lookups they perform, and the update generator copies into
+  `app/javascript/controllers` and globs `*_controller.js` — which excludes
+  `application.js`, since copying that would clobber the host's own Stimulus
+  entrypoint.
+
+  The staleness check reads the flat marker location but still falls back to
+  the legacy `rails_onboarding/` subfolder, so an un-migrated app is nudged
+  rather than left silently broken. `ESBUILD_SETUP.md` now leads with the
+  generator and explains why the destination has to be flat.
+
+- **Ruby 4.0.6.** `.ruby-version` and the bundle were updated. Development
+  only — no change to the gem's supported Ruby range.
+
 ### Fixed
+
+- **The guided tour now advances on its own.** The tooltip scheduler appends
+  each tour step as a `trigger: auto` tooltip and relies on it appearing
+  without user interaction, but the tooltip controller had no `auto` case —
+  it fell through to the hover default, so tour steps only appeared on hover
+  and the tour never advanced. There is now an `auto` case that shows on
+  connect, deferred one macrotask with `setTimeout` rather than
+  `requestAnimationFrame`, which is throttled in a backgrounded tab. Hiding
+  is still driven by the scheduler.
+
+- **The guided tour is no longer suppressed after one showing.**
+  `recordTooltipShow` stored `Date.now()` as each tooltip's per-day value,
+  while `shouldShowTooltip` compares that value against `maxDaily` as a
+  count. A timestamp is always astronomically larger than any limit, so
+  every step was suppressed after a single show: the tour displayed once and
+  then never again on later loads, and the daily limit never actually
+  counted anything. It now stores an incrementing count.
+
+- **Guided-tour step content no longer renders inline on the page.**
+  `createTooltipElement` appended each step's content in a visible `div`
+  inside the target element — the dashboard title, say — so the copy
+  appeared inline in the page while the floating popup showed it as well.
+  That content div is now hidden. It has to stay in the DOM, because the
+  tooltip controller reads its `innerHTML` to build the popup, but it must
+  not render.
 
 - **The tooltip dismiss button can now actually be clicked.** Every tooltip
   renders an "×" in its corner, but it was unreachable: the tooltip is
@@ -38,6 +122,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tabbing from the trigger to the dismiss button moved focus off the trigger,
   which fired `blur` and dismissed the tooltip before the button could be
   reached.
+
+- **Wrapped tooltip text no longer runs underneath the dismiss button.**
+  `.tooltip-inner` now reserves right padding when a dismiss button is
+  present, since that button is absolutely positioned at `right: 0.25rem`
+  and is `1.5rem` wide. The rule uses `:has()`, so single-line and
+  non-dismissible tooltips keep their symmetric padding.
 
 ### Documentation
 
@@ -1022,7 +1112,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.4...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.4...v0.6.0
 [0.5.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.1...v0.5.2
