@@ -425,20 +425,20 @@ export default class extends Controller {
 
                 <div class="tour-popup-actions">
                     ${step.showSkip ? `
-                        <button type="button" class="tour-btn tour-btn-skip" data-action="click->rails-onboarding--tour#skip">
+                        <button type="button" class="tour-btn tour-btn-skip" data-action="click->tour#skip">
                             ${step.skipLabel}
                         </button>
                     ` : '<div></div>'}
 
                     <div class="tour-popup-nav">
                         ${step.showPrev && !isFirstStep ? `
-                            <button type="button" class="tour-btn tour-btn-prev" data-action="click->rails-onboarding--tour#previous">
+                            <button type="button" class="tour-btn tour-btn-prev" data-action="click->tour#previous">
                                 ← ${step.prevLabel}
                             </button>
                         ` : ''}
 
                         ${step.showNext ? `
-                            <button type="button" class="tour-btn tour-btn-next" data-action="click->rails-onboarding--tour#next">
+                            <button type="button" class="tour-btn tour-btn-next" data-action="click->tour#next">
                                 ${isLastStep ? step.completeLabel : step.nextLabel} →
                             </button>
                         ` : ''}

@@ -11,7 +11,13 @@ module RailsOnboarding
     # re-sync step - run it after updating the gem:
     #
     #   bin/rails generate rails_onboarding:update
-    #   bin/rails generate rails_onboarding:update --path app/javascript/controllers
+    #   bin/rails generate rails_onboarding:update --path some/other/dir
+    #
+    # It copies the controllers flat into app/javascript/controllers (so Stimulus
+    # derives the flat identifiers the gem's views use - onboarding, tooltip,
+    # progress, ... - not prefixed rails-onboarding--* ones; see ESBUILD_SETUP.md).
+    # The gem's application.js is intentionally NOT copied: it would clobber the
+    # host's own controllers/application.js entrypoint, and nothing imports it.
     #
     # It overwrites the vendored controllers unconditionally (that is the point -
     # they are meant to mirror the gem, so there is nothing to preserve), but is
@@ -27,7 +33,7 @@ module RailsOnboarding
       VERSION_MARKER = ".rails_onboarding_version".freeze
 
       class_option :path, type: :string,
-                          default: "app/javascript/controllers/rails_onboarding",
+                          default: "app/javascript/controllers",
                           desc: "Destination directory for the copied Stimulus controllers"
 
       def copy_controllers
@@ -56,10 +62,11 @@ module RailsOnboarding
         options[:path]
       end
 
-      # All *.js the gem ships under app/assets/javascripts/rails_onboarding,
-      # including the admin/ subfolder, as paths relative to source_root.
+      # Every *_controller.js the gem ships (top-level + the admin/ subfolder,
+      # which yields admin--* identifiers), as paths relative to source_root.
+      # Globbing *_controller.js deliberately excludes application.js.
       def controller_paths
-        @controller_paths ||= Dir.glob("**/*.js", base: self.class.source_root).sort
+        @controller_paths ||= Dir.glob("**/*_controller.js", base: self.class.source_root).sort
       end
     end
   end

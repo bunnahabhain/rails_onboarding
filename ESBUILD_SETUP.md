@@ -4,18 +4,38 @@ If your app uses ESBuild for JavaScript bundling, you'll need to manually includ
 
 ## 1. Copy JavaScript Controllers
 
-Copy the following files from the gem **directly into** `app/javascript/controllers/`
-(no subfolder). This matters: Stimulus derives each controller's identifier
+The easiest way - and the way to keep them current on future gem upgrades - is
+the bundled generator:
+
+```bash
+bin/rails generate rails_onboarding:update
+```
+
+It force-copies every controller **directly into** `app/javascript/controllers/`
+(the `admin/*` ones into `app/javascript/controllers/admin/`) and writes a
+`.rails_onboarding_version` marker. Re-run it whenever you update the gem; the
+engine logs a warning at boot when the vendored copy has drifted from the
+installed version. It only touches these controllers - never your initializer,
+migrations, `rails_onboarding_custom.css`, or your onboarding step views.
+
+The **flat** destination matters. Stimulus derives each controller's identifier
 from its path under the controllers root, using `--` for subfolders, and the
 gem's views expect the flat identifiers below - nesting these under a
 `rails_onboarding/` subfolder produces prefixed identifiers
-(`rails_onboarding--onboarding`) that won't match and will silently fail to
-connect.
+(`rails-onboarding--onboarding`) that won't match the gem's views and will
+silently fail to connect. The generator's `--path` can override the destination,
+but the flat default is what the gem's views assume.
+
+### Copying by hand instead
+
+If you'd rather not use the generator, copy the controllers yourself - but note
+`application.js` is deliberately excluded (it would overwrite your own
+`app/javascript/controllers/application.js` entrypoint, and nothing imports it):
 
 ```bash
 # From your Rails app root:
-cp path/to/rails_onboarding/app/assets/javascripts/rails_onboarding/*.js app/javascript/controllers/
-cp path/to/rails_onboarding/app/assets/javascripts/rails_onboarding/admin/*.js app/javascript/controllers/admin/
+cp path/to/rails_onboarding/app/assets/javascripts/rails_onboarding/*_controller.js app/javascript/controllers/
+cp path/to/rails_onboarding/app/assets/javascripts/rails_onboarding/admin/*_controller.js app/javascript/controllers/admin/
 ```
 
 Or manually create these files in `app/javascript/controllers/`:

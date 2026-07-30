@@ -364,13 +364,13 @@ export default class extends Controller {
     createTooltipElement(config) {
         const wrapper = document.createElement('div')
         wrapper.innerHTML = `
-            <div data-controller="rails-onboarding--tooltip"
-                 data-rails-onboarding--tooltip-position-value="${config.position}"
-                 data-rails-onboarding--tooltip-feature-value="${config.id}"
-                 data-rails-onboarding--tooltip-animation-value="${config.animation}"
-                 data-rails-onboarding--tooltip-trigger-value="auto"
-                 data-rails-onboarding--tooltip-dismissible-value="${config.dismissible}">
-                <div data-rails-onboarding--tooltip-target="content">
+            <div data-controller="tooltip"
+                 data-tooltip-position-value="${config.position}"
+                 data-tooltip-feature-value="${config.id}"
+                 data-tooltip-animation-value="${config.animation}"
+                 data-tooltip-trigger-value="auto"
+                 data-tooltip-dismissible-value="${config.dismissible}">
+                <div data-tooltip-target="content">
                     ${config.content}
                 </div>
             </div>
@@ -383,7 +383,7 @@ export default class extends Controller {
         if (tooltipInstance.element && tooltipInstance.element.parentNode) {
             // Trigger hide through tooltip controller
             const tooltipController = this.application.getControllerForElementAndIdentifier(
-                tooltipInstance.element, 'rails-onboarding--tooltip'
+                tooltipInstance.element, 'tooltip'
             )
             
             if (tooltipController) {

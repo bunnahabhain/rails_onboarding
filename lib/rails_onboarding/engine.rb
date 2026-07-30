@@ -193,25 +193,40 @@ module RailsOnboarding
     end
 
     # Warn (dev only) when a bundler app's vendored copy of the Stimulus
-    # controllers has drifted from the installed gem version. The copy is stamped
-    # with a version marker by `rails g rails_onboarding:update`; we compare that
-    # marker to RailsOnboarding::VERSION. Only inspects the gem's own namespaced
-    # controller folder, so it can't mistake the host's controllers for stale
-    # copies, and never raises - a warning must not take down boot.
+    # controllers has drifted from the installed gem version. `rails g
+    # rails_onboarding:update` stamps the copy with a version marker; we compare
+    # that marker to RailsOnboarding::VERSION. Checks the flat layout (controllers
+    # copied straight into controllers/, the current recommendation) as well as
+    # the legacy controllers/rails_onboarding/ subfolder so an un-migrated app
+    # still gets nudged. Never raises - a warning must not take down boot.
     def self.warn_if_controllers_stale(app)
-      dir = app.root.join("app", "javascript", "controllers", "rails_onboarding")
-      return unless Dir.exist?(dir)
-      return if Dir.glob(dir.join("**", "*_controller.js")).empty?
+      controllers = app.root.join("app", "javascript", "controllers")
+      return unless Dir.exist?(controllers)
 
-      marker  = dir.join(".rails_onboarding_version")
+      legacy = controllers.join("rails_onboarding")
+      marker =
+        if File.exist?(controllers.join(".rails_onboarding_version"))
+          controllers.join(".rails_onboarding_version")
+        elsif File.exist?(legacy.join(".rails_onboarding_version"))
+          legacy.join(".rails_onboarding_version")
+        end
+
+      # Is a copy vendored here at all? A marker, the legacy subfolder, or a
+      # signature controller (onboarding_controller.js is distinctively ours,
+      # so it won't be confused with a host controller in the flat layout).
+      vendored = marker ||
+                 Dir.exist?(legacy) ||
+                 File.exist?(controllers.join("onboarding_controller.js"))
+      return unless vendored
+
       current = RailsOnboarding::VERSION
       cmd     = "bin/rails generate rails_onboarding:update"
 
-      unless File.exist?(marker)
+      unless marker
         Rails.logger.warn(
-          "[rails_onboarding] Vendored Stimulus controllers in #{dir} have no version " \
-          "marker, so they may be stale relative to gem v#{current}. Run `#{cmd}` to " \
-          "re-sync and stamp them, then rebuild your JS bundle."
+          "[rails_onboarding] Vendored Stimulus controllers have no version marker, so " \
+          "they may be stale relative to gem v#{current}. Run `#{cmd}` to re-sync and " \
+          "stamp them, then rebuild your JS bundle."
         )
         return
       end
@@ -219,9 +234,8 @@ module RailsOnboarding
       stamped = File.read(marker).strip
       if stamped != current
         Rails.logger.warn(
-          "[rails_onboarding] Vendored Stimulus controllers in #{dir} were generated for " \
-          "v#{stamped} but the gem is v#{current}. Run `#{cmd}` to re-sync, then rebuild " \
-          "your JS bundle."
+          "[rails_onboarding] Vendored Stimulus controllers were generated for v#{stamped} " \
+          "but the gem is v#{current}. Run `#{cmd}` to re-sync, then rebuild your JS bundle."
         )
       end
     rescue => e
