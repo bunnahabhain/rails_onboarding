@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The tooltip dismiss button can now actually be clicked.** Every tooltip
+  renders an "×" in its corner, but it was unreachable: the tooltip is
+  appended to `document.body` rather than inside its trigger, so moving the
+  pointer off the trigger towards the button fired `mouseleave`, and the
+  tooltip tore itself down 100ms later — while the pointer was still crossing
+  the 12px gap between the two. The button was visible, implied it was
+  clickable, and never was. The tooltip now keeps itself alive while the
+  pointer or keyboard focus is inside it, and the grace period after leaving
+  the trigger is 300ms, enough to cross the gap. Leaving the tooltip still
+  dismisses it as before.
+
+  Two related timing bugs fell out of the same teardown path:
+
+  - The 10-second self-dismiss on feature tooltips ran unconditionally, so a
+    tooltip could expire out from under someone reading it or reaching for
+    the button. The countdown is now paused while the pointer or focus is
+    inside the tooltip and restarted on leaving.
+  - That 10-second timer was never cancelled, so it stayed armed after its
+    own tooltip was gone and removed whichever tooltip happened to be showing
+    when it fired. The same held for the exit animation's teardown callback,
+    which resolved `this.tooltip` when it ran rather than when it was
+    scheduled: showing a tooltip again within the animation window meant the
+    outgoing tooltip's callback removed the incoming one. Both now hold the
+    element they were created for, and the timer is cleared on teardown.
+
+  Keyboard users were affected by the same root cause and are also fixed:
+  tabbing from the trigger to the dismiss button moved focus off the trigger,
+  which fired `blur` and dismissed the tooltip before the button could be
+  reached.
+
 ### Documentation
 
 - **The flash partial is documented.** `_flash.html.erb` is the third

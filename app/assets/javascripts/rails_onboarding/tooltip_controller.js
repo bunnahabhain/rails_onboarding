@@ -1,5 +1,17 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Grace period between the pointer leaving the trigger and the tooltip being
+// torn down. The tooltip sits 12px away from its trigger (see the `gap` in
+// calculatePosition), so the pointer has to cross a dead zone to reach the
+// dismiss button - anything much shorter than this and the tooltip vanishes
+// mid-journey.
+const HIDE_GRACE_PERIOD = 300
+
+// How long a feature tooltip stays up on its own before self-dismissing. The
+// countdown is paused while the pointer or keyboard focus is inside the
+// tooltip, so it can never expire out from under someone reading it.
+const AUTO_HIDE_DELAY = 10000
+
 export default class extends Controller {
     static targets = ["content", "trigger"]
     static values = {
@@ -23,6 +35,8 @@ export default class extends Controller {
         this.showTimeout = null
         this.hideTimeout = null
         this.idleTimeout = null
+        this.autoHideTimeout = null
+        this.tooltipEntered = false
         this.userInteractionCount = 0
         this.lastInteractionTime = Date.now()
         this.setupEventListeners()
@@ -328,10 +342,30 @@ export default class extends Controller {
             this.showTimeout = null
         }
 
-        // Hide with small delay to allow for mouse movement
+        // The user is inside the tooltip, so ignore trailing mouseleave/blur
+        // events from the trigger. Clicking the dismiss button blurs the
+        // trigger, and without this that blur would schedule a hide out from
+        // under the pointer that is currently resting on the button.
+        if (this.tooltipEntered) return
+
+        // Hide after a grace period so the pointer can cross the gap into the
+        // tooltip itself - once it lands there, cancelPendingHide() stops this.
+        if (this.hideTimeout) clearTimeout(this.hideTimeout)
         this.hideTimeout = setTimeout(() => {
+            this.hideTimeout = null
             this.removeTooltip()
-        }, 100)
+        }, HIDE_GRACE_PERIOD)
+    }
+
+    // Cancel a hide that hasn't fired yet. Called when the pointer or keyboard
+    // focus enters the tooltip, which is the whole reason the dismiss button is
+    // reachable: the tooltip lives on document.body rather than inside the
+    // trigger, so leaving the trigger always fires mouseleave/blur.
+    cancelPendingHide() {
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout)
+            this.hideTimeout = null
+        }
     }
 
     // Force show tooltip (for click events)
@@ -383,28 +417,92 @@ export default class extends Controller {
             }
         }
 
+        // Keep the tooltip alive while the user is inside it
+        this.bindTooltipKeepAlive()
+
         // Track tooltip show event
         this.trackTooltipEvent('show')
         this.recordTooltipShow()
 
-        // Auto-hide after 10 seconds for feature tooltips
-        if (this.featureValue) {
-            setTimeout(() => {
-                this.removeTooltip()
-            }, 10000)
+        // Auto-hide feature tooltips
+        this.startAutoHide()
+    }
+
+    // Make the tooltip itself a safe place for the pointer and for keyboard
+    // focus. Without this, a hover- or focus-triggered tooltip tears itself down
+    // the moment the user moves off the trigger towards the dismiss button, and
+    // tabbing to that button is impossible.
+    bindTooltipKeepAlive() {
+        if (!this.tooltip) return
+
+        const enter = () => {
+            this.tooltipEntered = true
+            this.cancelPendingHide()
+            this.stopAutoHide()
+        }
+
+        const leave = () => {
+            this.tooltipEntered = false
+            this.startAutoHide()
+            this.hide()
+        }
+
+        this.tooltip.addEventListener('mouseenter', enter)
+        this.tooltip.addEventListener('mouseleave', leave)
+        this.tooltip.addEventListener('focusin', enter)
+        this.tooltip.addEventListener('focusout', (event) => {
+            // Ignore focus moving between elements inside the tooltip
+            if (this.tooltip && this.tooltip.contains(event.relatedTarget)) return
+            leave()
+        })
+    }
+
+    // Start (or restart) the self-dismiss countdown for feature tooltips
+    startAutoHide() {
+        if (!this.featureValue) return
+
+        this.stopAutoHide()
+        this.autoHideTimeout = setTimeout(() => {
+            this.autoHideTimeout = null
+            this.removeTooltip()
+        }, AUTO_HIDE_DELAY)
+    }
+
+    // Cancel the self-dismiss countdown. Also called from removeTooltip() so a
+    // timer from a previous tooltip can't reach forward and kill a later one.
+    stopAutoHide() {
+        if (this.autoHideTimeout) {
+            clearTimeout(this.autoHideTimeout)
+            this.autoHideTimeout = null
         }
     }
 
     // Remove tooltip from DOM with animation
+    //
+    // The element being torn down is captured up front and this.tooltip is
+    // released immediately, because the exit animation finishes a tick later:
+    // if a new tooltip has been created in the meantime (show -> hide -> show
+    // inside the animation duration, which createTooltip does every time it
+    // calls removeTooltip first), deferring to this.tooltip in the callback
+    // would rip the *new* tooltip out of the DOM.
     removeTooltip() {
-        if (this.tooltip) {
-            this.animateTooltipOut(() => {
-                if (this.tooltip && this.tooltip.parentNode) {
-                    this.tooltip.parentNode.removeChild(this.tooltip)
-                }
-                this.tooltip = null
-            })
-        }
+        this.stopAutoHide()
+        this.tooltipEntered = false
+
+        const tooltip = this.tooltip
+        if (!tooltip) return
+
+        this.tooltip = null
+
+        // Removal is committed at this point - stop the fading tooltip from
+        // swallowing clicks or re-triggering its own keep-alive handlers.
+        tooltip.style.pointerEvents = 'none'
+
+        this.animateTooltipOut(tooltip, () => {
+            if (tooltip.parentNode) {
+                tooltip.parentNode.removeChild(tooltip)
+            }
+        })
     }
 
     // Get tooltip content
@@ -464,19 +562,22 @@ export default class extends Controller {
     }
     
     // Animate tooltip exit
-    animateTooltipOut(callback) {
-        if (!this.tooltip) {
+    //
+    // Takes the element explicitly rather than reading this.tooltip - by the
+    // time this runs, this.tooltip may already point at a replacement.
+    animateTooltipOut(tooltip, callback) {
+        if (!tooltip) {
             if (callback) callback()
             return
         }
-        
+
         // Add exit animation class
-        this.tooltip.classList.add('tooltip-animating-out')
-        this.tooltip.style.animationDuration = `${this.durationValue}ms`
-        
+        tooltip.classList.add('tooltip-animating-out')
+        tooltip.style.animationDuration = `${this.durationValue}ms`
+
         // Set exit state based on animation type
-        this.setExitAnimationState()
-        
+        this.setExitAnimationState(tooltip)
+
         // Remove after animation completes
         setTimeout(() => {
             if (callback) callback()
@@ -576,36 +677,36 @@ export default class extends Controller {
     }
     
     // Set exit animation state
-    setExitAnimationState() {
-        if (!this.tooltip) return
-        
+    setExitAnimationState(tooltip = this.tooltip) {
+        if (!tooltip) return
+
         switch (this.animationValue) {
             case 'fade':
-                this.tooltip.style.opacity = '0'
+                tooltip.style.opacity = '0'
                 break
-                
+
             case 'slide':
                 const slideDirection = this.getSlideDirection()
-                this.tooltip.style.opacity = '0'
-                this.tooltip.style.transform = `translate${slideDirection.axis}(${slideDirection.distance}px)`
+                tooltip.style.opacity = '0'
+                tooltip.style.transform = `translate${slideDirection.axis}(${slideDirection.distance}px)`
                 break
-                
+
             case 'bounce':
-                this.tooltip.style.opacity = '0'
-                this.tooltip.style.transform = 'scale(0.3)'
+                tooltip.style.opacity = '0'
+                tooltip.style.transform = 'scale(0.3)'
                 break
-                
+
             case 'scale':
-                this.tooltip.style.opacity = '0'
-                this.tooltip.style.transform = 'scale(0.8)'
+                tooltip.style.opacity = '0'
+                tooltip.style.transform = 'scale(0.8)'
                 break
-                
+
             case 'none':
-                this.tooltip.style.opacity = '0'
+                tooltip.style.opacity = '0'
                 break
-                
+
             default: // fade
-                this.tooltip.style.opacity = '0'
+                tooltip.style.opacity = '0'
         }
     }
     
@@ -1125,6 +1226,9 @@ export default class extends Controller {
         }
         if (this.hideTimeout) {
             clearTimeout(this.hideTimeout)
+        }
+        if (this.idleTimeout) {
+            clearTimeout(this.idleTimeout)
         }
 
         this.removeTooltip()
