@@ -15,7 +15,7 @@
 # Session notes and working files land in docs/ as .txt; the published
 # documentation is all .md, so ignoring .txt keeps the two from mixing.
 /docs/*.txt
-/docs/CLAUDE.md
+/CLAUDE.md
 /Development ToDo
 /test_debug.rb
 *.gem
