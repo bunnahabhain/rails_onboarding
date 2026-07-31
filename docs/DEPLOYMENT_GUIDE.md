@@ -951,8 +951,6 @@ curl -X POST https://your-webhook-endpoint.com/webhook \
 
 ## Additional Resources
 
-- [API Authentication Guide](API_AUTHENTICATION_GUIDE.md)
-- [Webhook Security Guide](WEBHOOK_SECURITY_GUIDE.md)
 - [Performance Guide](PERFORMANCE_GUIDE.md)
 - [Troubleshooting Guide](TROUBLESHOOTING.md)
 

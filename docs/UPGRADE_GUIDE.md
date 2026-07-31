@@ -611,8 +611,6 @@ sudo systemctl restart your-app
 ## Additional Resources
 
 - [CHANGELOG.md](CHANGELOG.md) - Detailed version history
-- [API_AUTHENTICATION_GUIDE.md](API_AUTHENTICATION_GUIDE.md) - API security
-- [WEBHOOK_SECURITY_GUIDE.md](WEBHOOK_SECURITY_GUIDE.md) - Webhook integration
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Production deployment
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues
 

@@ -497,7 +497,7 @@ Use the responsive image helper:
 
 ## Additional Resources
 
-- [CLAUDE.md](CLAUDE.md) - Project overview
+- [README.md](../README.md) - Project overview
 - [MILESTONES_GUIDE.md](MILESTONES_GUIDE.md) - Milestone system
 - [ANALYTICS_GUIDE.md](ANALYTICS_GUIDE.md) - Analytics and metrics
 - [MDN: Responsive Design](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Responsive_Design)

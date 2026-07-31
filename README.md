@@ -1278,6 +1278,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 - [API Documentation](docs/API_DOCUMENTATION.md)
 - [Migration Guide](docs/MIGRATION_GUIDE.md)
 - [ESBuild Setup Guide](docs/ESBUILD_SETUP.md)
+- [Configuration Validation Guide](docs/CONFIGURATION_VALIDATION.md)
 
 ## Credits
 
