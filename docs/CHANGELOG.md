@@ -7,6 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-31
+
+Patch: ships the license file, which the gem had been built without, and
+corrects documentation that described options and a feature the gem does not
+have.
+
+No API or database change. If your application works on 0.6.0 it works on
+0.6.1 unchanged — but if you configured the gem by copying from the README or
+the guides, some of those snippets raised `NoMethodError`, and the corrected
+versions are below.
+
+### Fixed
+
+- **`MIT-LICENSE` is now included in the gem.** The gemspec listed
+  `MIT-LICENSE` as a top-level file, but the file had been moved into `docs/`
+  along with the other documentation, so the glob matched nothing. Every build
+  since that move shipped without a license file while its metadata declared
+  MIT. The file is back at the repository root, which also lets GitHub detect
+  the license.
+
+- **The generated host-app README no longer points at a moved path.** The
+  README written into your application by `rails g rails_onboarding:install`
+  referred readers to `ESBUILD_SETUP.md` in the repository root; the guide now
+  lives in `docs/`.
+
+### Changed
+
+- **Documented configuration options now match the ones that exist.** Roughly
+  forty option names across the README and guides named accessors that are not
+  on `Configuration`, so the snippets raised `NoMethodError` rather than being
+  merely inaccurate. Corrections include `tooltips` → `feature_tooltips`,
+  `api_mode` → `api_mode_enabled`, `enable_rate_limiting` →
+  `rate_limiting_enabled`, `rate_limit` → `rate_limit_per_period` /
+  `rate_limit_period`, `enable_personalization` → `personalization_enabled`,
+  `personalizable_attribute` → `user_type_method`, `flows` →
+  `personalized_flows`, and `background_job_adapter` →
+  `background_jobs_enabled` / `background_jobs_queue`. `cache_configuration`
+  and `cache_ttl` had no equivalent at all: caching is opt-in through the
+  `Caching` concern's `ttl:` arguments, which is now what the guides show.
+
+  The personalization example also had the wrong shape — `personalized_flows`
+  takes plain step arrays, not `{ steps: [...] }` hashes — and named
+  `personalized_onboarding_flow`, which is `personalized_steps`.
+
+- **`CONFIGURATION_VALIDATION.md` is no longer packaged inside the gem.** It
+  sat under `lib/`, so the gemspec's `lib/**/*` glob shipped it to every
+  installation. It has moved to `docs/` with the other guides, which also
+  repairs a link in `MIGRATIONS.md` that already pointed there.
+
+- **The migration guide describes the versions this project actually has.** It
+  had covered upgrading to 1.0.0 and 0.9.0, neither of which exists, and
+  described 0.5.0 — a CSS namespacing release — as introducing analytics and
+  milestones. It now documents the two breaking changes there have been: 0.5.0
+  (CSS class names) and 0.2.0 (URL anchoring). `UPGRADE_GUIDE.md` covered the
+  same ground and has been merged into it.
+
+### Removed
+
+- **Documentation for webhooks.** Webhook support was withdrawn before v0.2.5,
+  the earliest tagged release, so no published version has ever had it. The
+  documentation was never updated and still described configuring
+  `config.webhooks`, `config.webhooks_enabled` and `config.webhook_secret_key`,
+  none of which exist.
+
+### Added
+
+- **`CONTRIBUTING.md`**, which the README had linked to without it existing.
+
 ## [0.6.0] - 2026-07-30
 
 Minor: the guided tour runs, tooltips can be dismissed, and bundler apps get
