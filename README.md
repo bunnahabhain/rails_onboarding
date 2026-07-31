@@ -490,20 +490,19 @@ display.
 ```ruby
 RailsOnboarding.configure do |config|
   config.enable_analytics = true
+
+  # How long to keep analytics rows (days)
   config.analytics_retention_days = 90
 
-  # Track specific events
-  config.track_events = [
-    :onboarding_started,
-    :step_viewed,
-    :step_completed,
-    :onboarding_completed,
-    :onboarding_skipped,
-    :tooltip_viewed,
-    :tooltip_dismissed
-  ]
+  # Inactivity after which a visit counts as a new session
+  config.analytics_session_timeout_minutes = 30
 end
 ```
+
+Onboarding events (`onboarding_started`, `step_viewed`, `step_completed`,
+`onboarding_completed`, `onboarding_skipped`, tooltip views and dismissals) are
+recorded automatically while `enable_analytics` is on; there is no per-event
+opt-in list.
 
 ## Usage
 
@@ -754,27 +753,31 @@ Adapt onboarding based on user type:
 ```ruby
 # In your initializer
 RailsOnboarding.configure do |config|
-  config.personalization_strategy = :user_type
+  config.personalization_enabled = true
 
-  config.flows = {
-    developer: {
-      steps: [
-        { name: :setup_api, title: 'Setup API Keys' },
-        { name: :first_integration, title: 'First Integration' }
-      ]
-    },
-    marketer: {
-      steps: [
-        { name: :create_campaign, title: 'Create Campaign' },
-        { name: :add_tracking, title: 'Add Tracking' }
-      ]
-    }
+  # Method called on the user to determine their type (default: :user_type)
+  config.user_type_method = :user_type
+
+  # Each flow is a plain array of steps, keyed by user type
+  config.personalized_flows = {
+    developer: [
+      { name: :setup_api, title: 'Setup API Keys' },
+      { name: :first_integration, title: 'First Integration' }
+    ],
+    marketer: [
+      { name: :create_campaign, title: 'Create Campaign' },
+      { name: :add_tracking, title: 'Add Tracking' }
+    ]
   }
 end
+```
 
-# Use personalized flow
+Include `RailsOnboarding::Personalizable` in your User model, and the matching
+flow is applied when onboarding starts:
+
+```ruby
 current_user.update(user_type: 'developer')
-current_user.personalized_onboarding_flow # Returns developer flow
+current_user.personalized_steps # => the developer flow
 ```
 
 ### Progressive Disclosure
@@ -835,26 +838,63 @@ Queue onboarding emails and notifications:
 ```ruby
 # In your config
 RailsOnboarding.configure do |config|
-  config.background_job_adapter = :sidekiq # or :resque, :delayed_job
+  config.background_jobs_enabled = true
+  config.background_jobs_queue = :default
 end
+```
 
-# Trigger in your code
-RailsOnboarding::BackgroundJobs.send_welcome_email(user)
-RailsOnboarding::BackgroundJobs.send_milestone_notification(user, milestone)
+`BackgroundJobs` is a concern. Include it where you want to queue work, and
+configure the adapter per class if the ActiveJob default doesn't suit:
+
+```ruby
+class OnboardingController < ApplicationController
+  include RailsOnboarding::BackgroundJobs
+
+  configure_background_jobs(adapter: :sidekiq, queue: :onboarding)
+
+  def complete
+    queue_onboarding_welcome_email(current_user)
+    queue_milestone_achievement(current_user, :first_login)
+  end
+end
 ```
 
 ### Skip Logic
 
 Conditionally skip steps based on user data:
 
+Skip conditions live on the step itself, under `skip_if:`. It accepts a proc, a
+predicate method name, or a hash:
+
 ```ruby
 RailsOnboarding.configure do |config|
-  config.skip_logic = {
-    profile: ->(user) { user.profile_complete? },
-    payment: ->(user) { user.plan == 'free' }
-  }
+  config.steps = [
+    { name: :welcome, title: 'Welcome' },
+    { name: :profile, title: 'Setup Profile',
+      skip_if: ->(user) { user.profile_complete? } },
+    { name: :payment, title: 'Add Payment',
+      skip_if: :free_plan? },
+    { name: :team, title: 'Invite Team',
+      skip_if: { account_type: 'individual' } }
+  ]
 end
 ```
+
+The hash form matches an attribute by default, and also understands
+`has_attribute`, `missing_attribute`, `attribute_equals`,
+`attribute_not_equals`, `has_role` and `custom`. Combine several with
+`operator: :all` (the default), `:any`, or `:none`:
+
+```ruby
+skip_if: {
+  operator: :any,
+  has_role: :admin,
+  missing_attribute: :company_name
+}
+```
+
+A condition that raises is logged and treated as false, so a broken predicate
+never blocks the flow.
 
 ### Error Recovery
 
@@ -1219,15 +1259,25 @@ See [MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md) for version upgrade instructio
 
 Enable caching for better performance:
 
+Caching is opt-in at the call site rather than through configuration - include
+`RailsOnboarding::Caching` and use the cached readers, each taking its own
+`ttl:` in seconds:
+
 ```ruby
 # config/environments/production.rb
 config.cache_store = :redis_cache_store
+```
 
-# In your initializer
-RailsOnboarding.configure do |config|
-  config.cache_configuration = true
-  config.cache_ttl = 1.hour
+```ruby
+class User < ApplicationRecord
+  include RailsOnboarding::Caching
 end
+
+User.cached_steps(ttl: 1.hour)      # configuration lookups
+current_user.cached_onboarding_progress  # per-user, defaults to 5 minutes
+
+# Call after changing configuration
+User.clear_config_cache
 ```
 
 ### Database Indexes
