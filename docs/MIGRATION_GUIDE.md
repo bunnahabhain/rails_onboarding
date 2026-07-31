@@ -12,6 +12,9 @@ This guide helps you upgrade between versions of the Rails Onboarding gem.
 - [Configuration Changes](#configuration-changes)
 - [Breaking Changes](#breaking-changes)
 - [Deprecation Warnings](#deprecation-warnings)
+- [Common Upgrade Issues](#common-upgrade-issues)
+- [Rollback Procedure](#rollback-procedure)
+- [Version Support Policy](#version-support-policy)
 
 ---
 
@@ -77,6 +80,20 @@ bundle exec rails test
 ### 7. Deploy
 
 Deploy to staging first, test, then deploy to production.
+
+### Practices Worth Keeping
+
+**Before:** back up the database with your database's own tool (`pg_dump`,
+`mysqldump`) rather than a Rails task, read the CHANGELOG entries between your
+version and the target, and run the upgrade in staging first.
+
+**During:** run migrations before deploying the new code, update the
+initializer before restarting, and watch the logs for deprecation warnings.
+
+**After:** exercise a full onboarding run as a new user, confirm analytics
+still records events, and keep an eye on query performance - the gem's indexes
+are built `CONCURRENTLY` on PostgreSQL, so a migration that appears to hang on
+a large `users` table is usually still working.
 
 ---
 
@@ -207,6 +224,33 @@ simply fall back to their defaults until you set them.
 
 The current set is documented in the
 [main README](../README.md#configuration).
+
+### Validating After an Upgrade
+
+Two different checks, worth knowing apart:
+
+```bash
+bin/rails rails_onboarding:validate
+```
+
+Checks that your **application still meets the gem's requirements**: Rails and
+Ruby versions, the User class and model, `ApplicationController`, a
+`current_user` method, the expected database columns, mounted routes, optional
+dependencies, and that steps are configured. It prints errors and warnings and
+exits non-zero if anything fails - useful in CI after a version bump.
+
+```ruby
+RailsOnboarding.configuration.validate!
+```
+
+Checks the **initializer itself** - step name uniqueness and format, milestone
+definitions, redirect paths, and value types. Raises
+`RailsOnboarding::ConfigurationError` listing every problem found:
+
+```
+RailsOnboarding::ConfigurationError: Configuration validation failed with 1 error(s):
+  1. Duplicate step name found: 'welcome'
+```
 
 ---
 
@@ -357,6 +401,92 @@ end
 
 ---
 
+## Common Upgrade Issues
+
+### Missing Migrations
+
+**Symptom:**
+```
+ActiveRecord::StatementInvalid: PG::UndefinedColumn:
+column "onboarding_completed" does not exist
+```
+
+**Fix:** a release added a migration you haven't copied yet.
+
+```bash
+bin/rails rails_onboarding:install:migrations
+bin/rails db:migrate
+```
+
+### Configuration Errors
+
+**Symptom:**
+```
+RailsOnboarding::ConfigurationError: Configuration validation failed with 1 error(s):
+  1. Duplicate step name found: 'welcome'
+```
+
+**Fix:** the validator rejected your initializer. Duplicate step names are the
+most common cause:
+
+```ruby
+# Rejected - :welcome appears twice
+config.steps = [
+  { name: :welcome, title: 'Welcome' },
+  { name: :welcome, title: 'Welcome Again' }
+]
+
+# Accepted
+config.steps = [
+  { name: :welcome, title: 'Welcome' },
+  { name: :profile, title: 'Profile Setup' }
+]
+```
+
+`validate!` reports every problem in one pass, so fix them together rather than
+re-running after each one.
+
+### Stimulus Controllers Not Working
+
+**Symptom:** controllers don't connect, or styles don't apply, after an
+upgrade.
+
+**Fix:** depends on how your application bundles JavaScript.
+
+**Importmap** - the engine ships its own `config/importmap.rb` with an explicit
+pin for each controller, so an upgrade picks up new ones automatically. If
+controllers are missing, confirm the engine's importmap is being loaded rather
+than adding pins by hand.
+
+**esbuild, webpack or vite** - these vendor their own copy of the controllers,
+so a gem upgrade does *not* reach them until you re-sync:
+
+```bash
+bin/rails generate rails_onboarding:update
+bin/rails assets:precompile
+```
+
+Skipping that step after a gem bump is the usual cause of controllers that
+worked before the upgrade and stopped afterwards. See
+[ESBUILD_SETUP.md](ESBUILD_SETUP.md).
+
+### User Model Missing Methods
+
+**Symptom:**
+```
+NoMethodError: undefined method `onboarding_progress' for User
+```
+
+**Fix:** the concern isn't included:
+
+```ruby
+class User < ApplicationRecord
+  include RailsOnboarding::Onboardable
+end
+```
+
+---
+
 ## Rollback Procedure
 
 If you need to rollback to a previous version:
@@ -420,9 +550,17 @@ If you encounter issues during upgrade:
 
 ## Version Support Policy
 
-- **Current Version**: Full support, active development
-- **Previous Minor Version**: Bug fixes and security patches
-- **Older Versions**: Security patches only (critical vulnerabilities)
+- **Current version**: full support, active development
+- **Previous minor version**: bug fixes and security patches
+- **Older versions**: security patches only (critical vulnerabilities)
+
+There are no LTS releases; one will be announced here if that changes.
+
+### Compatibility
+
+| Rails Onboarding | Rails    | Ruby     |
+|------------------|----------|----------|
+| 0.2.5 - 0.6.0    | >= 8.0.0 | >= 3.4.9 |
 
 We recommend always upgrading to the latest version for best performance and security.
 

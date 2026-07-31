@@ -927,7 +927,7 @@ document.querySelectorAll('[data-controller~="rails-onboarding--tooltip"]')
 
 - [README.md](../README.md) - Main documentation
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Production deployment
-- [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md) - Version upgrades
+- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - Version upgrades
 
 ### Community Support
 
