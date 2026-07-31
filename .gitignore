@@ -9,3 +9,13 @@
 /test/dummy/log/*.log*
 /test/dummy/storage/
 /test/dummy/tmp/
+/test/dummy/log/*.log.[0-9]*
+
+# Local development scratch - kept out of the public repo.
+# Session notes and working files land in docs/ as .txt; the published
+# documentation is all .md, so ignoring .txt keeps the two from mixing.
+/docs/*.txt
+/docs/CLAUDE.md
+/Development ToDo
+/test_debug.rb
+*.gem
