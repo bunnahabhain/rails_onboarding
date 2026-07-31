@@ -154,7 +154,7 @@ RailsOnboarding.configure do |config|
 
   # Tooltips for feature discovery
   config.enable_tooltips = true
-  config.tooltips = {
+  config.feature_tooltips = {
     dashboard_projects: {
       title: 'Your Projects',
       content: 'All your projects appear here',
@@ -283,7 +283,7 @@ RailsOnboarding.configure do |config|
   ]
 
   # Progressive disclosure of features
-  config.tooltips = {
+  config.feature_tooltips = {
     feed_explained: {
       title: 'Your Feed',
       content: 'See posts from people you follow',
@@ -352,8 +352,8 @@ RailsOnboarding.configure do |config|
   }
 
   # Personalization based on learning goals
-  config.enable_personalization = true
-  config.personalizable_attribute = :learning_goal
+  config.personalization_enabled = true
+  config.user_type_method = :learning_goal
 
   config.redirect_after_completion = :courses_path
 end
@@ -399,14 +399,13 @@ RailsOnboarding.configure do |config|
   # Redirects
   config.redirect_after_completion = :dashboard_path
   config.redirect_after_skip = :root_path
-  config.redirect_if_completed = :dashboard_path
 
   # Features
   config.enable_tooltips = true
   config.enable_milestones = true
   config.enable_analytics = true
   config.enable_ab_testing = true
-  config.enable_personalization = true
+  config.personalization_enabled = true
 
   # Milestones
   config.milestones = {
@@ -420,7 +419,7 @@ RailsOnboarding.configure do |config|
   }
 
   # Tooltips
-  config.tooltips = {
+  config.feature_tooltips = {
     dashboard_welcome: {
       title: 'Your Dashboard',
       content: 'This is where you manage everything',
@@ -433,33 +432,22 @@ RailsOnboarding.configure do |config|
 
   # Onboarding Requirements
   config.onboarding_required_for = :new_users  # or :all_users, :none
-  config.new_user_threshold = 1.day
 
-  # Skipping
-  config.allow_skip = true
-  config.skip_button_text = 'Skip for now'
-  config.confirm_skip = true
-
-  # Caching
-  config.cache_configuration = true
-  config.cache_ttl = 1.hour
+  # Skipping is decided per step, via skippable: in config.steps
 
   # Background Processing
-  config.send_emails_async = true
+  config.background_jobs_enabled = true
+  config.background_jobs_queue = :default
 
   # API Mode
-  config.api_mode = true
+  config.api_mode_enabled = true
 
   # Analytics
   config.analytics_retention_days = 90
 
-  # Multi-tenant
-  config.multi_tenant = true
-  config.tenant_attribute = :organization_id
-
-  # Internationalization
-  config.default_locale = :en
-  config.available_locales = [:en, :es, :fr]
+  # Multi-tenant configuration is registered separately - see
+  # RailsOnboarding::MultiTenant.configure_for_organization below.
+  # Locales use Rails' own i18n settings; the gem ships en, es and fr.
 
   # A/B Testing
   config.ab_tests = {
@@ -473,15 +461,16 @@ RailsOnboarding.configure do |config|
   }
 
   # Personalization
-  config.personalizable_attribute = :user_type
-  config.personalization_flows = {
+  config.user_type_method = :user_type
+  config.personalized_flows = {
     developer: [:welcome, :setup_api, :first_request],
     designer: [:welcome, :setup_design, :first_project]
   }
 
   # Rate Limiting
-  config.enable_rate_limiting = true
-  config.rate_limit = { limit: 100, period: 1.hour }
+  config.rate_limiting_enabled = true
+  config.rate_limit_per_period = 100
+  config.rate_limit_period = 1.hour
 end
 ```
 
@@ -507,9 +496,8 @@ RailsOnboarding.configure do |config|
   config.enable_tooltips = true
 
   # Performance
-  config.cache_configuration = Rails.env.production?
-  config.cache_ttl = 1.hour
-  config.send_emails_async = true
+  config.background_jobs_enabled = true
+  config.background_jobs_queue = :default
 
   # Analytics retention
   config.analytics_retention_days = 90
@@ -519,8 +507,9 @@ RailsOnboarding.configure do |config|
   config.redirect_after_skip = :dashboard_path
 
   # Security
-  config.enable_rate_limiting = Rails.env.production?
-  config.rate_limit = { limit: 100, period: 1.hour }
+  config.rate_limiting_enabled = Rails.env.production?
+  config.rate_limit_per_period = 100
+  config.rate_limit_period = 1.hour
 end
 ```
 

@@ -117,12 +117,13 @@ None. Version 1.0.0 maintains backward compatibility with 0.9.x.
 
 3. No database migrations required
 
-4. Optional: Enable new caching feature:
+4. Optional: Enable caching by including the `Caching` concern:
    ```ruby
-   RailsOnboarding.configure do |config|
-     config.cache_configuration = true
-     config.cache_ttl = 1.hour
+   class User < ApplicationRecord
+     include RailsOnboarding::Caching
    end
+
+   User.cached_steps(ttl: 1.hour)
    ```
 
 ---
@@ -156,10 +157,11 @@ RailsOnboarding.configure do |config|
   config.steps = [...]
 
   # New optional personalization
-  config.personalization_strategy = :user_type
-  config.flows = {
-    developer: { steps: [...] },
-    marketer: { steps: [...] }
+  config.personalization_enabled = true
+  config.user_type_method = :user_type
+  config.personalized_flows = {
+    developer: [...],
+    marketer: [...]
   }
 end
 ```

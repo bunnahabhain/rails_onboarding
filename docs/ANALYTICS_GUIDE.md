@@ -847,13 +847,10 @@ RailsOnboarding.configure do |config|
   
   # Session timeout (minutes)
   config.analytics_session_timeout_minutes = 30
-  
-  # Custom analytics processing
-  config.analytics_processor = MyCustomAnalyticsProcessor
-  
-  # Sample rate for high-traffic apps (0.0 to 1.0)
-  config.analytics_sample_rate = 1.0
 end
 ```
+
+`analytics_retention_days` is an alias for `analytics_data_retention_days` -
+setting either keeps both in sync, so use whichever reads better.
 
 This analytics system provides comprehensive insights into your onboarding performance and user behavior, enabling data-driven optimization of your user experience.

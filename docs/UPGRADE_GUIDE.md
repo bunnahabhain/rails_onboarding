@@ -123,11 +123,18 @@ RailsOnboarding.configure do |config|
   # NEW: A/B Testing
   config.enable_ab_testing = false
 
-  # NEW: Multi-tenant support
-  config.multi_tenant = false
-
   # NEW: API mode
-  config.api_mode = false
+  config.api_mode_enabled = false
+end
+```
+
+Multi-tenant support is not enabled through this block. Register per-tenant
+configuration separately:
+
+```ruby
+RailsOnboarding::MultiTenant.configure_for_organization(org.id) do |config|
+  config.steps = [...]
+  config.enable_tooltips = true
 end
 ```
 

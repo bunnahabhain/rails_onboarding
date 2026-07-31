@@ -167,24 +167,26 @@ RailsOnboarding.configure do |config|
   config.enable_milestones = true
   config.enable_analytics = true
 
-  # Caching (production only)
-  config.cache_configuration = Rails.env.production?
-  config.cache_ttl = 1.hour
-
   # Background jobs
-  config.send_emails_async = true
+  config.background_jobs_enabled = true
+  config.background_jobs_queue = :default
 
   # API mode (if needed)
-  config.api_mode = ENV['API_MODE'] == 'true'
+  config.api_mode_enabled = ENV['API_MODE'] == 'true'
+  config.api_authentication_method = :token
 
   # Rate limiting
-  config.enable_rate_limiting = true
-  config.rate_limit = { limit: 100, period: 1.hour }
+  config.rate_limiting_enabled = true
+  config.rate_limit_per_period = 100
+  config.rate_limit_period = 1.hour
 
   # Analytics retention
   config.analytics_retention_days = 90
 end
 ```
+
+Caching is not configured here - see [Configuration Caching](#caching-strategy)
+below, which is opt-in at the call site.
 
 ## Database Setup
 
@@ -344,12 +346,21 @@ pin_all_from "rails_onboarding/javascripts", under: "rails_onboarding"
 ```
 
 **Configuration Caching:**
+
+Caching is opt-in per call site rather than a configuration flag. Include the
+`Caching` concern and use the cached readers, each taking its own `ttl:` in
+seconds:
+
 ```ruby
-# config/initializers/rails_onboarding.rb
-RailsOnboarding.configure do |config|
-  config.cache_configuration = true
-  config.cache_ttl = 1.hour
+class User < ApplicationRecord
+  include RailsOnboarding::Caching
 end
+
+User.cached_steps(ttl: 1.hour)
+User.cached_milestones(ttl: 1.hour)
+
+# Call after deploying a configuration change
+User.clear_config_cache
 ```
 
 **Query Caching:**
