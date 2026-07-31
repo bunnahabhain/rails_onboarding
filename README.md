@@ -1308,15 +1308,16 @@ The gem follows Rails security best practices:
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+Contributions are welcome. In short:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Write tests for your changes
-4. Ensure all tests pass (`bundle exec rails test`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+1. Fork the repository and branch from `master`
+2. Write a test for your change
+3. Check it with `bin/rails test` and `bin/rubocop`
+4. Add a changelog entry if the change is user-visible
+5. Open a pull request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, how the test suite is laid
+out, and the conventions this project follows.
 
 ## Documentation
 
