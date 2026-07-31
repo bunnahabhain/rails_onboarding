@@ -6,9 +6,8 @@ This guide helps you upgrade between versions of the Rails Onboarding gem.
 
 - [General Upgrade Process](#general-upgrade-process)
 - [Version Migrations](#version-migrations)
-  - [Upgrading to 1.0.0](#upgrading-to-100)
-  - [Upgrading to 0.9.0](#upgrading-to-090)
   - [Upgrading to 0.5.0](#upgrading-to-050)
+  - [Upgrading to 0.2.0](#upgrading-to-020)
 - [Database Migrations](#database-migrations)
 - [Configuration Changes](#configuration-changes)
 - [Breaking Changes](#breaking-changes)
@@ -29,7 +28,7 @@ Always review [CHANGELOG.md](CHANGELOG.md) for the version you're upgrading to.
 Update your Gemfile:
 
 ```ruby
-gem "rails_onboarding", "~> 1.0"
+gem "rails_onboarding", "~> 0.6"
 ```
 
 Then run:
@@ -83,229 +82,67 @@ Deploy to staging first, test, then deploy to production.
 
 ## Version Migrations
 
-### Upgrading to 1.0.0
-
-**Release Date:** TBD
-**Status:** Future Release
-
-#### Major Changes
-
-- Stable API release
-- Performance improvements
-- Enhanced analytics
-
-#### Breaking Changes
-
-None. Version 1.0.0 maintains backward compatibility with 0.9.x.
-
-#### New Features
-
-- Improved caching system
-- Better error handling
-
-#### Migration Steps
-
-1. Update gem version:
-   ```ruby
-   gem "rails_onboarding", "~> 1.0"
-   ```
-
-2. Run bundle update:
-   ```bash
-   bundle update rails_onboarding
-   ```
-
-3. No database migrations required
-
-4. Optional: Enable caching by including the `Caching` concern:
-   ```ruby
-   class User < ApplicationRecord
-     include RailsOnboarding::Caching
-   end
-
-   User.cached_steps(ttl: 1.hour)
-   ```
-
----
-
-### Upgrading to 0.9.0
-
-**Release Date:** TBD
-
-#### Major Changes
-
-- Advanced features complete
-- A/B testing support
-- Personalization system
-- Multi-tenant support
-
-#### Breaking Changes
-
-##### Configuration Structure Changed
-
-**Before (0.8.x):**
-```ruby
-RailsOnboarding.configure do |config|
-  config.steps = [...]
-end
-```
-
-**After (0.9.x):**
-```ruby
-RailsOnboarding.configure do |config|
-  # Same - no change required
-  config.steps = [...]
-
-  # New optional personalization
-  config.personalization_enabled = true
-  config.user_type_method = :user_type
-  config.personalized_flows = {
-    developer: [...],
-    marketer: [...]
-  }
-end
-```
-
-No breaking changes - personalization is opt-in.
-
-#### New Database Fields
-
-Run the migration generator:
-
-```bash
-rails generate rails_onboarding:install:migrations
-rails db:migrate
-```
-
-New fields added:
-- `users.ab_test_variants` (jsonb) - A/B test assignments
-- `users.user_type` (string) - For personalization
-- `users.organization_id` (integer) - For multi-tenancy
-
-#### Migration Steps
-
-1. Update gem:
-   ```bash
-   bundle update rails_onboarding
-   ```
-
-2. Run migrations:
-   ```bash
-   rails rails_onboarding:install:migrations
-   rails db:migrate
-   ```
-
-3. Optional: Add personalization:
-   ```ruby
-   # In User model
-   include RailsOnboarding::Personalizable
-
-   # In initializer
-   config.personalization_strategy = :user_type
-   ```
-
-4. Optional: Add A/B testing:
-   ```ruby
-   # In User model
-   include RailsOnboarding::AbTestable
-
-   # In your code
-   current_user.assign_ab_variant('flow_test', 'variant_a')
-   ```
-
----
-
 ### Upgrading to 0.5.0
 
-**Release Date:** TBD
+**Released:** 2026-07-29
 
-#### Major Changes
+Completes the CSS isolation work started in 0.4.0. Where 0.4.0 stopped the
+gem's styles leaking out into the host application, this release stops the
+host's styles reaching in, by namespacing the 55 generic class names the gem's
+own elements carried.
 
-- Analytics system introduced
-- Milestone system added
+#### Breaking Changes (CSS only)
 
-#### Breaking Changes
+No Ruby API, configuration, or database change. Two things can break:
 
-##### Method Signature Changed: `achieve_milestone!`
+1. **Renamed class names.** Generic names the gem's markup used - state and
+   position words (`active`, `completed`, `current`, `error`, `success`,
+   `warning`, `info`, `show`, `hide`, `top`, `bottom`, `left`, `right`), names
+   that clash with Bootstrap and Tailwind (`btn`, `btn-primary`,
+   `btn-secondary`, `form-group`, `progress-bar`, `progress-fill`), and generic
+   component names (`tooltip`, `flash`, `empty-state`, `status-message`,
+   `radio-group`, `checkbox-group`, `error-message`, `help-text`) - now carry
+   an `onboarding-` prefix.
 
-**Before (0.4.x):**
-```ruby
-current_user.achieve_milestone!('milestone_id')
-```
+2. **`.rails-onboarding-tooltip` overrides.** Tooltips had been styled with
+   hardcoded inline values and ignored the theme; that is fixed, so overrides
+   of that selector need revisiting.
 
-**After (0.5.x):**
-```ruby
-current_user.achieve_milestone!('milestone_id', points)
-```
+**Migration:** if your application targets any of those names in its own CSS or
+JavaScript, or renders gem markup by hand, add the `onboarding-` prefix. Note
+that the four `status-message` modifiers became `onboarding-status-success` /
+`-error` / `-warning` / `-info`, not `onboarding-success` / `-error`, because
+those two already existed as unrelated utility classes.
 
-**Migration:** Add points parameter to all `achieve_milestone!` calls.
+Names that were already semi-namespaced (`tour-*`, `milestone-*`, `feature-*`,
+`step-*`) were left alone.
 
-##### Configuration: Milestones Now Required Array
+---
 
-**Before (0.4.x):**
-```ruby
-config.enable_milestones = true
-# Milestones configured elsewhere
-```
+### Upgrading to 0.2.0
 
-**After (0.5.x):**
-```ruby
-config.enable_milestones = true
-config.milestones = [
-  { id: 'first_login', title: 'Welcome', points: 10 }
-]
-```
+**Released:** 2026-07-19
 
-#### New Database Tables
+#### Breaking Changes (URLs only)
 
-Run migrations:
+The onboarding flow is now anchored at the engine's mount point
+(`resource :onboarding, path: ""`), so mounting at `/onboarding` yields
+`/onboarding` instead of the doubled `/onboarding/onboarding` (and
+`/onboarding/next`, `/onboarding/skip`, and so on).
 
-```bash
-rails rails_onboarding:install:migrations
-rails db:migrate
-```
+Route helpers (`onboarding_path`, `next_onboarding_path`, ...) are unchanged,
+so helper-based code needs no migration - only hardcoded URLs and bookmarks are
+affected.
 
-New tables:
-- `rails_onboarding_analytics_events` - Event tracking
-- New columns on users table for milestones
+**Migration:** update hardcoded URLs, or keep the previous paths by mounting at
+`mount RailsOnboarding::Engine => "/onboarding/onboarding"`.
 
-#### Migration Steps
+---
 
-1. Update gem:
-   ```bash
-   bundle update rails_onboarding
-   ```
+### Other Releases
 
-2. Run migrations:
-   ```bash
-   rails rails_onboarding:install:migrations
-   rails db:migrate
-   ```
-
-3. Update `achieve_milestone!` calls to include points:
-   ```ruby
-   # Search your codebase for:
-   grep -r "achieve_milestone!" app/
-
-   # Update each call:
-   current_user.achieve_milestone!('profile_complete', 100)
-   ```
-
-4. Configure milestones in initializer:
-   ```ruby
-   RailsOnboarding.configure do |config|
-     config.enable_milestones = true
-     config.milestones = [
-       { id: 'profile_complete', title: 'Profile Master', points: 100 }
-     ]
-   end
-   ```
-
-5. Optional: Enable analytics:
-   ```ruby
-   config.enable_analytics = true
-   config.analytics_retention_days = 90
-   ```
+No other release has required migration work. See
+[CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ---
 
@@ -336,24 +173,23 @@ rails db:migrate:status | grep rails_onboarding
 rails db:migrate:down VERSION=20240101120000
 ```
 
-### Database Schema Changes by Version
+### Migrations Installed by the Generator
 
-#### Version 0.9.0
-- Added `ab_test_variants` (jsonb)
-- Added `user_type` (string)
-- Added `organization_id` (integer)
+`rails_onboarding:install` copies six migrations. A fresh install runs all of
+them - there is no per-version subset to choose from.
 
-#### Version 0.5.0
-- Added `rails_onboarding_analytics_events` table
-- Added `onboarding_milestone_points` (integer)
-- Added `onboarding_milestones_achieved` (jsonb)
+| Migration | Adds |
+|---|---|
+| `add_onboarding_to_users` | `onboarding_completed` (boolean), `onboarding_completed_at` (datetime), `onboarding_current_step` (string), `onboarding_skipped` (boolean), `feature_tooltips_shown` |
+| `add_milestone_tracking_to_users` | `milestones_achieved` (text), `milestone_points` (integer), `last_milestone_at` (datetime) |
+| `add_robustness_fields_to_users` | `onboarding_errors`, `onboarding_failed_actions`, `onboarding_session_data` (all text) |
+| `add_analytics_to_rails_onboarding` | `rails_onboarding_analytics_events` table |
+| `create_rails_onboarding_flows` | `rails_onboarding_flows` table |
+| `add_onboarding_indexes` | Indexes on the onboarding columns |
 
-#### Version 0.1.0 (Initial)
-- Added `onboarding_completed` (boolean)
-- Added `onboarding_completed_at` (datetime)
-- Added `onboarding_current_step` (string)
-- Added `onboarding_skipped` (boolean)
-- Added `feature_tooltips_shown` (jsonb)
+`feature_tooltips_shown` is adapter-aware: `jsonb` on PostgreSQL, `json` on
+MySQL and Trilogy, serialized `text` elsewhere. On PostgreSQL the indexes are
+built `CONCURRENTLY` so they don't hold a write lock on a large users table.
 
 ---
 
@@ -361,94 +197,46 @@ rails db:migrate:down VERSION=20240101120000
 
 ### Deprecated Configuration Options
 
-#### Version 0.9.0
+None. No configuration option has been deprecated or removed.
 
-None currently deprecated.
+### Adding New Options
 
-#### Version 0.5.0
+Options are introduced in minor releases and none has been withdrawn, so an
+initializer written against an earlier version keeps working - new options
+simply fall back to their defaults until you set them.
 
-**Deprecated:** `milestone_config`
-**Replacement:** `milestones`
-
-```ruby
-# Deprecated
-config.milestone_config = {...}
-
-# Use instead
-config.milestones = [...]
-```
-
-### New Configuration Options by Version
-
-#### Version 0.9.0
-
-```ruby
-config.personalization_strategy = :user_type
-config.flows = { ... }
-config.enable_ab_testing = true
-config.multi_tenant_mode = true
-```
-
-#### Version 0.5.0
-
-```ruby
-config.enable_analytics = true
-config.analytics_retention_days = 90
-config.milestones = [...]
-```
+The current set is documented in the
+[main README](../README.md#configuration).
 
 ---
 
 ## Breaking Changes
 
-### Version 1.0.0
+Two in the project's history, both narrow in scope:
 
-None planned. Will maintain backward compatibility with 0.9.x.
+| Version | Scope | What changed |
+|---|---|---|
+| 0.5.0 | CSS only | 55 generic class names gained an `onboarding-` prefix |
+| 0.2.0 | URLs only | The flow is anchored at the mount point; route helpers unchanged |
 
-### Version 0.9.0
-
-**None.** All new features are opt-in.
-
-### Version 0.5.0
-
-**Method Signature:** `achieve_milestone!` now requires `points` parameter.
-
-**Impact:** Medium
-**Workaround:** Update all calls to include points.
-
-```ruby
-# Before
-current_user.achieve_milestone!('test')
-
-# After
-current_user.achieve_milestone!('test', 50)
-```
-
-### Version 0.1.0
-
-Initial release - no breaking changes.
+No release has changed a Ruby method signature, removed a configuration option,
+or required a data migration.
 
 ---
 
 ## Deprecation Warnings
 
 The gem follows semantic versioning:
-- **Patch versions** (0.5.1 → 0.5.2): Bug fixes, no breaking changes
-- **Minor versions** (0.5.0 → 0.6.0): New features, deprecations warned
-- **Major versions** (0.9.0 → 1.0.0): Deprecated features removed
+
+- **Patch** (0.6.0 → 0.6.1): bug fixes, no breaking changes
+- **Minor** (0.5.0 → 0.6.0): new features; anything being withdrawn is
+  deprecated with a warning first
+- **Major** (0.x → 1.0.0): deprecated features may be removed
 
 ### Deprecation Timeline
 
-Features are deprecated for at least one minor version before removal:
-
-1. **Version X.Y.0**: Feature deprecated, warning added
-2. **Version X.Y+1.0**: Feature still works, warning continues
-3. **Version X+1.0.0**: Feature removed
-
-Example:
-- **0.8.0**: `old_method` deprecated, warning added
-- **0.9.0**: `old_method` still works with warning
-- **1.0.0**: `old_method` removed, use `new_method`
+Nothing is currently deprecated. When something is, it will warn for at least
+one minor release before removal, and the warning will name its replacement.
 
 ---
 
@@ -577,7 +365,7 @@ If you need to rollback to a previous version:
 
 ```ruby
 # Gemfile
-gem "rails_onboarding", "0.8.0"  # Previous version
+gem "rails_onboarding", "0.5.4"  # Previous version
 ```
 
 ```bash
@@ -658,6 +446,5 @@ Found an issue or have a suggestion for this migration guide?
 
 ---
 
-**Last Updated:** 2024
-**Current Gem Version:** 0.1.0
-**Next Planned Version:** 0.5.0
+**Last Updated:** 2026-07-31
+**Current Gem Version:** 0.6.0
