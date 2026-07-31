@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RailsOnboarding
-  # Rate limiting concern for API endpoints and webhooks
+  # Rate limiting concern for API endpoints
   # Prevents abuse by limiting the number of requests per time period
   module RateLimitable
     extend ActiveSupport::Concern

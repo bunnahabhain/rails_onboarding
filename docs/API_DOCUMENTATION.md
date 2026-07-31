@@ -209,7 +209,6 @@ current_user.complete_onboarding!
 **Side Effects:**
 - Sets `onboarding_completed` to `true`
 - Sets `onboarding_completed_at` to current time
-- Triggers webhooks
 - Triggers analytics event
 
 ---
@@ -347,7 +346,6 @@ current_user.achieve_milestone!('profile_complete', 100)
 - Adds milestone_id to `onboarding_milestones_achieved` array
 - Adds points to `onboarding_milestone_points`
 - Triggers celebration
-- Triggers webhooks
 - Triggers analytics event
 - Does nothing if milestone already achieved
 
@@ -927,31 +925,6 @@ config.milestones = [
 
 ---
 
-##### `webhook_url`
-
-Webhook endpoint URL.
-
-```ruby
-config.webhook_url = 'https://example.com/webhook'
-```
-
-**Type:** `String`
-**Default:** `nil`
-
----
-
-##### `webhook_events`
-
-Events to send to webhook.
-
-```ruby
-config.webhook_events = [:onboarding_completed, :milestone_achieved]
-```
-
-**Type:** `Array<Symbol>`
-**Default:** `[]`
-
----
 
 #### Class Methods
 
@@ -1005,22 +978,6 @@ Logs an error for a step.
 
 ```ruby
 RailsOnboarding::ErrorRecovery.log_error(user, 'profile', error)
-```
-
----
-
-### Webhooks
-
-Triggers webhooks for events.
-
-#### Methods
-
-##### `trigger(event, user, data = {})`
-
-Triggers a webhook.
-
-```ruby
-RailsOnboarding::Webhooks.trigger(:onboarding_completed, user)
 ```
 
 ---

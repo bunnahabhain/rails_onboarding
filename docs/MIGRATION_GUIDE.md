@@ -101,7 +101,6 @@ None. Version 1.0.0 maintains backward compatibility with 0.9.x.
 #### New Features
 
 - Improved caching system
-- Enhanced webhook delivery
 - Better error handling
 
 #### Migration Steps
@@ -222,7 +221,6 @@ New fields added:
 
 - Analytics system introduced
 - Milestone system added
-- Webhook support added
 
 #### Breaking Changes
 
@@ -394,8 +392,6 @@ config.multi_tenant_mode = true
 ```ruby
 config.enable_analytics = true
 config.analytics_retention_days = 90
-config.webhook_url = ENV['WEBHOOK_URL']
-config.webhook_events = [:onboarding_completed]
 config.milestones = [...]
 ```
 

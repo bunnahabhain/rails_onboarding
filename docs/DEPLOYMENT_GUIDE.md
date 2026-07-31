@@ -32,8 +32,6 @@ Before deploying to production, verify:
 - [ ] Database migrations run
 - [ ] Assets precompiled
 - [ ] Onboarding steps configured
-- [ ] Webhooks configured (if using)
-- [ ] API authentication set up (if using API mode)
 
 ### Testing
 
@@ -65,9 +63,6 @@ DATABASE_URL=postgresql://user:password@localhost/myapp_production
 # Redis (optional, for caching)
 REDIS_URL=redis://localhost:6379/0
 
-# API Authentication (if using API mode)
-WEBHOOK_SECRET_KEY=your_webhook_secret_here
-
 # Email (for notifications)
 SMTP_ADDRESS=smtp.gmail.com
 SMTP_PORT=587
@@ -90,13 +85,11 @@ GOOGLE_ANALYTICS_ID=UA-XXXXXXXXX-X
 **Heroku:**
 ```bash
 heroku config:set SECRET_KEY_BASE=your_secret_key
-heroku config:set WEBHOOK_SECRET_KEY=your_webhook_secret
 ```
 
 **AWS Elastic Beanstalk:**
 ```bash
 eb setenv SECRET_KEY_BASE=your_secret_key
-eb setenv WEBHOOK_SECRET_KEY=your_webhook_secret
 ```
 
 **Docker:**
@@ -104,14 +97,12 @@ eb setenv WEBHOOK_SECRET_KEY=your_webhook_secret
 # docker-compose.yml
 environment:
   - SECRET_KEY_BASE=your_secret_key
-  - WEBHOOK_SECRET_KEY=your_webhook_secret
 ```
 
 **systemd (Linux):**
 ```bash
 # /etc/systemd/system/your-app.service
 Environment="SECRET_KEY_BASE=your_secret_key"
-Environment="WEBHOOK_SECRET_KEY=your_webhook_secret"
 ```
 
 ### Rails Configuration
@@ -182,18 +173,6 @@ RailsOnboarding.configure do |config|
 
   # Background jobs
   config.send_emails_async = true
-  config.process_webhooks_async = true
-
-  # Webhooks
-  config.webhooks = [
-    {
-      url: ENV['WEBHOOK_URL'],
-      events: ['onboarding.completed', 'milestone.achieved'],
-      secret_key: ENV['WEBHOOK_SECRET_KEY'],
-      timeout: 30,
-      retry_attempts: 3
-    }
-  ]
 
   # API mode (if needed)
   config.api_mode = ENV['API_MODE'] == 'true'
@@ -417,12 +396,6 @@ production:
     - [low, 1]
 ```
 
-**Process Webhooks Asynchronously:**
-```ruby
-# config/initializers/rails_onboarding.rb
-config.process_webhooks_async = true
-```
-
 ### HTTP/2 and Asset Optimization
 
 **Enable HTTP/2 (Nginx):**
@@ -503,10 +476,6 @@ class Rack::Attack
     end
   end
 
-  # Protect webhook endpoints
-  throttle('webhooks/ip', limit: 50, period: 1.hour) do |req|
-    req.ip if req.path.start_with?('/webhooks/')
-  end
 end
 ```
 
@@ -520,13 +489,12 @@ EDITOR=vim rails credentials:edit --environment production
 
 ```yaml
 # config/credentials/production.yml.enc
-webhook_secret_key: abc123...
 smtp_password: xyz789...
 ```
 
 ```ruby
 # Access in code
-Rails.application.credentials.webhook_secret_key
+Rails.application.credentials.smtp_password
 ```
 
 **Vault (HashiCorp):**
@@ -540,8 +508,8 @@ Vault.configure do |config|
 end
 
 # Fetch secrets
-webhook_secret = Vault.logical.read('secret/data/rails_onboarding')
-  .data[:data][:webhook_secret_key]
+smtp_password = Vault.logical.read('secret/data/rails_onboarding')
+  .data[:data][:smtp_password]
 ```
 
 ## Monitoring & Logging
@@ -699,7 +667,7 @@ heroku git:remote -a your-app-name
 
 # Set environment variables
 heroku config:set RAILS_ENV=production
-heroku config:set WEBHOOK_SECRET_KEY=$(ruby -rsecurerandom -e 'puts SecureRandom.hex(32)')
+heroku config:set SECRET_KEY_BASE=$(ruby -rsecurerandom -e 'puts SecureRandom.hex(64)')
 
 # Add PostgreSQL
 heroku addons:create heroku-postgresql:standard-0
@@ -755,7 +723,7 @@ eb create production
 eb deploy
 
 # Set environment variables
-eb setenv RAILS_ENV=production WEBHOOK_SECRET_KEY=your_secret
+eb setenv RAILS_ENV=production SECRET_KEY_BASE=your_secret_key_base
 ```
 
 ### Docker
@@ -927,26 +895,6 @@ end
 if ENV['ENABLE_MEMORY_PROFILER']
   require 'memory_profiler'
 end
-```
-
-### Webhook Failures
-
-**Symptoms:**
-- Webhooks not being delivered
-- Signature verification failures
-
-**Solutions:**
-```bash
-# Check webhook monitoring
-rails c production
->> RailsOnboarding::WebhookMonitoring.health_status
->> RailsOnboarding::WebhookMonitoring.failed_deliveries(since: 1.hour.ago)
-
-# Test webhook manually
-curl -X POST https://your-webhook-endpoint.com/webhook \
-  -H "Content-Type: application/json" \
-  -H "X-Webhook-Signature: test_signature" \
-  -d '{"event":"test","data":{},"timestamp":1234567890}'
 ```
 
 ## Additional Resources

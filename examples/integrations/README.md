@@ -68,22 +68,6 @@ Use ActiveJob for emails, notifications, and analytics:
 - Retry logic
 - Email templates
 
-### 5. Webhooks Integration (`webhooks_example.rb`)
-
-Notify external systems of onboarding events:
-
-- Event triggers
-- Signature verification
-- Multiple endpoints
-- Zapier integration
-- Slack notifications
-
-**Key Features:**
-- Secure webhook delivery
-- External service integration
-- Monitoring and logging
-- Retry mechanisms
-
 ## Quick Start
 
 ### 1. Choose Your Integration
@@ -100,12 +84,6 @@ RailsOnboarding.configure do |config|
   config.turbo_streams_enabled = true
   config.api_mode_enabled = true
   config.background_jobs_enabled = true
-  config.webhooks_enabled = true
-
-  # Configure each integration
-  config.webhook_endpoints = [
-    { url: ENV['WEBHOOK_URL'], events: [], enabled: true }
-  ]
 end
 ```
 
@@ -115,7 +93,6 @@ end
 class ApplicationController < ActionController::Base
   include RailsOnboarding::DeviseIntegration
   include RailsOnboarding::TurboCompatibility
-  include RailsOnboarding::Webhooks
   include RailsOnboarding::BackgroundJobs
 end
 ```
@@ -150,12 +127,6 @@ Each example file includes testing patterns to verify your integration works cor
 - [ ] Test job execution
 - [ ] Configure Sidekiq/DelayedJob
 
-### Webhooks
-- [ ] Enable webhooks
-- [ ] Configure endpoints
-- [ ] Set up signature verification
-- [ ] Test webhook delivery
-
 ## Common Patterns
 
 ### Multi-Integration Setup
@@ -168,15 +139,11 @@ class OnboardingController < ApplicationController
   include RailsOnboarding::DeviseIntegration      # Authentication
   include RailsOnboarding::TurboCompatibility     # Modern UX
   include RailsOnboarding::BackgroundJobs         # Email/notifications
-  include RailsOnboarding::Webhooks               # External services
 
   def complete
     if current_user.complete_onboarding!
       # Send completion email (background job)
       queue_onboarding_completion_email(current_user)
-
-      # Notify external CRM (webhook)
-      webhook_onboarding_completed(current_user)
 
       # Broadcast to user stream (Turbo)
       broadcast_onboarding_update(current_user, :completed)
@@ -200,16 +167,12 @@ RSpec.describe OnboardingController do
   it "completes onboarding with all integrations" do
     # Expect background job
     expect {
-      # Expect webhook delivery
-      stub_request(:post, webhook_url)
-
       # Make request with Turbo
       post complete_onboarding_path, headers: {
         "Accept" => "text/vnd.turbo-stream.html"
       }
     }.to have_enqueued_job(OnboardingMailerJob)
 
-    expect(WebMock).to have_requested(:post, webhook_url)
     expect(response.content_type).to include("turbo-stream")
   end
 end
@@ -218,17 +181,14 @@ end
 ## Production Considerations
 
 ### Performance
-- Use async webhooks in production
 - Configure proper queue workers (Sidekiq)
 - Enable caching where appropriate
 
 ### Security
-- Always verify webhook signatures
 - Use secure API tokens
 - Enable CSRF protection for web requests
 
 ### Monitoring
-- Log webhook deliveries
 - Monitor job queue health
 - Track API request rates
 

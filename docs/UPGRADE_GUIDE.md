@@ -126,9 +126,6 @@ RailsOnboarding.configure do |config|
   # NEW: Multi-tenant support
   config.multi_tenant = false
 
-  # NEW: Webhooks
-  config.webhooks = []
-
   # NEW: API mode
   config.api_mode = false
 end
@@ -438,27 +435,6 @@ class User < ApplicationRecord
 end
 ```
 
-### Issue: Webhook Signature Failures After Upgrade
-
-**Symptoms:**
-Webhooks failing signature verification after upgrade.
-
-**Solution:**
-
-Check that your secret key hasn't changed:
-
-```ruby
-# config/initializers/rails_onboarding.rb
-config.webhooks = [
-  {
-    url: 'https://example.com/webhook',
-    secret_key: ENV['WEBHOOK_SECRET_KEY'] # Should be consistent
-  }
-]
-```
-
-Verify your webhook endpoint uses the correct signature algorithm (see [WEBHOOK_SECURITY_GUIDE.md](WEBHOOK_SECURITY_GUIDE.md)).
-
 ## Upgrade Support
 
 ### Getting Help
@@ -526,7 +502,6 @@ If you encounter issues during upgrade:
 1. **Verify Functionality:**
    - Test all onboarding flows
    - Check analytics tracking
-   - Verify webhooks
 
 2. **Monitor Performance:**
    - Check query performance

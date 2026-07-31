@@ -9,9 +9,8 @@ This document outlines security considerations and best practices for using the 
 3. [Rate Limiting](#rate-limiting)
 4. [Input Sanitization](#input-sanitization)
 5. [Authorization](#authorization)
-6. [Webhook Security](#webhook-security)
-7. [SQL Injection Prevention](#sql-injection-prevention)
-8. [Secure Token Storage](#secure-token-storage)
+6. [SQL Injection Prevention](#sql-injection-prevention)
+7. [Secure Token Storage](#secure-token-storage)
 
 ## CSRF Protection
 
@@ -260,79 +259,6 @@ The gem logs all unauthorized access attempts:
 Rails.logger.warn "Unauthorized admin access attempt by user #123"
 ```
 
-## Webhook Security
-
-### Signature Verification
-
-All webhooks include cryptographic signatures for verification:
-
-**Configuration:**
-```ruby
-RailsOnboarding.configure do |config|
-  config.webhooks_enabled = true
-  config.webhook_secret_key = ENV['WEBHOOK_SECRET_KEY']
-  config.webhook_endpoints = [
-    {
-      url: 'https://your-app.com/webhooks/onboarding',
-      events: [:onboarding_completed, :step_completed]
-    }
-  ]
-end
-```
-
-**Signature Generation:**
-```ruby
-# The gem generates signatures using HMAC-SHA256
-signature = OpenSSL::HMAC.hexdigest(
-  'SHA256',
-  secret_key,
-  "#{event_name}:#{payload.to_json}:#{timestamp}"
-)
-```
-
-**Verifying Webhooks:**
-```ruby
-class WebhooksController < ApplicationController
-  skip_before_action :verify_authenticity_token
-
-  def onboarding
-    # Verify signature
-    signature = request.headers['X-Webhook-Signature']
-    timestamp = request.headers['X-Webhook-Timestamp']
-
-    unless verify_signature(signature, timestamp, request.raw_post)
-      render json: { error: 'Invalid signature' }, status: :unauthorized
-      return
-    end
-
-    # Process webhook
-    # ...
-  end
-
-  private
-
-  def verify_signature(signature, timestamp, body)
-    # Prevent replay attacks - reject old signatures
-    return false if Time.at(timestamp.to_i) < 5.minutes.ago
-
-    expected_signature = OpenSSL::HMAC.hexdigest(
-      'SHA256',
-      ENV['WEBHOOK_SECRET_KEY'],
-      body
-    )
-
-    ActiveSupport::SecurityUtils.secure_compare(signature, expected_signature)
-  end
-end
-```
-
-**Security Best Practices:**
-- Always verify webhook signatures
-- Use constant-time comparison to prevent timing attacks
-- Implement replay protection with timestamps
-- Use HTTPS for all webhook endpoints
-- Store secret keys in environment variables
-
 ## SQL Injection Prevention
 
 ### Parameterized Queries
@@ -375,15 +301,7 @@ Store all sensitive credentials in environment variables:
 
 ```bash
 # .env (DO NOT commit this file)
-WEBHOOK_SECRET_KEY=your_secure_secret_key_here
-API_TOKEN_SECRET=another_secure_secret_here
-```
-
-```ruby
-# config/initializers/rails_onboarding.rb
-RailsOnboarding.configure do |config|
-  config.webhook_secret_key = ENV['WEBHOOK_SECRET_KEY']
-end
+API_TOKEN_SECRET=your_secure_secret_here
 ```
 
 ### Encrypted Credentials
@@ -395,12 +313,12 @@ Use Rails encrypted credentials for production:
 EDITOR=vim rails credentials:edit
 
 # Add secrets
-webhook_secret_key: <%= SecureRandom.hex(32) %>
+api_token_secret: <%= SecureRandom.hex(32) %>
 ```
 
 ```ruby
-# Access in configuration
-config.webhook_secret_key = Rails.application.credentials.webhook_secret_key
+# Access in code
+Rails.application.credentials.api_token_secret
 ```
 
 ### Token Rotation
@@ -428,7 +346,6 @@ end
 - [ ] Use token authentication for API endpoints
 - [ ] Configure rate limiting
 - [ ] Implement proper authorization for admin access
-- [ ] Verify webhook signatures
 - [ ] Use parameterized queries for all database access
 - [ ] Store secrets in environment variables or encrypted credentials
 - [ ] Use HTTPS in production

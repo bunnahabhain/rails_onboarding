@@ -84,20 +84,9 @@ Detailed integration examples are available in the [integrations/](integrations/
    - Turbo Frame examples
    - Stimulus controller integration
 
-3. **[API Mode Integration](integrations/api_integration_example.rb)**
-   - RESTful API endpoints
-   - Mobile app integration
-   - React Native example
-
-4. **[Background Jobs](integrations/background_jobs_example.rb)**
+3. **[Background Jobs](integrations/background_jobs_example.rb)**
    - Sidekiq integration
    - Async email sending
-   - Delayed webhook delivery
-
-5. **[Webhooks](integrations/webhooks_example.rb)**
-   - Zapier integration
-   - Slack notifications
-   - CRM sync examples
 
 See [integrations/README.md](integrations/README.md) for detailed documentation.
 
@@ -183,15 +172,6 @@ RailsOnboarding.configure do |config|
   # Redirects
   config.redirect_after_completion = :dashboard_path
   config.redirect_after_skip = :limited_dashboard_path
-
-  # Webhooks for integrations
-  config.webhooks = [
-    {
-      url: ENV['WEBHOOK_URL'],
-      events: ['onboarding.completed', 'milestone.achieved'],
-      secret_key: ENV['WEBHOOK_SECRET_KEY']
-    }
-  ]
 end
 ```
 
@@ -466,20 +446,6 @@ RailsOnboarding.configure do |config|
 
   # Background Processing
   config.send_emails_async = true
-  config.process_webhooks_async = true
-
-  # Webhooks
-  config.webhooks = [
-    {
-      url: ENV['WEBHOOK_URL'],
-      events: ['onboarding.completed', 'step.completed', 'milestone.achieved'],
-      secret_key: ENV['WEBHOOK_SECRET_KEY'],
-      headers: { 'X-Custom-Header' => 'value' },
-      timeout: 30,
-      retry_attempts: 3,
-      retry_delay: 60
-    }
-  ]
 
   # API Mode
   config.api_mode = true
@@ -544,7 +510,6 @@ RailsOnboarding.configure do |config|
   config.cache_configuration = Rails.env.production?
   config.cache_ttl = 1.hour
   config.send_emails_async = true
-  config.process_webhooks_async = true
 
   # Analytics retention
   config.analytics_retention_days = 90
@@ -552,19 +517,6 @@ RailsOnboarding.configure do |config|
   # Redirects
   config.redirect_after_completion = :dashboard_path
   config.redirect_after_skip = :dashboard_path
-
-  # Webhooks (optional)
-  if ENV['WEBHOOK_URL'].present?
-    config.webhooks = [
-      {
-        url: ENV['WEBHOOK_URL'],
-        events: ['onboarding.completed'],
-        secret_key: ENV['WEBHOOK_SECRET_KEY'],
-        timeout: 30,
-        retry_attempts: 3
-      }
-    ]
-  end
 
   # Security
   config.enable_rate_limiting = Rails.env.production?
@@ -749,8 +701,7 @@ end
 ## Additional Resources
 
 - **[Main README](../README.md)** - Full documentation
-- **[API Authentication Guide](../API_AUTHENTICATION_GUIDE.md)** - Secure API setup
-- **[Webhook Security Guide](../WEBHOOK_SECURITY_GUIDE.md)** - Webhook integration
+- **[Security Guide](../docs/SECURITY.md)** - API authentication and hardening
 - **[Deployment Guide](../docs/DEPLOYMENT_GUIDE.md)** - Production deployment
 - **[Troubleshooting Guide](../docs/TROUBLESHOOTING.md)** - Common issues
 
