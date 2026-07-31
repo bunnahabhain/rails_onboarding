@@ -68,9 +68,9 @@ Next steps:
    Loading section for the full controller list, including milestones,
    tours, and the admin dashboard.)
 
-   If you're on ESBuild/Webpack/Vite instead, see ESBUILD_SETUP.md in the
-   gem's repository (github.com/bunnahabhain/rails_onboarding) for how to
-   copy and register the controllers manually.
+   If you're on ESBuild/Webpack/Vite instead, see docs/ESBUILD_SETUP.md
+   in the gem's repository (github.com/bunnahabhain/rails_onboarding) for
+   how to copy and register the controllers manually.
 
 5. Create a view for each step in config.steps (config/initializers/
    rails_onboarding.rb). The default config ships with four steps -

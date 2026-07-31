@@ -5,7 +5,7 @@ module RailsOnboarding
   module Generators
     # Re-copies the gem's Stimulus controllers into a bundler-based host app so
     # that a gem upgrade actually reaches the app. esbuild/webpack/vite apps
-    # bundle their own copy of these controllers (see ESBUILD_SETUP.md) rather
+    # bundle their own copy of these controllers (see docs/ESBUILD_SETUP.md) rather
     # than importing them from the engine the way importmap apps do, so the copy
     # goes stale on every gem bump unless it is re-synced. This generator is that
     # re-sync step - run it after updating the gem:
@@ -15,7 +15,7 @@ module RailsOnboarding
     #
     # It copies the controllers flat into app/javascript/controllers (so Stimulus
     # derives the flat identifiers the gem's views use - onboarding, tooltip,
-    # progress, ... - not prefixed rails-onboarding--* ones; see ESBUILD_SETUP.md).
+    # progress, ... - not prefixed rails-onboarding--* ones; see docs/ESBUILD_SETUP.md).
     # The gem's application.js is intentionally NOT copied: it would clobber the
     # host's own controllers/application.js entrypoint, and nothing imports it.
     #

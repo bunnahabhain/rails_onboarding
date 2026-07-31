@@ -1277,6 +1277,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 - [Performance & Scalability Guide](docs/PERFORMANCE_GUIDE.md)
 - [API Documentation](docs/API_DOCUMENTATION.md)
 - [Migration Guide](docs/MIGRATION_GUIDE.md)
+- [ESBuild Setup Guide](docs/ESBUILD_SETUP.md)
 
 ## Credits
 
