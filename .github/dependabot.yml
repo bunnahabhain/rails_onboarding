@@ -9,6 +9,14 @@ updates:
     bundler:
       patterns:
       - "*"
+      update-types:
+      - minor
+      - patch
+    bundler-major:
+      patterns:
+      - "*"
+      update-types:
+      - major
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
@@ -18,3 +26,11 @@ updates:
     github-actions:
       patterns:
       - "*"
+      update-types:
+      - minor
+      - patch
+    github-actions-major:
+      patterns:
+      - "*"
+      update-types:
+      - major
