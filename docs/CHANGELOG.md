@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-07-31
+
+Version bump only. Nothing the gem ships has changed since 0.6.1, so this
+build is identical to that one.
+
+Every commit since 0.6.1 is under `.github/`, which the gemspec does not
+package: a GitHub Actions bump (`actions/upload-artifact` v5 → v7) and
+Dependabot grouping and scheduling. Recorded here so the version history has
+no gaps, not because there is anything to upgrade for.
+
 ## [0.6.1] - 2026-07-31
 
 Patch: ships the license file, which the gem had been built without, and
@@ -1180,7 +1190,9 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.2...HEAD
+[0.6.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.1...v0.6.2
+[0.6.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.4...v0.6.0
 [0.5.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.2...v0.5.3
