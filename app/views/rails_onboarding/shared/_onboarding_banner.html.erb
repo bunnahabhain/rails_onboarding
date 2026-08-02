@@ -34,11 +34,15 @@
       </span>
     </div>
     <div class="onboarding-banner-actions">
-      <%# For :path steps, /onboarding re-checks complete_if and either
-          advances or routes back to the step's page - so "Continue" is
-          always the right link. %>
-      <%= link_to "Continue setup →", onboarding_root,
-                  class: "onboarding-banner-continue" %>
+      <%# /onboarding re-checks complete_if and either advances or routes back
+          to the step's page. That makes "Continue" the right link from
+          anywhere else in the app - but on the step's own page, with the
+          criteria not yet met, it redirects straight back here and the click
+          does nothing visible. Offer it only when it leads somewhere. %>
+      <% if !defined?(onboarding_continue_available?) || onboarding_continue_available? %>
+        <%= link_to "Continue setup →", onboarding_root,
+                    class: "onboarding-banner-continue" %>
+      <% end %>
       <% if step[:skippable] %>
         <%= button_to "Skip this step", rails_onboarding.skip_onboarding_path,
                       method: :post, class: "onboarding-banner-skip" %>

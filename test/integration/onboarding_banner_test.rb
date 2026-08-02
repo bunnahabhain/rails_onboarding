@@ -36,8 +36,61 @@ class OnboardingBannerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".onboarding-banner" do
       assert_select ".onboarding-banner-step", text: /Step 2\s+of 3:\s+👤 Profile/
-      assert_select "a.onboarding-banner-continue[href=?]", "/rails_onboarding"
     end
+  end
+
+  # Also guards the narrower-than-on_current_step_page? comparison: the dummy
+  # app serves both "/" and the step's "/profile/new" from ApplicationController,
+  # so a same-controller check would wrongly treat the root page as the step's
+  # own and drop the link. Only an exact path match means Continue is a no-op.
+  test "banner offers Continue on host pages other than the current step's" do
+    get "/"
+
+    assert_response :success
+    assert_select "a.onboarding-banner-continue[href=?]", "/rails_onboarding"
+  end
+
+  # Regression: the banner linked to /onboarding unconditionally, including on
+  # the step's own page. There, /onboarding re-checks :complete_if, finds it
+  # unmet, and redirects back to the step's path - the page the user is already
+  # on. The link rendered, the click issued GET /onboarding, and nothing moved.
+  test "banner omits Continue on the current step's own page while it is incomplete" do
+    get "/profile/new"
+
+    assert_response :success
+    assert_select ".onboarding-banner"
+    assert_select "a.onboarding-banner-continue", count: 0
+  end
+
+  test "banner offers Continue on the step's own page once its criteria are met" do
+    # With :complete_if satisfied, /onboarding advances rather than bouncing
+    # back, so the link leads somewhere and belongs on the page.
+    RailsOnboarding.configuration.steps = [
+      { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+      { name: :profile, title: "Profile", icon: "👤", skippable: false,
+        path: :new_profile_path, complete_if: ->(_user) { true } },
+      { name: :explore, title: "Explore", icon: "🔍", skippable: true }
+    ]
+
+    get "/profile/new"
+
+    assert_response :success
+    assert_select "a.onboarding-banner-continue[href=?]", "/rails_onboarding"
+  end
+
+  test "a raising complete_if does not resurrect the dead Continue link" do
+    RailsOnboarding.configuration.steps = [
+      { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+      { name: :profile, title: "Profile", icon: "👤", skippable: false,
+        path: :new_profile_path, complete_if: ->(_user) { raise "boom" } },
+      { name: :explore, title: "Explore", icon: "🔍", skippable: true }
+    ]
+
+    get "/profile/new"
+
+    assert_response :success
+    assert_select ".onboarding-banner"
+    assert_select "a.onboarding-banner-continue", count: 0
   end
 
   test "banner does not leak its ERB header comment into the page" do

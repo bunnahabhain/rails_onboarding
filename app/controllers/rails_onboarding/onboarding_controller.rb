@@ -231,7 +231,7 @@ module RailsOnboarding
     def advance_completed_steps
       awarded_milestones = []
       RailsOnboarding.configuration.total_steps.times do
-        break unless @current_step && step_criteria_met?(@current_step)
+        break unless @current_step && onboarding_step_criteria_met?(@current_step)
 
         if defined?(RailsOnboarding::MilestoneService)
           milestones = RailsOnboarding::MilestoneService.check_onboarding_step_milestones(
@@ -256,19 +256,6 @@ module RailsOnboarding
       end
 
       set_step
-    end
-
-    # A buggy :complete_if must not brick onboarding - if it raises, treat the
-    # step as not yet complete instead of letting the shared StandardError
-    # handler redirect back to /onboarding (which would re-raise on arrival,
-    # redirecting again in an endless browser loop).
-    def step_criteria_met?(step)
-      return false unless step[:complete_if].is_a?(Proc)
-
-      step[:complete_if].call(current_user)
-    rescue StandardError => e
-      Rails.logger.error("RailsOnboarding: complete_if for step '#{step[:name]}' raised #{e.class} - #{e.message}")
-      false
     end
 
     # Redirect to the host-app page that owns the current step. Returns false

@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The banner's "Continue setup →" link no longer renders when clicking it
+  would do nothing.** On a `:path` step's own page, `/onboarding` re-checks
+  `:complete_if`, finds it unmet, and redirects to the step's path — the page
+  the user is already on. The link was offered unconditionally, so on that page
+  it issued a `GET /onboarding` and nothing moved: no navigation, no message,
+  no indication the click had registered.
+
+  The banner now asks `onboarding_continue_available?` first. The link still
+  appears everywhere else, and still appears on the step's own page once
+  `:complete_if` passes — there it advances to the next step, which is the one
+  case where continuing from that page is meaningful.
+
+  The check is an exact path comparison, deliberately narrower than
+  `on_current_step_page?`. That helper also counts any other action on the same
+  controller, which is right for the loop guard that keeps it off the request
+  completing the step, but wrong here: a step pointing at `/profiles/1/edit`
+  leaves `/profiles/1` a different page, and Continue does move the user
+  between them.
+
+### Changed
+
+- **`step_criteria_met?` moved from the onboarding controller into
+  `ControllerHelpers` as `onboarding_step_criteria_met?`**, so the controller's
+  advance logic and the banner evaluate `:complete_if` through one
+  implementation rather than two — including its guarantee that a `:complete_if`
+  raising an exception counts as "not complete" instead of breaking the flow.
+  `onboarding_continue_available?` is exposed to views as a helper.
+
 ## [0.6.2] - 2026-07-31
 
 Version bump only. Nothing the gem ships has changed since 0.6.1, so this
