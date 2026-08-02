@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-08-01
+
+Patch: the onboarding banner no longer shows a "Continue setup" link that does
+nothing when clicked.
+
+Worth upgrading if you use `:path` steps — steps that live on a page of your own
+app rather than rendering a gem template. Nothing to configure, and no API or
+database change.
+
 ### Fixed
 
 - **The banner's "Continue setup →" link no longer renders when clicking it
