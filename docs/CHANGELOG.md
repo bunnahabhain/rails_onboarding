@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Replay mode, so restarting onboarding actually restarts it.** For a user
+  whose data already satisfies every step's `:complete_if` — which is every
+  established user — a restart did nothing visible. `/onboarding` re-checked
+  each predicate, found them all satisfied, advanced through the entire flow in
+  a single redirect, and landed the user back on the completion page with
+  "Welcome! You've completed the onboarding." The welcome screen appeared first
+  when step one had no `:complete_if`, which made it look like the flow had
+  started before collapsing on the next click.
+
+  `restart_onboarding!` now starts a replay: while one is active, a satisfied
+  `:complete_if` no longer advances the user on its own — they also have to have
+  been shown that step again. So a restart walks the real pages a second time
+  without touching the host-app data those predicates read. The replay ends when
+  the user completes or skips onboarding.
+
+  New on `Onboardable`: `replaying_onboarding?`, `start_onboarding_replay!`,
+  `end_onboarding_replay!`, `onboarding_step_replayed?`,
+  `mark_onboarding_step_replayed!`, and `User.onboarding_replay_supported?`.
+
+  Needs a new migration, `add_onboarding_replay_to_users` (two nullable columns,
+  no indexes). It is optional: without those columns everything falls back to
+  the previous auto-advance behaviour rather than raising, and the admin
+  Restart button says so in its flash message. Flows that don't use
+  `:complete_if` are unaffected either way.
+
+### Fixed
+
+- **`reset_onboarding!` now clears milestones.** It cleared progress, the
+  completion flags and shown tooltips, but left `milestones_achieved`,
+  `milestone_points` and `last_milestone_at` untouched. Since
+  `achieve_milestone!` refuses anything already in `milestones_achieved`, a
+  reset user could never re-earn them — they'd re-run the flow and finish with
+  no milestone notice at all. Pass `clear_milestones: false` to keep the old
+  behaviour, which is worth doing where milestones record real achievements
+  rather than onboarding progress. `restart_onboarding!` takes the same
+  keyword.
+
 ## [0.6.3] - 2026-08-01
 
 Patch: the onboarding banner no longer shows a "Continue setup" link that does

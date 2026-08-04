@@ -55,6 +55,12 @@ module RailsOnboarding
         )
       end
 
+      # Record that the user has now been shown this step. That's what lets
+      # :complete_if advance them past it when they come back, and it is what
+      # makes a restart re-walk a flow the user's data already satisfies.
+      # No-op outside a replay.
+      mark_step_replayed(@current_step)
+
       # Steps that own a real page in the host app: route there instead of
       # rendering a gem template, so the existing controller/view do the work.
       if @current_step[:path]
@@ -232,6 +238,10 @@ module RailsOnboarding
       awarded_milestones = []
       RailsOnboarding.configuration.total_steps.times do
         break unless @current_step && onboarding_step_criteria_met?(@current_step)
+        # During a replay, a satisfied :complete_if is not enough on its own -
+        # the user has to have been shown the step again first, or a restart
+        # would auto-advance them straight back to "completed".
+        break unless step_replayed?(@current_step)
 
         if defined?(RailsOnboarding::MilestoneService)
           milestones = RailsOnboarding::MilestoneService.check_onboarding_step_milestones(
@@ -256,6 +266,21 @@ module RailsOnboarding
       end
 
       set_step
+    end
+
+    # Replay bookkeeping. Both tolerate a host User that predates replay
+    # support (or isn't Onboardable at all), falling back to the ordinary
+    # auto-advance behaviour.
+    def step_replayed?(step)
+      return true unless current_user.respond_to?(:onboarding_step_replayed?)
+
+      current_user.onboarding_step_replayed?(step[:name])
+    end
+
+    def mark_step_replayed(step)
+      return unless current_user.respond_to?(:mark_onboarding_step_replayed!)
+
+      current_user.mark_onboarding_step_replayed!(step[:name])
     end
 
     # Redirect to the host-app page that owns the current step. Returns false

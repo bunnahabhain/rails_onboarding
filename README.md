@@ -537,7 +537,11 @@ current_user.complete_onboarding!
 # Skip onboarding
 current_user.skip_onboarding!
 
-# Restart onboarding
+# Reset onboarding state (clears milestones too; pass clear_milestones: false to keep them)
+current_user.reset_onboarding!
+
+# Restart onboarding - resets and walks the user through the steps again, even
+# if their data already satisfies every :complete_if
 current_user.restart_onboarding!
 ```
 
@@ -1016,7 +1020,9 @@ RailsOnboarding::Templates.apply('saas')
 - `go_back!` - Move to previous step
 - `complete_onboarding!` - Mark onboarding as complete
 - `skip_onboarding!` - Skip onboarding
-- `restart_onboarding!` - Restart from beginning
+- `reset_onboarding!(clear_milestones: true)` - Clear onboarding state
+- `restart_onboarding!` - Reset and re-walk the flow (replay mode)
+- `replaying_onboarding?` - Is the user re-walking the flow?
 
 #### Progress Methods
 - `onboarding_progress` - Returns completion percentage (0-100)

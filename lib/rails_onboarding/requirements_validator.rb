@@ -167,7 +167,9 @@ module RailsOnboarding
             "feature_tooltips_shown" => [ :jsonb, :text ],
             "milestones_achieved" => [ :text, :jsonb ],
             "milestone_points" => :integer,
-            "last_milestone_at" => :datetime
+            "last_milestone_at" => :datetime,
+            "onboarding_replay_started_at" => :datetime,
+            "onboarding_replay_steps" => [ :text, :jsonb ]
           }
 
           # Check required columns

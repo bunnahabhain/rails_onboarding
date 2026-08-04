@@ -18,6 +18,8 @@ module RailsOnboarding
       # - milestones_achieved: text (serialized JSON array)
       # - milestone_points: integer
       # - last_milestone_at: datetime
+      # - onboarding_replay_started_at: datetime
+      # - onboarding_replay_steps: text (serialized JSON array)
 
       # Fix for Rails 8: Use the new serialize syntax
       if columns_hash["feature_tooltips_shown"]&.type == :text
@@ -26,6 +28,10 @@ module RailsOnboarding
 
       if columns_hash["milestones_achieved"]&.type == :text
         serialize :milestones_achieved, coder: JSON
+      end
+
+      if columns_hash["onboarding_replay_steps"]&.type == :text
+        serialize :onboarding_replay_steps, coder: JSON
       end
 
       # Association with analytics events (only if ActiveRecord is available)
@@ -40,6 +46,19 @@ module RailsOnboarding
       if respond_to?(:validate)
         validate :validate_tooltips_size, if: :feature_tooltips_shown_changed?
         validate :validate_milestones_size, if: :milestones_achieved_changed?
+      end
+    end
+
+    class_methods do
+      # Replay mode needs two columns that predate no host app: installs from
+      # before it existed simply don't have them. Everything replay-related
+      # degrades to the old auto-advance behaviour when they're missing rather
+      # than raising on a column that isn't there.
+      def onboarding_replay_supported?
+        return false unless respond_to?(:column_names)
+
+        column_names.include?("onboarding_replay_started_at") &&
+          column_names.include?("onboarding_replay_steps")
       end
     end
 
@@ -163,9 +182,11 @@ module RailsOnboarding
 
     def complete_onboarding!(session_id: nil, completion_time: nil)
       persist_and_track!(
-        onboarding_completed: true,
-        onboarding_completed_at: Time.current,
-        onboarding_current_step: nil
+        {
+          onboarding_completed: true,
+          onboarding_completed_at: Time.current,
+          onboarding_current_step: nil
+        }.merge(replay_reset_attributes)
       ) do
         AnalyticsEvent.track_onboarding_completed(
           user: self,
@@ -179,10 +200,12 @@ module RailsOnboarding
 
     def skip_onboarding!(session_id: nil)
       persist_and_track!(
-        onboarding_completed: true,
-        onboarding_completed_at: Time.current,
-        onboarding_skipped: true,
-        onboarding_current_step: nil
+        {
+          onboarding_completed: true,
+          onboarding_completed_at: Time.current,
+          onboarding_skipped: true,
+          onboarding_current_step: nil
+        }.merge(replay_reset_attributes)
       ) do
         AnalyticsEvent.track_onboarding_completed(
           user: self,
@@ -193,14 +216,35 @@ module RailsOnboarding
       end
     end
 
-    def reset_onboarding!
-      update!(
+    # Clear onboarding state so the user starts over.
+    #
+    # Milestones are cleared by default. achieve_milestone! is idempotent
+    # (it returns false for anything already in milestones_achieved), so
+    # leaving them behind means a user sent back through the flow can never
+    # re-earn them and finishes with no milestone notice at all. Pass
+    # clear_milestones: false to keep them - worth doing where a host app's
+    # milestones record real achievements rather than onboarding progress.
+    #
+    # Any in-flight replay is cancelled: a bare reset drops the user back to
+    # the default behaviour, where a step whose :complete_if already passes is
+    # advanced past automatically. Use restart_onboarding! to reset *and*
+    # replay.
+    #
+    # @param clear_milestones [Boolean] also wipe milestones, points and
+    #   last_milestone_at (default: true)
+    # @return [Boolean] true
+    def reset_onboarding!(clear_milestones: true)
+      attributes = {
         onboarding_completed: false,
         onboarding_completed_at: nil,
         onboarding_skipped: false,
         onboarding_current_step: nil,
         feature_tooltips_shown: {}
-      )
+      }
+      attributes.merge!(milestone_reset_attributes) if clear_milestones
+      attributes.merge!(replay_reset_attributes)
+
+      update!(attributes)
     end
 
     # Feature tooltips
@@ -432,11 +476,18 @@ module RailsOnboarding
       true
     end
 
-    def restart_onboarding!(session_id: nil)
+    # Reset and immediately re-enter the flow at step one.
+    #
+    # Unlike a bare reset this turns replay mode on, so a user whose host-app
+    # data already satisfies every :complete_if walks the steps again instead
+    # of being auto-advanced straight back to "completed" on their next visit
+    # to /onboarding. See replaying_onboarding?.
+    def restart_onboarding!(session_id: nil, clear_milestones: true)
       previous_step = onboarding_current_step
       was_completed = onboarding_completed
 
-      reset_onboarding!
+      reset_onboarding!(clear_milestones: clear_milestones)
+      start_onboarding_replay!
       start_onboarding!(session_id: session_id)
 
       AnalyticsEvent.track_custom_event(
@@ -445,6 +496,63 @@ module RailsOnboarding
         event_data: { previous_step: previous_step, was_completed: was_completed },
         session_id: session_id
       )
+    end
+
+    # Replay mode
+    #
+    # A reset clears onboarding's own bookkeeping, but it cannot clear the
+    # host-app data a step's :complete_if reads. For an established user every
+    # predicate is still satisfied, so /onboarding advances through the whole
+    # flow in a single redirect and the reset looks like it did nothing.
+    #
+    # While a replay is active, :complete_if is no longer enough on its own -
+    # the user also has to have been shown the step again. That makes a
+    # restart walk the real pages a second time without touching the data
+    # those predicates read.
+
+    # Is this user currently re-walking the flow?
+    #
+    # False once they finish, so a completed user is never stuck in replay.
+    def replaying_onboarding?
+      return false unless self.class.onboarding_replay_supported?
+      return false if onboarding_completed?
+
+      onboarding_replay_started_at.present?
+    end
+
+    # @return [Boolean] false when the host app hasn't run the replay migration
+    def start_onboarding_replay!
+      return false unless self.class.onboarding_replay_supported?
+
+      update!(onboarding_replay_started_at: Time.current, onboarding_replay_steps: [])
+      true
+    end
+
+    def end_onboarding_replay!
+      return false unless self.class.onboarding_replay_supported?
+
+      update!(replay_reset_attributes)
+      true
+    end
+
+    # Has the user been shown this step since the current replay began?
+    #
+    # True whenever no replay is active, so callers can gate auto-advance on
+    # it unconditionally and get the ordinary behaviour outside a replay.
+    def onboarding_step_replayed?(step_name)
+      return true unless replaying_onboarding?
+
+      (onboarding_replay_steps || []).map(&:to_s).include?(step_name.to_s)
+    end
+
+    # Record that the user has now seen this step. No-op outside a replay.
+    def mark_onboarding_step_replayed!(step_name)
+      return false unless replaying_onboarding?
+      return false if onboarding_step_replayed?(step_name)
+
+      self.onboarding_replay_steps = (onboarding_replay_steps || []) + [ step_name.to_s ]
+      save!
+      true
     end
 
     # API-friendly aliases and helper methods
@@ -552,6 +660,26 @@ module RailsOnboarding
     # triggers) must never fire for a state change that didn't actually get
     # persisted - update!/save! raise on failure, so if that happens, this
     # method never reaches the block.
+    # Milestone columns arrive in a separate migration, so a host app can be
+    # running without them. Only reset what actually exists.
+    def milestone_reset_attributes
+      attributes = {}
+      attributes[:milestones_achieved] = [] if onboarding_column?("milestones_achieved")
+      attributes[:milestone_points] = 0 if onboarding_column?("milestone_points")
+      attributes[:last_milestone_at] = nil if onboarding_column?("last_milestone_at")
+      attributes
+    end
+
+    def replay_reset_attributes
+      return {} unless self.class.onboarding_replay_supported?
+
+      { onboarding_replay_started_at: nil, onboarding_replay_steps: [] }
+    end
+
+    def onboarding_column?(name)
+      self.class.respond_to?(:column_names) && self.class.column_names.include?(name)
+    end
+
     def persist_and_track!(attributes = nil)
       if attributes
         update!(attributes)

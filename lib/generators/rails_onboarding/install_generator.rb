@@ -60,6 +60,11 @@ module RailsOnboarding
                            "db/migrate/add_robustness_fields_to_users.rb"
       end
 
+      def copy_onboarding_replay_migration
+        migration_template "add_onboarding_replay_to_users.rb",
+                           "db/migrate/add_onboarding_replay_to_users.rb"
+      end
+
       def copy_initializer
         template "rails_onboarding.rb", "config/initializers/rails_onboarding.rb"
       end
@@ -87,6 +92,7 @@ module RailsOnboarding
           "add_milestone_tracking_to_users.rb",
           "add_onboarding_indexes.rb",
           "add_robustness_fields_to_users.rb.tt",
+          "add_onboarding_replay_to_users.rb",
           "rails_onboarding.rb",
           "onboarding.css",
           "README"

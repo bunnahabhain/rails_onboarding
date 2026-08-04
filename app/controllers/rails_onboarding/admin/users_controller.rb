@@ -61,7 +61,19 @@ module RailsOnboarding
         @user = user_class.find(params[:id])
 
         @user.restart_onboarding!
-        flash[:notice] = "Onboarding restarted for user #{@user.id}"
+
+        # Without the replay columns a restart can't stop :complete_if from
+        # auto-advancing an established user straight back to "completed",
+        # which looks like the button did nothing. Say so rather than claiming
+        # a restart that won't survive their next page load.
+        flash[:notice] = if !user_class.respond_to?(:onboarding_replay_supported?) ||
+                            user_class.onboarding_replay_supported?
+          "Onboarding restarted for user #{@user.id}"
+        else
+          "Onboarding restarted for user #{@user.id}. Steps whose completion criteria " \
+            "are already met will be skipped - run the add_onboarding_replay_to_users " \
+            "migration to walk this user through them again."
+        end
         redirect_to admin_user_path(@user)
       rescue StandardError => e
         flash[:alert] = "Error restarting onboarding: #{e.message}"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_27_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_04_000000) do
   create_table "analytics_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "event_data"
@@ -55,6 +55,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_27_000000) do
     t.boolean "onboarding_completed"
     t.datetime "onboarding_completed_at"
     t.string "onboarding_current_step"
+    t.datetime "onboarding_replay_started_at"
+    t.text "onboarding_replay_steps"
     t.boolean "onboarding_skipped"
     t.integer "organization_id"
     t.datetime "updated_at"

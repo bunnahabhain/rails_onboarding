@@ -24,7 +24,7 @@ module RailsOnboarding
       files = Dir.glob(File.join(destination_root, "db/migrate/*.rb")).sort
       versions = files.map { |f| File.basename(f).split("_").first }
 
-      assert_equal 6, versions.length
+      assert_equal 7, versions.length
       assert_equal versions.uniq.length, versions.length,
         "duplicate migration timestamps found: #{versions.inspect}"
       assert_equal versions.sort, versions,
@@ -41,6 +41,7 @@ module RailsOnboarding
       assert_migration "db/migrate/add_milestone_tracking_to_users.rb"
       assert_migration "db/migrate/add_onboarding_indexes.rb"
       assert_migration "db/migrate/add_robustness_fields_to_users.rb"
+      assert_migration "db/migrate/add_onboarding_replay_to_users.rb"
     end
 
     test "creates onboarding migration with correct content" do

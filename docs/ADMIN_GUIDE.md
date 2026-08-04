@@ -211,8 +211,32 @@ Click on any user to view detailed information:
 - Step transitions
 
 #### Actions
-- **Reset Onboarding**: Start the user's onboarding from scratch
+- **Reset Onboarding**: Clear the user's onboarding state (including milestones)
+  and leave them out of the flow
 - **Complete Onboarding**: Mark onboarding as complete
+- **Restart Onboarding**: Reset *and* put the user back on step one, in replay
+  mode
+
+### Reset vs. Restart
+
+Both clear the same state — progress, tooltips shown, and milestones. They
+differ in what happens next:
+
+| | Reset | Restart |
+|---|---|---|
+| Clears progress, tooltips, milestones | ✅ | ✅ |
+| Current step afterwards | `nil` | first step |
+| Analytics events | none | `onboarding_started`, `onboarding_restarted` |
+| Replay mode | cancelled | **on** |
+
+Replay mode is the part that matters for flows using `:complete_if`. A reset
+cannot clear the host-app data those predicates read — an established user still
+has a filled-in profile — so on their next visit the flow auto-advances through
+every satisfied step and drops them straight back on the completion page. Use
+**Restart** when you want the user to actually walk the steps again.
+
+Replay needs the `add_onboarding_replay_to_users` migration. Without it, Restart
+says so in its flash message rather than silently behaving like Reset.
 
 ### Example: Resetting User Onboarding
 
@@ -221,10 +245,16 @@ Click on any user to view detailed information:
 user = User.find(123)
 user.reset_onboarding!
 
+# Keep milestones they've already earned
+user.reset_onboarding!(clear_milestones: false)
+
+# Reset and send them back through the flow for real
+user.restart_onboarding!
+
 # Or via the admin interface:
 # 1. Navigate to Admin → Users
 # 2. Click on the user
-# 3. Click "Reset Onboarding"
+# 3. Click "Reset Onboarding" or "Restart Onboarding"
 ```
 
 ---
@@ -457,6 +487,7 @@ Returns the analytics dashboard with:
 - `GET /onboarding/admin/users` - List all users
 - `GET /onboarding/admin/users/:id` - User details
 - `POST /onboarding/admin/users/:id/reset_onboarding` - Reset user
+- `POST /onboarding/admin/users/:id/restart_onboarding` - Reset and replay the flow
 - `POST /onboarding/admin/users/:id/complete_onboarding` - Complete user
 - `POST /onboarding/admin/users/bulk_action` - Bulk actions
 - `GET /onboarding/admin/users/export` - Export users as CSV

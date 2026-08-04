@@ -197,5 +197,74 @@ module RailsOnboarding
       assert_redirected_to "http://www.example.com/"
       assert_equal "welcome", @user.reload.onboarding_current_step
     end
+
+    # Replay mode. An established user satisfies every :complete_if, so without
+    # it a restart runs the whole flow out in a single redirect and drops them
+    # back on the completion page - which reads as the restart doing nothing.
+
+    test "replay holds a step whose complete_if passes until the user is shown it" do
+      OnboardingPathStepsTest.satisfied_steps = [ :welcome, :profile, :explore ]
+      @user.restart_onboarding!
+
+      get onboarding_url
+
+      assert_response :success
+      assert_equal "welcome", @user.reload.onboarding_current_step
+      assert_not @user.onboarding_completed
+    end
+
+    test "replay advances a step once the user has been shown it again" do
+      OnboardingPathStepsTest.satisfied_steps = [ :welcome, :profile, :explore ]
+      @user.restart_onboarding!
+
+      get onboarding_url
+      assert_equal "welcome", @user.reload.onboarding_current_step
+
+      # welcome now counts as seen, so this visit advances onto profile and
+      # routes to the host-app page that owns it.
+      get onboarding_url
+      assert_redirected_to "/profile/new"
+      assert_equal "profile", @user.reload.onboarding_current_step
+
+      get onboarding_url
+      assert_response :success
+      assert_equal "explore", @user.reload.onboarding_current_step
+    end
+
+    test "replay ends when the user finishes the flow again" do
+      OnboardingPathStepsTest.satisfied_steps = [ :welcome, :profile, :explore ]
+      @user.restart_onboarding!
+
+      4.times { get onboarding_url }
+
+      assert @user.reload.onboarding_completed
+      assert_not @user.replaying_onboarding?
+      assert_empty @user.onboarding_replay_steps
+    end
+
+    test "restarted user is not sent straight to completion by the welcome step" do
+      OnboardingPathStepsTest.satisfied_steps = [ :profile, :explore ]
+      @user.restart_onboarding!
+
+      get onboarding_url
+      assert_response :success
+
+      # "Let's Get Started!" on the welcome screen
+      post next_onboarding_url
+      follow_redirect!
+
+      assert_redirected_to "/profile/new"
+      assert_not @user.reload.onboarding_completed
+    end
+
+    test "a bare reset still auto-advances - only restart replays" do
+      OnboardingPathStepsTest.satisfied_steps = [ :welcome, :profile, :explore ]
+      @user.reset_onboarding!
+
+      get onboarding_url
+
+      assert_not @user.replaying_onboarding?
+      assert @user.reload.onboarding_completed
+    end
   end
 end

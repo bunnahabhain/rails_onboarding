@@ -217,6 +217,91 @@ module RailsOnboarding
       assert_nil @user.onboarding_current_step
     end
 
+    test "reset_onboarding! clears milestones so they can be re-earned" do
+      @user.achieve_milestone!(:first_step)
+      assert @user.milestone_achieved?(:first_step)
+      assert_equal 10, @user.milestone_points
+
+      @user.reset_onboarding!
+
+      assert_empty @user.milestones_achieved
+      assert_equal 0, @user.milestone_points
+      assert_nil @user.last_milestone_at
+      assert @user.achieve_milestone!(:first_step), "milestone should be re-earnable after a reset"
+    end
+
+    test "reset_onboarding! keeps milestones when clear_milestones is false" do
+      @user.achieve_milestone!(:first_step)
+
+      @user.reset_onboarding!(clear_milestones: false)
+
+      assert @user.milestone_achieved?(:first_step)
+      assert_equal 10, @user.milestone_points
+    end
+
+    test "restart_onboarding! clears milestones and starts a replay" do
+      @user.achieve_milestone!(:first_step)
+      @user.update(onboarding_completed: true, onboarding_current_step: "explore")
+
+      @user.restart_onboarding!
+
+      assert_empty @user.milestones_achieved
+      assert @user.replaying_onboarding?
+      assert_equal "welcome", @user.onboarding_current_step
+    end
+
+    test "reset_onboarding! cancels an in-flight replay" do
+      @user.start_onboarding_replay!
+      assert @user.replaying_onboarding?
+
+      @user.reset_onboarding!
+
+      assert_not @user.replaying_onboarding?
+    end
+
+    test "onboarding_step_replayed? is always true outside a replay" do
+      assert_not @user.replaying_onboarding?
+      assert @user.onboarding_step_replayed?(:profile)
+    end
+
+    test "steps count as replayed only once the user has been shown them" do
+      @user.start_onboarding_replay!
+
+      assert_not @user.onboarding_step_replayed?(:profile)
+      assert @user.mark_onboarding_step_replayed!(:profile)
+      assert @user.onboarding_step_replayed?(:profile)
+
+      # Symbol/string agnostic, and marking twice is a no-op
+      assert @user.onboarding_step_replayed?("profile")
+      assert_not @user.mark_onboarding_step_replayed!(:profile)
+      assert_equal [ "profile" ], @user.onboarding_replay_steps
+    end
+
+    test "mark_onboarding_step_replayed! is a no-op outside a replay" do
+      assert_not @user.mark_onboarding_step_replayed!(:profile)
+      assert_empty @user.onboarding_replay_steps.to_a
+    end
+
+    test "completing onboarding ends the replay" do
+      @user.start_onboarding_replay!
+      @user.mark_onboarding_step_replayed!(:welcome)
+
+      @user.complete_onboarding!
+
+      assert_not @user.replaying_onboarding?
+      assert_nil @user.onboarding_replay_started_at
+      assert_empty @user.onboarding_replay_steps
+    end
+
+    test "skipping onboarding ends the replay" do
+      @user.start_onboarding_replay!
+
+      @user.skip_onboarding!
+
+      assert_not @user.replaying_onboarding?
+      assert_nil @user.onboarding_replay_started_at
+    end
+
     # Progress Tests
     test "onboarding_progress returns correct percentage" do
       # On first step (index 0) out of 4 steps

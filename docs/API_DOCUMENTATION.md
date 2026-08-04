@@ -228,9 +228,40 @@ current_user.skip_onboarding!
 
 ---
 
-##### `restart_onboarding!`
+##### `reset_onboarding!(clear_milestones: true)`
 
-Restarts onboarding from the beginning.
+Clears onboarding state so the user starts over. Does not re-enter the flow —
+use `restart_onboarding!` for that.
+
+```ruby
+current_user.reset_onboarding!
+
+# Keep milestones the user has already earned
+current_user.reset_onboarding!(clear_milestones: false)
+```
+
+**Parameters:**
+- `clear_milestones` (Boolean, default `true`) - also wipe `milestones_achieved`,
+  `milestone_points` and `last_milestone_at`
+
+**Returns:** `true`
+**Side Effects:**
+- Sets `onboarding_completed`, `onboarding_skipped` to `false`
+- Sets `onboarding_completed_at`, `onboarding_current_step` to `nil`
+- Clears `feature_tooltips_shown`
+- Clears milestones unless `clear_milestones: false`
+- Cancels any in-progress replay
+
+> Milestones are cleared by default because `achieve_milestone!` is idempotent —
+> it refuses anything already in `milestones_achieved`. Left in place, a user
+> sent back through the flow can never re-earn them and finishes with no
+> milestone notice at all.
+
+---
+
+##### `restart_onboarding!(session_id: nil, clear_milestones: true)`
+
+Resets and immediately re-enters the flow at step one, with replay mode on.
 
 ```ruby
 current_user.restart_onboarding!
@@ -238,10 +269,37 @@ current_user.restart_onboarding!
 
 **Returns:** `Boolean` - Result of `save`
 **Side Effects:**
-- Sets `onboarding_completed` to `false`
-- Sets `onboarding_completed_at` to `nil`
-- Sets `onboarding_skipped` to `false`
-- Resets `onboarding_current_step` to first step
+- Everything `reset_onboarding!` does
+- Starts a replay (see below)
+- Sets `onboarding_current_step` to the first step
+- Emits `onboarding_started` and `onboarding_restarted` analytics events
+
+---
+
+##### Replay mode
+
+Without replay, a restart is close to useless for an established user: their
+host-app data still satisfies every step's `:complete_if`, so their next visit
+to `/onboarding` advances the whole flow in one redirect and lands them back on
+the completion page. While a replay is active, `:complete_if` only advances the
+user past a step they have actually been shown again.
+
+Replay ends when the user completes or skips onboarding, or on a bare
+`reset_onboarding!`.
+
+```ruby
+user.replaying_onboarding?              # is a replay in progress?
+user.start_onboarding_replay!           # begin one (restart_onboarding! calls this)
+user.end_onboarding_replay!             # cancel one
+user.onboarding_step_replayed?(:profile) # shown since the replay began?
+                                         # always true outside a replay
+user.mark_onboarding_step_replayed!(:profile) # no-op outside a replay
+```
+
+Requires the `add_onboarding_replay_to_users` migration. Without those columns
+`User.onboarding_replay_supported?` is `false`, `replaying_onboarding?` is
+always `false`, and the gem falls back to the old auto-advance behaviour instead
+of raising.
 
 ---
 
