@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-04
+
+Minor: restarting a user's onboarding now actually sends them back through the
+flow, and resetting clears their milestones.
+
+Worth upgrading if you use `:complete_if` steps or the admin panel's Reset /
+Restart buttons. Adds one optional migration, and changes what
+`reset_onboarding!` clears by default — see below.
+
 ### Added
 
 - **Replay mode, so restarting onboarding actually restarts it.** For a user
@@ -1268,7 +1277,9 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.3...v0.7.0
+[0.6.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.5.4...v0.6.0
