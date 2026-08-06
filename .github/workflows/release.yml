@@ -1,0 +1,61 @@
+name: Release
+
+# Creates the GitHub Release when a v* tag is pushed. It deliberately does not
+# publish to RubyGems - WebAuthn MFA on the account can only be satisfied from
+# David's own terminal, so `gem push` stays a manual step.
+on:
+  push:
+    tags: [ "v*" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Extract the release notes for this version
+        id: notes
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          minor="${version%.*}"
+
+          # Everything between this version's heading and the next "## [" line.
+          section=$(awk -v v="$version" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/       { exit }
+            found                   { print }
+          ' docs/CHANGELOG.md)
+
+          if [ -z "$(printf '%s' "$section" | tr -d '[:space:]')" ]; then
+            echo "No docs/CHANGELOG.md section found for $version" >&2
+            exit 1
+          fi
+
+          {
+            echo "body<<CHANGELOG_EOF"
+            echo "Available on RubyGems: https://rubygems.org/gems/rails_onboarding"
+            echo
+            echo '```ruby'
+            echo "gem \"rails_onboarding\", \"~> $minor\""
+            echo '```'
+            printf '%s\n' "$section"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          BODY: ${{ steps.notes.outputs.body }}
+        run: |
+          printf '%s' "$BODY" > /tmp/release-notes.md
+          gh release create "$TAG" \
+            --verify-tag \
+            --title "$TAG" \
+            --notes-file /tmp/release-notes.md
