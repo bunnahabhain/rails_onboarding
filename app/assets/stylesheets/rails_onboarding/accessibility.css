@@ -446,15 +446,24 @@
   outline: none;
 }
 
-/* Enhanced input validation states */
-:where(.onboarding-container) input:invalid,
+/* Enhanced input validation states.
+ *
+ * Restricted to controls the user actually types into. `input` on its own also
+ * matches buttons, and a submit button is permanently :valid and never shows a
+ * placeholder - so `input:valid:not(:placeholder-shown)` painted every
+ * "Let's Get Started" and "Continue" button with the success border, over the
+ * primary-coloured border .primary-action sets. Checkboxes, radios, files,
+ * ranges and colour wells are excluded too: their borders are not rendered by
+ * the native control anyway, so validity styling on them is invisible at best
+ * and misleading at worst. */
+:where(.onboarding-container) input:not([type="submit"], [type="button"], [type="reset"], [type="image"], [type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"]):invalid,
 :where(.onboarding-container) select:invalid,
 :where(.onboarding-container) textarea:invalid {
   border-color: var(--onboarding-danger);
   box-shadow: inset 0 1px 2px rgba(239, 68, 68, 0.1);
 }
 
-:where(.onboarding-container) input:valid:not(:placeholder-shown),
+:where(.onboarding-container) input:not([type="submit"], [type="button"], [type="reset"], [type="image"], [type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"]):valid:not(:placeholder-shown),
 :where(.onboarding-container) select:valid,
 :where(.onboarding-container) textarea:valid:not(:placeholder-shown) {
   border-color: var(--onboarding-success);
