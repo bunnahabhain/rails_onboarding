@@ -1,0 +1,5 @@
+/* Stand-in for the file the install generator writes into a host app, so
+   custom_css_path has a real asset to resolve in tests. */
+:root {
+  --onboarding-primary: #8b3c7f;
+}

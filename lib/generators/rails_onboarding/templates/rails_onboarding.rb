@@ -14,6 +14,13 @@ RailsOnboarding.configure do |config|
   config.redirect_after_completion = :root_path
   config.redirect_after_skip = :root_path
 
+  # Asset name of a stylesheet loaded last on onboarding pages, for matching
+  # the flow to your own design. This generator wrote a starter file to
+  # app/assets/stylesheets/rails_onboarding_custom.css - nothing loads it
+  # until you uncomment the line below. Retheme by redefining the
+  # --onboarding-* tokens in that file rather than overriding rules.
+  # config.custom_css_path = "rails_onboarding_custom"
+
   # Feature toggles
   config.enable_tooltips = true
   config.enable_milestones = true

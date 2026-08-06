@@ -54,6 +54,7 @@ module RailsOnboarding
     def validate_types
       validate_type(:user_class_name, [ String ], "user_class_name must be a String")
       validate_type(:include_host_styles, [ TrueClass, FalseClass ], "include_host_styles must be a Boolean")
+      validate_type(:custom_css_path, [ String ], "custom_css_path must be a String")
       validate_type(:enable_tooltips, [ TrueClass, FalseClass ], "enable_tooltips must be a Boolean")
       validate_type(:enable_milestones, [ TrueClass, FalseClass ], "enable_milestones must be a Boolean")
       validate_type(:enable_analytics, [ TrueClass, FalseClass ], "enable_analytics must be a Boolean")

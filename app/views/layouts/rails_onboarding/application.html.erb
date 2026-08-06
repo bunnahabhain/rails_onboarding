@@ -31,6 +31,22 @@
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload", media: "screen" %>
   <% end %>
 
+  <%# Host-supplied overrides, loaded last - after both the engine's own
+      stylesheets and the host's application bundle - so retheming doesn't
+      turn into a specificity fight. The install generator writes a starter
+      file to app/assets/stylesheets/rails_onboarding_custom.css, but nothing
+      loads it until custom_css_path names it (nil by default). Prefer
+      redefining the --onboarding-* design tokens there over overriding
+      individual rules: the tokens are read by every rule in the engine, so
+      one declaration recolours the whole flow.
+
+      Steps declared with `path:` render inside the *host's* layout, not this
+      one, so a host using those has to add the same tag to those layouts for
+      the theme to carry across the whole flow. %>
+  <% if RailsOnboarding.configuration.custom_css_path.present? %>
+    <%= stylesheet_link_tag RailsOnboarding.configuration.custom_css_path, media: "screen" %>
+  <% end %>
+
   <%= javascript_include_tag "rails_onboarding/application", "data-turbo-track": "reload", defer: true %>
 </head>
 <body>

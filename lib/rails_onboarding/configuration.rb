@@ -47,6 +47,12 @@ module RailsOnboarding
     def initialize
       @user_class_name = "User"
       @include_host_styles = true  # Default to including host app css
+
+      # Asset name of a host stylesheet to load after everything else on
+      # onboarding pages, for retheming the flow. The install generator writes
+      # app/assets/stylesheets/rails_onboarding_custom.css; set this to
+      # "rails_onboarding_custom" to actually load it. nil = load nothing.
+      @custom_css_path = nil
       @redirect_after_completion = :root_path
       @redirect_after_skip = :root_path
       @welcome_heading = "We're excited to have you here!"

@@ -1,18 +1,34 @@
-/* Custom onboarding styles for your application */
 /*
- * This file is for customizing the onboarding appearance
- * to match your application's design system.
+ * Custom onboarding styles for your application.
+ *
+ * This file does nothing until you point the initializer at it:
+ *
+ *   config.custom_css_path = "rails_onboarding_custom"
+ *
+ * It is then loaded last on onboarding pages - after the engine's own
+ * stylesheets and after your application bundle - so these rules win without
+ * needing extra specificity.
+ *
+ * Prefer redefining the design tokens below over overriding individual rules.
+ * Every rule in the engine reads them, so one declaration recolours the whole
+ * flow and keeps working across gem upgrades. The full list is at the top of
+ * app/assets/stylesheets/rails_onboarding/application.css.
  */
 
-/* Example customizations: */
-.onboarding-container {
-  /* Override default styles here */
-}
+:root {
+  /* Brand */
+  /* --onboarding-primary:       #6366f1; */
+  /* --onboarding-primary-hover: #4f46e5; */
 
-.onboarding-progress {
-  /* Customize progress bar appearance */
-}
+  /* Surfaces */
+  /* --onboarding-background:       #ffffff; */
+  /* --onboarding-surface:          #f8fafc; */
+  /* --onboarding-surface-elevated: #ffffff; */
 
-.onboarding-step {
-  /* Customize step appearance */
+  /* Text */
+  /* --onboarding-text:       #1f2937; */
+  /* --onboarding-text-muted: #6b7280; */
+
+  /* Borders */
+  /* --onboarding-border: #e5e7eb; */
 }
