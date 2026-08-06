@@ -490,7 +490,7 @@
   .onboarding-progress-fill,
   .time-estimate,
   .milestone-points {
-    background: var(--onboarding-primary);
+    background: var(--onboarding-primary-fill);
   }
 
   /* Disable hover animations on mobile */

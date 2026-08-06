@@ -40,6 +40,19 @@
   --onboarding-primary: #6366f1;
   --onboarding-primary-hover: #4f46e5;
   --onboarding-secondary: #64748b;
+
+  /* The brand colour doing its other job: filling a surface that carries a
+     label - buttons, step markers, the progress bar, the tooltip bubble. It
+     defaults to --onboarding-primary, so a host that sets nothing sees exactly
+     what it saw before.
+     Set it when one value cannot do both. In a dark theme it usually cannot:
+     text on a dark page has to be light, a fill behind a light label has to be
+     dark, and against a #16151a background those requirements (luminance
+     >= 0.21 and <= 0.18) do not overlap at WCAG AA. Splitting them lets a host
+     keep readable brand text *and* a readable button, instead of choosing. */
+  --onboarding-primary-fill: var(--onboarding-primary);
+  --onboarding-primary-fill-hover: var(--onboarding-primary-hover);
+  --onboarding-on-primary: #ffffff;
   --onboarding-success: #10b981;
   --onboarding-warning: #f59e0b;
   --onboarding-danger: #ef4444;
@@ -173,9 +186,9 @@
 }
 
 .onboarding-banner-continue {
-  background: var(--onboarding-primary);
-  color: white;
-  border: 2px solid var(--onboarding-primary);
+  background: var(--onboarding-primary-fill);
+  color: var(--onboarding-on-primary);
+  border: 2px solid var(--onboarding-primary-fill);
   padding: var(--onboarding-space-sm) var(--onboarding-space-lg);
   border-radius: 0.5rem;
   font-weight: 600;
@@ -186,8 +199,8 @@
 }
 
 .onboarding-banner-continue:hover {
-  background: var(--onboarding-primary-hover);
-  border-color: var(--onboarding-primary-hover);
+  background: var(--onboarding-primary-fill-hover);
+  border-color: var(--onboarding-primary-fill-hover);
 }
 
 .onboarding-banner-skip {
@@ -236,7 +249,7 @@
 .onboarding-progress-fill {
   height: 100%;
   width: var(--onboarding-progress-width, 0%);
-  background: linear-gradient(90deg, var(--onboarding-primary), var(--onboarding-success));
+  background: linear-gradient(90deg, var(--onboarding-primary-fill), var(--onboarding-success));
   border-radius: 0.25rem;
   transition: width 0.3s ease;
 }
@@ -277,9 +290,9 @@
 }
 
 .progress-step.onboarding-current .step-marker {
-  background: var(--onboarding-primary);
-  border: 2px solid var(--onboarding-primary);
-  color: white;
+  background: var(--onboarding-primary-fill);
+  border: 2px solid var(--onboarding-primary-fill);
+  color: var(--onboarding-on-primary);
 }
 
 .progress-step.onboarding-completed .step-marker {
@@ -442,8 +455,8 @@
 }
 
 .time-estimate {
-  background: linear-gradient(135deg, var(--onboarding-primary), var(--onboarding-success));
-  color: white;
+  background: linear-gradient(135deg, var(--onboarding-primary-fill), var(--onboarding-success));
+  color: var(--onboarding-on-primary);
   padding: var(--onboarding-space-lg);
   border-radius: 0.75rem;
   text-align: center;
@@ -679,8 +692,8 @@
 }
 
 .feature-button {
-  background: var(--onboarding-primary);
-  color: white;
+  background: var(--onboarding-primary-fill);
+  color: var(--onboarding-on-primary);
   border: none;
   padding: var(--onboarding-space-sm) var(--onboarding-space-lg);
   border-radius: 0.5rem;
@@ -690,7 +703,7 @@
 }
 
 .feature-button:hover {
-  background: var(--onboarding-primary-hover);
+  background: var(--onboarding-primary-fill-hover);
   transform: translateY(-1px);
 }
 
@@ -729,9 +742,9 @@
 }
 
 .primary-action {
-  background: var(--onboarding-primary);
-  color: white;
-  border: 2px solid var(--onboarding-primary);
+  background: var(--onboarding-primary-fill);
+  color: var(--onboarding-on-primary);
+  border: 2px solid var(--onboarding-primary-fill);
   padding: var(--onboarding-space-md) var(--onboarding-space-xl);
   border-radius: 0.75rem;
   font-weight: 600;
@@ -745,8 +758,8 @@
 }
 
 .primary-action:hover:not(:disabled) {
-  background: var(--onboarding-primary-hover);
-  border-color: var(--onboarding-primary-hover);
+  background: var(--onboarding-primary-fill-hover);
+  border-color: var(--onboarding-primary-fill-hover);
   transform: translateY(-2px);
   box-shadow: var(--onboarding-shadow-lg);
 }
@@ -867,8 +880,8 @@
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 50%;
-  background: var(--onboarding-primary);
-  color: white;
+  background: var(--onboarding-primary-fill);
+  color: var(--onboarding-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -929,8 +942,8 @@
 }
 
 .close-help {
-  background: var(--onboarding-primary);
-  color: white;
+  background: var(--onboarding-primary-fill);
+  color: var(--onboarding-on-primary);
   border: none;
   padding: var(--onboarding-space-xs) var(--onboarding-space-md);
   border-radius: 0.375rem;

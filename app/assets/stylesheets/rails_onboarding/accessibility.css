@@ -26,8 +26,8 @@
   position: absolute;
   top: -2.5rem;
   left: var(--onboarding-space-md);
-  background: var(--onboarding-primary);
-  color: white;
+  background: var(--onboarding-primary-fill);
+  color: var(--onboarding-on-primary);
   padding: var(--onboarding-space-sm) var(--onboarding-space-md);
   border-radius: 0.375rem;
   text-decoration: none;
