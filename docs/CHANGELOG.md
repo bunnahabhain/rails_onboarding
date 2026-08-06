@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-06
+
+Minor: the brand colour's two jobs are now separate tokens, so the flow can be
+themed for a dark background.
+
+Worth upgrading if you theme the engine at all, and especially if your app has a
+dark mode. **Nothing to change on upgrade** — every new token defaults to what it
+replaced, so an app that sets none of them renders identically. No API or
+database change, and no migration.
+
 ### Added
 
 - **`--onboarding-primary-fill`, `--onboarding-primary-fill-hover` and
@@ -1383,7 +1393,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.2...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.3...v0.7.0
