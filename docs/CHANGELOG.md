@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-08-05
+
+Patch: `custom_css_path` now actually loads the stylesheet it names. It has been
+part of the configuration DSL since it was introduced and nothing ever read it.
+
+Worth upgrading if you want the onboarding flow to match your own design.
+Nothing to configure unless you want it, no API or database change, and no
+behaviour change for apps that leave `custom_css_path` unset.
+
+### Fixed
+
+- **`custom_css_path` is read rather than merely accepted.** The install
+  generator writes a starter stylesheet to
+  `app/assets/stylesheets/rails_onboarding_custom.css` and no layout ever linked
+  it, so a host app could edit that file indefinitely and see nothing change —
+  no error, no warning, just a page that kept its default colours.
+
+  The engine layout now links the named asset last: after its own stylesheets
+  *and* after the host's application bundle. Anything earlier loses to the
+  engine at equal specificity, which is the trap hosts hit when they wired the
+  file up by hand. The default stays `nil`, so nothing is loaded unless a host
+  opts in:
+
+  ```ruby
+  config.custom_css_path = "rails_onboarding_custom"
+  ```
+
+  Steps declared with `path:` render in *your* layout, not the engine's, so the
+  setting cannot reach those pages. Link the same stylesheet from those layouts
+  too — again last — if you use them.
+
+### Changed
+
+- **The generated starter stylesheet points at the design tokens** instead of
+  offering empty `.onboarding-container` / `.onboarding-progress` rules to fill
+  in. Every rule in the engine reads the `--onboarding-*` custom properties, so
+  redefining a token recolours the whole flow in one declaration and keeps
+  working when the engine's own selectors change. The rule-level overrides the
+  old template invited are the ones that break on upgrade. Existing files are
+  untouched — the generator never overwrites them.
+
+- **`custom_css_path` is type-checked** by the configuration validator, so a
+  symbol or a stray `Pathname` fails loudly at boot rather than rendering a
+  broken `<link>`.
+
 ## [0.7.0] - 2026-08-04
 
 Minor: restarting a user's onboarding now actually sends them back through the
@@ -1277,7 +1322,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.3...v0.7.0
 [0.6.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.1...v0.6.2
