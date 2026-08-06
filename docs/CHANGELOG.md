@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-08-06
+
+Patch: buttons in the onboarding flow no longer render with the success-coloured
+border meant for validated form fields.
+
+Worth upgrading if you theme `--onboarding-success`, or if your primary actions
+have looked subtly wrong. Nothing to configure, and no API or database change.
+
+### Fixed
+
+- **Validation styling no longer repaints every button.** The `:valid` rule in
+  `accessibility.css` was written against a bare `input`, which also matches
+  buttons. A submit button is permanently `:valid`, and having no placeholder it
+  is permanently `:not(:placeholder-shown)` too — so the "this field is filled in
+  correctly" green border landed on every primary action in the flow ("Let's Get
+  Started", "Continue", "Complete Setup"), painting over the primary-coloured
+  border `.primary-action` asks for and winning purely on source order.
+
+  This went unnoticed while the default success colour sat close to the default
+  primary indigo. Theme `--onboarding-success` to an actual green and you get a
+  green outline around a brand-coloured button, which is how it surfaced.
+
+  Both validation rules are now restricted to controls the user types into.
+  Buttons are the regression; checkboxes, radios, file, range and colour inputs
+  are excluded with them, since native controls render no border of their own and
+  validity styling there is invisible at best. The `:invalid` half was harmless
+  in practice — a button cannot be `:invalid` — but carried the same selector
+  bug, so it gets the same treatment rather than staying a trap.
+
 ## [0.7.1] - 2026-08-05
 
 Patch: `custom_css_path` now actually loads the stylesheet it names. It has been
@@ -1322,7 +1351,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.3...v0.7.0
 [0.6.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.6.2...v0.6.3
