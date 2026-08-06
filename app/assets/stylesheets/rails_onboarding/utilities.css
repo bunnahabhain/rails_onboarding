@@ -152,7 +152,7 @@
 .onboarding-bg-primary { background-color: var(--onboarding-background); }
 .onboarding-bg-surface { background-color: var(--onboarding-surface); }
 .onboarding-bg-elevated { background-color: var(--onboarding-surface-elevated); }
-.onboarding-bg-brand { background-color: var(--onboarding-primary); }
+.onboarding-bg-brand { background-color: var(--onboarding-primary-fill); }
 .onboarding-bg-success { background-color: var(--onboarding-success); }
 .onboarding-bg-warning { background-color: var(--onboarding-warning); }
 .onboarding-bg-danger { background-color: var(--onboarding-danger); }

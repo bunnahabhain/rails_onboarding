@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`--onboarding-primary-fill`, `--onboarding-primary-fill-hover` and
+  `--onboarding-on-primary`**, splitting the brand colour's two jobs so the flow
+  can be themed for a dark background. Fixes #2.
+
+  `--onboarding-primary` was colouring text, borders and focus outlines *and*
+  filling the surfaces that carry a label — buttons, step markers, the progress
+  bar, the tooltip bubble. A light theme can serve both with one value. A dark
+  theme cannot, and not as a matter of taste: against a `#16151a` page, a fill
+  sitting behind a light label needs relative luminance ≤ 0.18 while text on
+  that page needs ≥ 0.21. No value satisfies both at WCAG AA, so a host had to
+  pick which half of the engine to break.
+
+  Fills now read `--onboarding-primary-fill`, their labels read
+  `--onboarding-on-primary`, and text, borders and outlines keep reading
+  `--onboarding-primary`. All three new tokens default to what they replaced,
+  so **a host that sets nothing sees identical output**.
+
+  Theming a dark flow becomes:
+
+  ```css
+  :root {
+    --onboarding-primary: #c57ab8;       /* readable as text on a dark page */
+    --onboarding-primary-fill: #7d4874;  /* readable behind a white label */
+  }
+  ```
+
+  `accent-color` on checkboxes and radios deliberately still reads
+  `--onboarding-primary`: the browser picks the companion mark colour itself, so
+  that one has no two-role conflict to resolve.
+
 ## [0.7.2] - 2026-08-06
 
 Patch: buttons in the onboarding flow no longer render with the success-coloured
