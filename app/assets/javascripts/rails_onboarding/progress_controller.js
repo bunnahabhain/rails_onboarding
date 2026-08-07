@@ -149,8 +149,8 @@ export default class extends Controller {
       </div>
     `
 
-        // Position tooltip (top/left are viewport-relative and computed per
-        // call, so they stay inline; everything else lives in .step-tooltip)
+        // Position tooltip (top/left are computed per call, so they stay inline;
+        // everything else lives in .step-tooltip)
         document.body.appendChild(tooltip)
         this.positionTooltip(tooltip, targetElement)
 
@@ -179,8 +179,12 @@ export default class extends Controller {
             top = rect.top - tooltipRect.height - 8
         }
 
-        tooltip.style.top = `${top}px`
-        tooltip.style.left = `${left}px`
+        // The maths above is all in viewport space (getBoundingClientRect,
+        // window.innerWidth/Height), but .step-tooltip is `position: absolute`
+        // on document.body, so add the scroll offset when applying. See the same
+        // conversion in tooltip_controller.js#positionTooltip.
+        tooltip.style.top = `${top + window.scrollY}px`
+        tooltip.style.left = `${left + window.scrollX}px`
     }
 
     // Advance to next step (for testing/demo purposes)

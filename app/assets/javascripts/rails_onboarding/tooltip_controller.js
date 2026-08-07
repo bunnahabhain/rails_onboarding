@@ -784,9 +784,16 @@ export default class extends Controller {
         
         let { position, top, left, arrowPosition } = bestPosition
 
-        // Apply position
-        this.tooltip.style.top = `${top}px`
-        this.tooltip.style.left = `${left}px`
+        // Apply position, converting viewport coordinates to document ones.
+        // Everything above - getBoundingClientRect, the edge clamping in
+        // calculatePosition, the collision checks in scorePosition - works in
+        // viewport space, but .onboarding-tooltip is `position: absolute` on
+        // document.body, so top/left are resolved against the document. Without
+        // the scroll offset the tooltip lands a full scroll position away from
+        // its trigger. Absolute (not fixed) is deliberate: it keeps the tooltip
+        // glued to the trigger if the page scrolls while it's open.
+        this.tooltip.style.top = `${top + viewport.scrollY}px`
+        this.tooltip.style.left = `${left + viewport.scrollX}px`
         
         // Style arrow based on final position
         if (arrow) {

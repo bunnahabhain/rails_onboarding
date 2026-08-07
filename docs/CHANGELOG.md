@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Tooltips positioned against a scrolled page** appeared a full scroll offset
+  away from their trigger. `.onboarding-tooltip` and `.step-tooltip` are
+  `position: absolute` on `document.body`, so their `top`/`left` resolve against
+  the document, but both controllers computed those coordinates from
+  `getBoundingClientRect()`, which is viewport-relative. `window.scrollX/scrollY`
+  is now added when the coordinates are applied. Affects
+  `tooltip_controller.js` and `progress_controller.js`; the tour popup and the
+  navigation and onboarding controllers were already `position: fixed` and were
+  never affected.
+
 ## [0.8.0] - 2026-08-06
 
 Minor: the brand colour's two jobs are now separate tokens, so the flow can be
