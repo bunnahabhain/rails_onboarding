@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-08-08
+
+Patch: tooltips land on their trigger again when the page is scrolled.
+
+Worth upgrading if you use feature tooltips or the progress-step tooltips on any
+page long enough to scroll. **Nothing to change on upgrade** — no API, token or
+database change, and no migration.
+
 ### Fixed
 
 - **Tooltips positioned against a scrolled page** appeared a full scroll offset
@@ -1405,7 +1413,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.0...v0.7.1
