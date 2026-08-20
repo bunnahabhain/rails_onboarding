@@ -46,18 +46,30 @@ module RailsOnboarding
         @analytics_error = e.message
       end
 
+      # Milestones have no table of their own. They are *defined* in the host's
+      # initializer (RailsOnboarding.configuration.milestones) and *awarded*
+      # onto the user record: `milestones_achieved` holds a serialized array of
+      # {"key", "achieved_at"} hashes, with `milestone_points` and
+      # `last_milestone_at` beside it.
+      #
+      # This panel used to query a RailsOnboarding::Milestone model and a
+      # rails_onboarding_milestone_achievements join table. Neither has ever
+      # existed in the engine, so the `defined?` guard was always false and the
+      # whole section returned early - silently, while real achievements piled
+      # up on the users table. Guard on the two things actually required
+      # instead: milestones being switched on, and a user model that speaks
+      # Onboardable.
       def load_milestone_data
-        return unless defined?(RailsOnboarding::Milestone)
+        return unless RailsOnboarding.configuration.enable_milestones
+        return unless user_class.method_defined?(:achieved_milestone_entries)
 
-        @total_milestones = RailsOnboarding::Milestone.count
+        @total_milestones = RailsOnboarding.configuration.milestones.size
 
-        # Use Arel to build safe SQL
-        users_table = user_class.arel_table
-        @milestone_achievements = user_class
-          .joins("LEFT JOIN rails_onboarding_milestone_achievements ON rails_onboarding_milestone_achievements.user_id = #{users_table.name}.id")
-          .group(users_table[:id])
-          .count
-        @top_milestones = top_achieved_milestones
+        stats = milestone_achievement_stats
+        @milestones_awarded = stats[:awarded]
+        @milestone_points_awarded = stats[:points]
+        @users_with_milestones = stats[:users]
+        @top_milestones = stats[:top]
       rescue StandardError => e
         logger.error "Error loading milestone data: #{e.message}"
         @milestone_error = e.message
@@ -154,16 +166,78 @@ module RailsOnboarding
         trend
       end
 
-      def top_achieved_milestones
-        return [] unless defined?(RailsOnboarding::Milestone)
+      # Roll every user's achievements up into the numbers the panel shows.
+      #
+      # `milestones_achieved` is a serialized text column, so this cannot be a
+      # GROUP BY - the rows have to be loaded and counted in Ruby. Two things
+      # keep that honest: only users who hold at least one achievement are
+      # loaded, and only the three columns needed are selected. It is still
+      # O(users-with-milestones), which is fine into the tens of thousands and
+      # is the price of milestones not having a table. An install that outgrows
+      # it should denormalise achievements into their own table rather than
+      # paginate this.
+      #
+      # Achievements are counted within the dashboard's selected date range,
+      # like every other time-based figure here. Undated achievements are
+      # counted regardless: a legacy string entry on a record with no
+      # last_milestone_at is still a real award, and dropping it would repeat
+      # in miniature exactly the bug this method replaces.
+      def milestone_achievement_stats
+        counts = Hash.new(0)
+        awarded = 0
+        points = 0
+        users = 0
 
-        RailsOnboarding::Milestone
-          .joins("LEFT JOIN rails_onboarding_milestone_achievements ON rails_onboarding_milestone_achievements.milestone_id = rails_onboarding_milestones.id")
-          .group("rails_onboarding_milestones.id", "rails_onboarding_milestones.name", "rails_onboarding_milestones.title")
-          .order("COUNT(rails_onboarding_milestone_achievements.id) DESC")
-          .limit(5)
-          .pluck("rails_onboarding_milestones.name", "rails_onboarding_milestones.title", "COUNT(rails_onboarding_milestone_achievements.id)")
-          .map { |name, title, count| { name: name, title: title, count: count } }
+        achievement_holders.find_each do |user|
+          keys = user.achieved_milestone_entries.filter_map do |key, achieved_at|
+            key if achieved_at.nil? || achieved_at >= @start_date
+          end
+          next if keys.empty?
+
+          users += 1
+          awarded += keys.size
+          keys.each do |key|
+            counts[key] += 1
+            points += RailsOnboarding.configuration.milestone_by_key(key)&.dig(:points).to_i
+          end
+        end
+
+        { awarded: awarded, points: points, users: users, top: top_milestones_from(counts) }
+      end
+
+      # Users holding at least one achievement. The empty cases are the column's
+      # default (NULL) and a serialized empty array, which is what
+      # reset_onboarding! leaves behind.
+      #
+      # The empty-string checks go through raw SQL on purpose: `milestones_achieved`
+      # is a serialized attribute, so `where.not(milestones_achieved: "[]")` would
+      # hand "[]" to the JSON coder and compare against the string '"[]"' instead.
+      # A bare nil is safe - the serialized type passes it straight through.
+      def achievement_holders
+        column = "#{user_class.quoted_table_name}.milestones_achieved"
+
+        user_class
+          .where.not(milestones_achieved: nil)
+          .where("#{column} NOT IN (?, ?)", "", "[]")
+          .select(:id, :milestones_achieved, :last_milestone_at)
+      end
+
+      # The five most-awarded milestones, resolved against the configuration for
+      # their display copy. A key with no matching configuration entry is one the
+      # host has since renamed or removed; show it under its raw key rather than
+      # dropping it, so the leftover data is visible and can be cleaned up.
+      def top_milestones_from(counts)
+        counts.sort_by { |key, count| [ -count, key ] }.first(5).map do |key, count|
+          milestone = RailsOnboarding.configuration.milestone_by_key(key)
+
+          {
+            name: key,
+            title: milestone&.dig(:title) || key.to_s.humanize,
+            icon: milestone&.dig(:icon),
+            configured: !milestone.nil?,
+            count: count
+          }
+        end
       end
 
       def date_range_start(range)

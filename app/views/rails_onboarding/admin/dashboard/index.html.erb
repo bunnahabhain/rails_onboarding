@@ -126,19 +126,43 @@
 <!-- Bottom Row -->
 <div class="admin-bottom-grid">
   <!-- Milestone Stats -->
-  <% if defined?(RailsOnboarding::Milestone) %>
+  <%# @total_milestones is assigned only when milestones are enabled and the
+      user model speaks Onboardable, so it doubles as the render guard. %>
+  <% if @total_milestones %>
     <div class="admin-card">
       <div class="admin-card-header">
-        <h3 class="admin-card-title">Top Milestones</h3>
+        <h3 class="admin-card-title">Milestones</h3>
+        <span class="admin-card-action"><%= pluralize(@total_milestones, "configured") %></span>
       </div>
       <div class="admin-card-body">
-        <% if @top_milestones && @top_milestones.any? %>
+        <div class="admin-stats-grid admin-stats-compact">
+          <div class="admin-stat-card">
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">Awarded</div>
+              <div class="admin-stat-value"><%= number_with_delimiter(@milestones_awarded) %></div>
+              <div class="admin-stat-change">to <%= pluralize(@users_with_milestones, "user") %></div>
+            </div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">Points</div>
+              <div class="admin-stat-value"><%= number_with_delimiter(@milestone_points_awarded) %></div>
+              <div class="admin-stat-change">in selected period</div>
+            </div>
+          </div>
+        </div>
+
+        <% if @top_milestones&.any? %>
           <div class="admin-list">
             <% @top_milestones.each do |milestone| %>
               <div class="admin-list-item">
                 <div class="admin-list-content">
-                  <div class="admin-list-title"><%= milestone[:title] %></div>
-                  <div class="admin-list-meta"><%= milestone[:name] %></div>
+                  <div class="admin-list-title">
+                    <% if milestone[:icon].present? %><span aria-hidden="true"><%= milestone[:icon] %></span> <% end %><%= milestone[:title] %>
+                  </div>
+                  <div class="admin-list-meta">
+                    <%= milestone[:name] %><% unless milestone[:configured] %> — no longer configured<% end %>
+                  </div>
                 </div>
                 <div class="admin-list-value">
                   <span class="admin-badge"><%= number_with_delimiter(milestone[:count]) %> achieved</span>
@@ -147,7 +171,7 @@
             <% end %>
           </div>
         <% else %>
-          <p class="admin-empty-state">No milestone data available</p>
+          <p class="admin-empty-state">No milestones achieved in this period</p>
         <% end %>
       </div>
     </div>

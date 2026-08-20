@@ -423,5 +423,60 @@ module RailsOnboarding
       expected_step = RailsOnboarding.configuration.steps[1][:name].to_s
       assert_equal expected_step, @user.onboarding_current_step
     end
+
+    # achieved_milestone_entries tests
+    test "achieved_milestone_entries pairs each key with when it was awarded" do
+      awarded_at = 3.days.ago.change(usec: 0)
+      @user.update!(milestones_achieved: [
+        { "key" => "first_step", "achieved_at" => awarded_at.iso8601 }
+      ])
+
+      entries = @user.achieved_milestone_entries
+
+      assert_equal 1, entries.size
+      key, achieved_at = entries.first
+      assert_equal "first_step", key
+      assert_in_delta awarded_at.to_i, achieved_at.to_i, 1
+    end
+
+    test "achieved_milestone_entries dates legacy string entries from last_milestone_at" do
+      fallback = 5.days.ago.change(usec: 0)
+      @user.update!(milestones_achieved: [ "first_step" ], last_milestone_at: fallback)
+
+      key, achieved_at = @user.achieved_milestone_entries.first
+
+      assert_equal "first_step", key
+      assert_in_delta fallback.to_i, achieved_at.to_i, 1
+    end
+
+    test "achieved_milestone_entries falls back when achieved_at is unparseable" do
+      fallback = 2.days.ago.change(usec: 0)
+      @user.update!(
+        milestones_achieved: [ { "key" => "first_step", "achieved_at" => "not a time" } ],
+        last_milestone_at: fallback
+      )
+
+      _key, achieved_at = @user.achieved_milestone_entries.first
+
+      assert_in_delta fallback.to_i, achieved_at.to_i, 1
+    end
+
+    test "achieved_milestone_entries reports an undatable achievement rather than dropping it" do
+      @user.update!(milestones_achieved: [ "first_step" ], last_milestone_at: nil)
+
+      entries = @user.achieved_milestone_entries
+
+      assert_equal [ [ "first_step", nil ] ], entries,
+        "an achievement with no recoverable date is still an achievement"
+    end
+
+    test "achieved_milestone_entries agrees with achieved_milestones on keys" do
+      @user.update!(milestones_achieved: [
+        { "key" => "first_step", "achieved_at" => 1.day.ago.iso8601 },
+        "completed_milestone"
+      ])
+
+      assert_equal @user.achieved_milestones, @user.achieved_milestone_entries.map(&:first)
+    end
   end
 end
