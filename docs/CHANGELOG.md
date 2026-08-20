@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-08-20
+
+Patch: the admin dashboard reports milestone activity instead of hiding it.
+
+Worth upgrading if you have `enable_milestones` on — the dashboard has been
+showing no milestone section at all, whatever your users had earned. **Nothing
+to change on upgrade** — no API, token or configuration change, and no
+migration.
+
+### Fixed
+
+- **The admin dashboard's milestone panel never rendered**, on any install. Both
+  `load_milestone_data` and `top_achieved_milestones` opened with
+  `return unless defined?(RailsOnboarding::Milestone)`, and went on to query a
+  `rails_onboarding_milestone_achievements` join table. Neither that model nor
+  that table has ever existed in the engine — milestones are defined in the
+  host's initializer and awarded onto the user record — so the guard was always
+  false, the panel returned early, and the view's own
+  `if defined?(RailsOnboarding::Milestone)` wrapper dropped the card entirely.
+  An app with milestones enabled saw an admin dashboard reporting no milestone
+  activity while achievements accumulated on `users.milestones_achieved`.
+
+  The panel now reads the real storage: achievement counts per milestone key,
+  total awards, distinct holders and points earned, all resolved against
+  `configuration.milestones` for display copy and filtered by the dashboard's
+  selected date range. Keys no longer present in the configuration are still
+  listed, marked as such, so leftover data stays visible.
+
+  It renders when milestones are enabled and the user model responds to the
+  Onboardable API. No configuration change and no migration.
+
+### Added
+
+- **`Onboardable#achieved_milestone_entries`** returns each achievement as a
+  `[key, achieved_at]` pair, so callers needing both at once no longer re-scan
+  `milestones_achieved` once per key or re-implement its two stored formats.
+  `achieved_at` is `nil` only for a legacy string entry on a record with no
+  `last_milestone_at` to fall back on.
+
 ## [0.8.1] - 2026-08-08
 
 Patch: tooltips land on their trigger again when the page is scrolled.
@@ -1413,7 +1452,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.2...HEAD
+[0.8.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.1...v0.7.2

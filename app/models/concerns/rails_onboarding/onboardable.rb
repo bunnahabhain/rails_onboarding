@@ -307,6 +307,30 @@ module RailsOnboarding
       milestones.map { |m| m.is_a?(Hash) ? m["key"] : m.to_s }
     end
 
+    # Every achievement as a [key, achieved_at] pair, in the order it was
+    # awarded.
+    #
+    # #achieved_milestones gives the keys and #milestone_achieved_at dates one
+    # key at a time; anything that needs both at once (the admin dashboard
+    # counting achievements per period, for one) would otherwise re-scan the
+    # array once per key and re-implement the two stored formats for itself.
+    #
+    # +achieved_at+ is nil only for a legacy string entry on a record with no
+    # last_milestone_at to fall back on - the achievement is real, its date
+    # simply was never stored. Callers filtering by date should decide
+    # deliberately what to do with those rather than dropping them by accident.
+    #
+    # @return [Array<Array(String, Time, nil)>]
+    def achieved_milestone_entries
+      (milestones_achieved || []).map do |entry|
+        if entry.is_a?(Hash)
+          [ entry["key"].to_s, parse_achieved_at(entry["achieved_at"]) ]
+        else
+          [ entry.to_s, last_milestone_at ]
+        end
+      end
+    end
+
     def milestone_achieved?(milestone_key)
       achieved_milestones.include?(milestone_key.to_s)
     end
@@ -653,6 +677,16 @@ module RailsOnboarding
     end
 
     private
+
+    # A stored achieved_at, or last_milestone_at when it is missing or
+    # unparseable - the same fallback #milestone_achieved_at applies.
+    def parse_achieved_at(value)
+      return last_milestone_at if value.blank?
+
+      Time.parse(value.to_s)
+    rescue StandardError
+      last_milestone_at
+    end
 
     # Persists +attributes+ (or just re-saves already-assigned attributes if
     # none given), then runs the tracking block only after that succeeds.
