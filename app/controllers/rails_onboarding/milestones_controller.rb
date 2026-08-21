@@ -112,7 +112,15 @@ module RailsOnboarding
     private
 
     def authenticate_user!
-      unless respond_to?(:current_user) && current_user
+      # respond_to? omits private methods, and a host app that hand-rolls
+      # authentication commonly keeps current_user private - a public method on
+      # a controller can be reached as an action. Without the second argument
+      # this guard is false for every such host and the page is unreachable no
+      # matter who is signed in. (Gift Posse is exactly that shape.) The helper
+      # and layout uses of respond_to?(:current_user) elsewhere are fine as they
+      # stand: they run in view context, where helper_method has already defined
+      # a public current_user.
+      unless respond_to?(:current_user, true) && current_user
         redirect_to main_app.root_path, alert: "Please log in to view milestones"
       end
     end

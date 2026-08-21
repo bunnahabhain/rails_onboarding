@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-08-21
+
+Patch: the milestones page is reachable by hosts that keep `current_user` private.
+
+Worth upgrading if you expose the milestones page and hand-roll authentication —
+until now it redirected to your root path for every user, signed in or not.
+**Nothing to change on upgrade** — no API, token or configuration change, and no
+migration.
+
+### Fixed
+
+- **`MilestonesController` treated a private `current_user` as nobody being
+  signed in.** Its `authenticate_user!` guard tested
+  `respond_to?(:current_user)`, which omits private methods. Hosts that
+  hand-roll authentication normally keep `current_user` private — a public
+  method on a controller can be reached as an action — so for those apps the
+  guard was false no matter who was signed in, and every request to
+  `/milestones` redirected to the host's root path with "Please log in to view
+  milestones". The page was unreachable, and nothing in the log said why.
+
+  The guard now passes `include_all` (`respond_to?(:current_user, true)`), so a
+  private `current_user` counts. Hosts whose `current_user` is public are
+  unaffected.
+
+  This survived because the dummy app used for testing defines `current_user`
+  as a public method, which is not how a typical host defines it. The regression
+  test makes it private for the duration of one request, so the suite now models
+  both shapes.
+
+  The other `respond_to?(:current_user)` call sites in the engine — the admin
+  layout and `PersonalizationHelper` — are correct as they stand: they run in
+  view context, where `helper_method` has already defined a public
+  `current_user`.
+
 ## [0.8.2] - 2026-08-20
 
 Patch: the admin dashboard reports milestone activity instead of hiding it.
@@ -1452,7 +1486,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.2...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.3...HEAD
+[0.8.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.7.2...v0.8.0

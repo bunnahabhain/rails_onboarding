@@ -146,6 +146,24 @@ module RailsOnboarding
       assert json_response["points_awarded"]
     end
 
+    # The dummy app defines current_user as a public method, which is why this
+    # went unnoticed: respond_to?(:current_user) is true there. A host that
+    # hand-rolls authentication normally keeps it private, because a public
+    # method on a controller can be reached as an action - and for those hosts
+    # the guard was false for everyone, so the page redirected to root no matter
+    # who was signed in.
+    test "the page is reachable when the host keeps current_user private" do
+      ::ApplicationController.send(:private, :current_user)
+
+      get milestones_path
+
+      assert_response :success
+      assert_not_equal main_app.root_path, path,
+        "a private current_user must not read as nobody being signed in"
+    ensure
+      ::ApplicationController.send(:public, :current_user)
+    end
+
     private
 
     def sign_in(user)
