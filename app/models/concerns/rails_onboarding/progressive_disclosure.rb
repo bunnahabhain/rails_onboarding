@@ -242,12 +242,23 @@ module RailsOnboarding
 
     # Check if milestone-based feature is ready
     def milestone_based_ready?(feature)
-      return false unless respond_to?(:earned_milestones)
+      # Onboardable exposes the awarded keys as #achieved_milestones. This used
+      # to guard on #earned_milestones, which the engine has never defined, so
+      # the guard was false for every host and a :milestone_based feature was
+      # never revealed to anyone - silently, since a reveal that does not happen
+      # looks exactly like one whose condition is not met yet. #earned_milestones
+      # is still honoured for any host that defines it itself.
+      milestones = if respond_to?(:achieved_milestones)
+                     achieved_milestones
+      elsif respond_to?(:earned_milestones)
+                     earned_milestones
+      end
+      return false unless milestones
 
       required_milestone = feature[:required_milestone]
       return false unless required_milestone
 
-      earned_milestones.include?(required_milestone.to_s)
+      milestones.map(&:to_s).include?(required_milestone.to_s)
     end
 
     # Check if engagement-based feature is ready

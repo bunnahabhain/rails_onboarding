@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   include RailsOnboarding::Onboardable
+  include RailsOnboarding::ProgressiveDisclosure
   include RailsOnboarding::Caching
   include RailsOnboarding::LazyLoading
 

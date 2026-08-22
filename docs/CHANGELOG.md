@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.4] - 2026-08-21
+
+Patch: `:milestone_based` progressive features can actually be revealed.
+
+Worth upgrading if you use progressive disclosure — a `:milestone_based`
+feature has never been revealed to anyone, on any install. **Nothing to change
+on upgrade** — no API, token or configuration change, and no migration.
+
+### Fixed
+
+- **`:milestone_based` reveal conditions never fired.** `milestone_based_ready?`
+  guarded on `respond_to?(:earned_milestones)`, and the engine has never defined
+  `earned_milestones` — Onboardable exposes the awarded keys as
+  `achieved_milestones`. The guard was therefore false for every host, and a
+  feature configured with `reveal_condition: :milestone_based` stayed hidden
+  forever no matter which milestones the user held.
+
+  Nothing surfaced this at runtime: a reveal that does not happen looks exactly
+  like one whose condition is not met yet, so the only symptom was a feature
+  that never appeared.
+
+  It now reads `achieved_milestones`, and still honours `earned_milestones` for
+  any host that defines that method itself.
+
+### Added
+
+- **Behavioural tests for `ProgressiveDisclosure`**, which had none. The dummy
+  app did not include the concern and had no `revealed_features` column, so the
+  whole module was exercised only through the configuration validator — the
+  reason a dead reveal condition could ship. The dummy now includes the concern
+  and carries the column, and the suite covers milestone-, time- and
+  disabled-state behaviour.
+
+
 ## [0.8.3] - 2026-08-21
 
 Patch: the milestones page is reachable by hosts that keep `current_user` private.
@@ -1486,7 +1520,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.3...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.4...HEAD
+[0.8.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.0...v0.8.1
