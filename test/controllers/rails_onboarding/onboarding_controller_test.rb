@@ -31,6 +31,33 @@ module RailsOnboarding
       assert_select "div.welcome-step"
     end
 
+    # The page title is built from the Rails application's module name by
+    # default, which is a code identifier rather than a product name - "Gift"
+    # for an app called Gift Posse. app_name overrides it.
+    test "the page title uses the configured app name" do
+      original = RailsOnboarding.configuration.app_name
+      RailsOnboarding.configuration.app_name = "Widget Emporium"
+
+      get onboarding_url
+
+      assert_response :success
+      assert_select "title", text: "Widget Emporium Onboarding"
+    ensure
+      RailsOnboarding.configuration.app_name = original
+    end
+
+    test "the page title falls back to the application module name" do
+      original = RailsOnboarding.configuration.app_name
+      RailsOnboarding.configuration.app_name = nil
+
+      get onboarding_url
+
+      assert_response :success
+      assert_select "title", text: "#{Rails.application.class.module_parent.name} Onboarding"
+    ensure
+      RailsOnboarding.configuration.app_name = original
+    end
+
     test "should display current step" do
       get onboarding_url
       assert_response :success

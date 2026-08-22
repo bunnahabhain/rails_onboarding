@@ -33,7 +33,8 @@ module RailsOnboarding
     include RateLimiting
     include Templates
 
-    attr_accessor :user_class_name,
+    attr_accessor :app_name,
+                  :user_class_name,
                   :include_host_styles,
                   :redirect_after_completion,
                   :redirect_after_skip,
@@ -45,6 +46,11 @@ module RailsOnboarding
                   :admin_user_search
 
     def initialize
+      # What to call the host product on onboarding pages. Defaults to the Rails
+      # application's module name, which is a code identifier and often not what
+      # the product is actually called - "Gift" for an app called Gift Posse.
+      # nil keeps the derived name.
+      @app_name = nil
       @user_class_name = "User"
       @include_host_styles = true  # Default to including host app css
 
