@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.5] - 2026-08-21
+
+Minor: the onboarding page title can be set to the product's actual name.
+
+Worth upgrading if your Rails application module is not what your product is
+called. **Nothing to change on upgrade** — the new setting defaults to the
+existing behaviour.
+
+### Added
+
+- **`config.app_name`** sets the product name in the onboarding page title. It
+  previously always came from `Rails.application.class.module_parent.name`,
+  which is a code identifier rather than a product name — an app whose module is
+  `Gift` but which is called "Gift Posse" got a browser tab reading "Gift
+  Onboarding". Defaults to `nil`, which keeps the derived name, so existing
+  installs are unaffected.
+
+
 ## [0.8.4] - 2026-08-21
 
 Patch: `:milestone_based` progressive features can actually be revealed.
@@ -1520,7 +1538,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.4...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.5...HEAD
+[0.8.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.4...v0.8.5
 [0.8.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.1...v0.8.2

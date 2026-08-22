@@ -6,7 +6,7 @@
       viewport and zooms out to fit the physical screen - everything (text,
       buttons, spacing) looks shrunk even though the CSS itself is correct. %>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= Rails.application.class.module_parent.name %> Onboarding</title>
+  <title><%= RailsOnboarding.configuration.app_name.presence || Rails.application.class.module_parent.name %> Onboarding</title>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 
