@@ -7,11 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.7] - 2026-08-23
+
+Minor: the milestones dashboard has a Home button back to your application.
+
+Worth upgrading if members can reach the milestones page directly. **Nothing to
+change on upgrade** — the button appears on its own, and only where the host app
+defines a root route.
+
 ### Added
 
-- The milestones dashboard now has a Home button that returns to the host app's
-  root, so the page is no longer a dead end for members who reach it directly.
-  Rendered only when the host defines a root route.
+- **A Home button on the milestones dashboard.** The page linked nowhere outside
+  the engine, so a member who landed on it directly had no way back to the
+  application except the browser's Back button. The button sits in the header
+  beside the points and milestone counts, and returns to the host app's root.
+  It is rendered only when `main_app` responds to `root_path` — a host app is
+  not required to define a root route, and reading it unguarded would raise and
+  take down the whole milestones page rather than merely omit a button.
+
 
 ## [0.8.6] - 2026-08-23
 
