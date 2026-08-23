@@ -112,6 +112,7 @@ module RailsOnboarding
           { name: :title, type: String },
           { name: :icon, type: String },
           { name: :skippable, type: [ TrueClass, FalseClass ] },
+          { name: :hint, type: String },
           { name: :path, type: [ Symbol, String, Proc ] },
           { name: :complete_if, type: Proc }
         ]

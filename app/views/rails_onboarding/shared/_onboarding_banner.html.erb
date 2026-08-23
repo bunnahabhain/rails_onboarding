@@ -39,13 +39,22 @@
           anywhere else in the app - but on the step's own page, with the
           criteria not yet met, it redirects straight back here and the click
           does nothing visible. Offer it only when it leads somewhere. %>
-      <% if !defined?(onboarding_continue_available?) || onboarding_continue_available? %>
+      <% continue_offered = !defined?(onboarding_continue_available?) || onboarding_continue_available? %>
+      <% if continue_offered %>
         <%= link_to "Continue setup →", onboarding_root,
                     class: "onboarding-banner-continue" %>
       <% end %>
       <% if step[:skippable] %>
         <%= button_to "Skip this step", rails_onboarding.skip_onboarding_path,
                       method: :post, class: "onboarding-banner-skip" %>
+      <% end %>
+      <%# A step that is neither skippable nor yet satisfied offers neither
+          control, which leaves this area empty on one step and populated on the
+          next - the flow looks inconsistent step to step even though each state
+          is individually correct. Say what will move the member on instead, so
+          the banner always answers "how do I proceed?". %>
+      <% if !step[:skippable] && !continue_offered && step[:hint].present? %>
+        <span class="onboarding-banner-hint"><%= step[:hint] %></span>
       <% end %>
     </div>
   </div>

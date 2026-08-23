@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.6] - 2026-08-23
+
+Minor: the progress bar counts the first step, and the banner always says how to
+proceed.
+
+Worth upgrading if members see the progress indicator at the very start of the
+flow. **Nothing to change on upgrade** — the new step setting is optional and
+everything behaves as before without it.
+
+### Fixed
+
+- **The progress bar read 0% on the first step**, then jumped to the second
+  step's figure. `onboarding_current_step` is only written once a step is
+  *completed*, so a member who has not finished one has `nil` there — while
+  `#current_onboarding_step` already falls back to the first step for display.
+  The two disagreed: the step markers showed "1 of 5" beside an empty bar.
+  `#onboarding_progress` now applies the same fallback, so the first step
+  measures as the first step.
+
+### Added
+
+- **`hint:` on a step**, shown in the onboarding banner when neither control is
+  available. A step that is not skippable and not yet satisfied offers no
+  Continue and no Skip, so the banner's action area sat empty on that step and
+  populated on the next — each state individually correct, but the flow read as
+  inconsistent from step to step. A hint fills the same slot with what will move
+  the member on ("Add your name to continue"). Optional: a step without one
+  behaves exactly as before, and a hint never appears beside a control.
+
+
 ## [0.8.5] - 2026-08-21
 
 Minor: the onboarding page title can be set to the product's actual name.
@@ -1538,7 +1568,8 @@ this version pulls a new gem into every host application.
 - Optional: stimulus-rails >= 1.0.0
 - Optional: turbo-rails >= 1.0.0
 
-[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.5...HEAD
+[Unreleased]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.6...HEAD
+[0.8.6]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.5...v0.8.6
 [0.8.5]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.4...v0.8.5
 [0.8.4]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/bunnahabhain/rails_onboarding/compare/v0.8.2...v0.8.3
