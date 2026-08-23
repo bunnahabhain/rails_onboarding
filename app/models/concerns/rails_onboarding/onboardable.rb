@@ -101,9 +101,18 @@ module RailsOnboarding
     #   user.onboarding_progress #=> 75
     def onboarding_progress
       return 100 if onboarding_completed?
-      return 0 unless onboarding_current_step
 
-      current_index = RailsOnboarding.configuration.step_index(onboarding_current_step)
+      # onboarding_current_step is only written once a step is *completed*, so a
+      # member who has not finished one yet has nil here while
+      # #current_onboarding_step already reports the first step. Without the same
+      # fallback the two disagree: the progress markers show "1 of 5" and the bar
+      # reads 0%, then jumps to 40% at step two. Fall back the same way, so the
+      # first step measures as the first step.
+      step_name = onboarding_current_step ||
+                  RailsOnboarding.configuration.steps.first&.dig(:name)
+      return 0 unless step_name
+
+      current_index = RailsOnboarding.configuration.step_index(step_name)
       return 0 if current_index.nil?
 
       total_steps = RailsOnboarding.configuration.total_steps

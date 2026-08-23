@@ -203,6 +203,17 @@
   border-color: var(--onboarding-primary-fill-hover);
 }
 
+/* Shown in place of a control on a step that is neither skippable nor yet
+   satisfied, so the banner's action area is never empty on one step and full on
+   the next. Sized and spaced like .onboarding-banner-skip so the three states
+   occupy the same visual slot. */
+.onboarding-banner-hint {
+  color: var(--onboarding-text-muted);
+  padding: var(--onboarding-space-sm) var(--onboarding-space-sm);
+  font-size: var(--onboarding-text-sm);
+  white-space: nowrap;
+}
+
 .onboarding-banner-skip {
   background: transparent;
   color: var(--onboarding-text-muted);

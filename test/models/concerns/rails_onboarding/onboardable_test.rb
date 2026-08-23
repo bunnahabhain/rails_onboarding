@@ -312,6 +312,22 @@ module RailsOnboarding
       assert_equal expected_progress, progress
     end
 
+    # onboarding_current_step is only written once a step is completed, so a
+    # member who has not finished one has nil here. #current_onboarding_step
+    # already falls back to the first step; without the same fallback the
+    # progress markers read "1 of 5" beside a bar showing 0%, which then jumps
+    # straight to the second step's figure.
+    test "onboarding_progress measures the first step before any step is completed" do
+      @user.update(onboarding_current_step: nil)
+
+      first_step = @user.onboarding_progress
+      @user.update(onboarding_current_step: RailsOnboarding.configuration.steps.first[:name].to_s)
+
+      assert_equal @user.onboarding_progress, first_step,
+        "a nil current step should measure the same as sitting on the first step"
+      assert first_step.positive?, "the first step is progress, not nothing"
+    end
+
     test "onboarding_progress returns 100 when completed" do
       @user.update(onboarding_completed: true)
 

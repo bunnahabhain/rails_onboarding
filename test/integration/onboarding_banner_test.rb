@@ -93,6 +93,49 @@ class OnboardingBannerTest < ActionDispatch::IntegrationTest
     assert_select "a.onboarding-banner-continue", count: 0
   end
 
+  # A step that is neither skippable nor yet satisfied offers neither control,
+  # so the actions area sat empty on that step and full on the next - the flow
+  # read as inconsistent step to step. A :hint fills the same slot.
+  test "a step with no available control shows its hint instead" do
+    RailsOnboarding.configuration.steps = [
+      { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+      { name: :profile, title: "Profile", icon: "👤", skippable: false,
+        path: :new_profile_path, hint: "Add your name to continue" },
+      { name: :explore, title: "Explore", icon: "🔍", skippable: true }
+    ]
+
+    get "/profile/new"
+
+    assert_response :success
+    assert_select ".onboarding-banner-continue", 0, "the step is not satisfied yet"
+    assert_select ".onboarding-banner-skip", 0, "the step is not skippable"
+    assert_select ".onboarding-banner-hint", text: "Add your name to continue"
+  end
+
+  test "the hint gives way to a control rather than doubling up" do
+    RailsOnboarding.configuration.steps = [
+      { name: :welcome, title: "Welcome", icon: "🎉", skippable: true },
+      { name: :profile, title: "Profile", icon: "👤", skippable: false,
+        path: :new_profile_path, hint: "Add your name to continue" },
+      { name: :explore, title: "Explore", icon: "🔍", skippable: true }
+    ]
+
+    # Somewhere other than the step's own page, where Continue does lead
+    # somewhere.
+    get "/"
+
+    assert_response :success
+    assert_select "a.onboarding-banner-continue"
+    assert_select ".onboarding-banner-hint", 0, "a hint should not sit beside an offered control"
+  end
+
+  test "a step without a hint simply shows nothing, as before" do
+    get "/profile/new"
+
+    assert_response :success
+    assert_select ".onboarding-banner-hint", 0
+  end
+
   test "banner does not leak its ERB header comment into the page" do
     # Regression: an ERB comment ends at the first %> sequence, so an
     # embedded example tag once cut the header comment short and rendered
