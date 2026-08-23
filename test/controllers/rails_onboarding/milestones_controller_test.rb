@@ -158,13 +158,29 @@ module RailsOnboarding
       get milestones_path
 
       assert_response :success
-      assert_not_equal main_app.root_path, path,
+      assert_not_equal host_root_path, path,
         "a private current_user must not read as nobody being signed in"
     ensure
       ::ApplicationController.send(:public, :current_user)
     end
 
+    test "the milestones page links home to the host app's root" do
+      get milestones_path
+
+      assert_response :success
+      assert_select "a.milestone-home-link[href=?]", host_root_path, text: /Home/
+    end
+
     private
+
+    # Not main_app.root_path: this class includes the *engine's* url helpers, so
+    # that proxy resolves against the engine's mount prefix and returns
+    # "/rails_onboarding/" rather than the host's "/". An assertion written
+    # against it compares to a path the host never serves, and so passes whatever
+    # the page does.
+    def host_root_path
+      ::Rails.application.routes.url_helpers.root_path
+    end
 
     def sign_in(user)
       # For integration tests, we need to post to the test_session endpoint

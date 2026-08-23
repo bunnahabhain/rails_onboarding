@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The milestones dashboard now has a Home button that returns to the host app's
+  root, so the page is no longer a dead end for members who reach it directly.
+  Rendered only when the host defines a root route.
+
 ## [0.8.6] - 2026-08-23
 
 Minor: the progress bar counts the first step, and the banner always says how to
