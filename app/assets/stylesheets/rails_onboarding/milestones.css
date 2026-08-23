@@ -22,9 +22,43 @@
   margin: 0 1rem;
 }
 
+.milestone-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .milestone-stats {
   display: flex;
   gap: 1rem;
+}
+
+.milestone-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  color: #2c3e50;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.milestone-home-link:hover,
+.milestone-home-link:focus-visible {
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-1px);
+}
+
+.milestone-home-icon {
+  font-size: 1.125rem;
+  line-height: 1;
 }
 
 .total-points,
@@ -490,6 +524,11 @@
     text-align: center;
   }
   
+  .milestone-header-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
   .milestone-stats {
     justify-content: center;
   }

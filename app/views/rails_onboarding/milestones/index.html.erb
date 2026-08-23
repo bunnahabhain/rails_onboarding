@@ -6,15 +6,27 @@
      data-milestone-dashboard-milestones-path-value="<%= milestones_path %>">
   <div class="milestone-header">
     <h1 class="milestone-title">🏆 Your Achievements</h1>
-    <div class="milestone-stats">
-      <div class="total-points">
-        <span class="points-value" data-milestone-dashboard-target="pointsValue"><%= @total_points %></span>
-        <span class="points-label">Total Points</span>
+    <div class="milestone-header-actions">
+      <div class="milestone-stats">
+        <div class="total-points">
+          <span class="points-value" data-milestone-dashboard-target="pointsValue"><%= @total_points %></span>
+          <span class="points-label">Total Points</span>
+        </div>
+        <div class="achievement-count">
+          <span class="count-value" data-milestone-dashboard-target="countValue"><%= @achieved_milestones.length %></span>
+          <span class="count-label">Milestones</span>
+        </div>
       </div>
-      <div class="achievement-count">
-        <span class="count-value" data-milestone-dashboard-target="countValue"><%= @achieved_milestones.length %></span>
-        <span class="count-label">Milestones</span>
-      </div>
+
+      <%# Leaves the engine for the host app's root. Guarded because a host app
+          is not required to define a root route, and a missing one here would
+          break the whole page - same reasoning as the admin layout's Home link. %>
+      <% if main_app.respond_to?(:root_path) %>
+        <%= link_to main_app.root_path, class: "milestone-home-link" do %>
+          <span class="milestone-home-icon" aria-hidden="true">🏠</span>
+          Home
+        <% end %>
+      <% end %>
     </div>
   </div>
 
