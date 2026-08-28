@@ -436,20 +436,20 @@ export default class extends Controller {
 
                 <div class="tour-popup-actions">
                     ${step.showSkip ? `
-                        <button type="button" class="tour-btn tour-btn-skip" data-action="click->tour#skip">
+                        <button type="button" class="tour-btn tour-btn-skip">
                             ${step.skipLabel}
                         </button>
                     ` : '<div></div>'}
 
                     <div class="tour-popup-nav">
                         ${step.showPrev && !isFirstStep ? `
-                            <button type="button" class="tour-btn tour-btn-prev" data-action="click->tour#previous">
+                            <button type="button" class="tour-btn tour-btn-prev">
                                 ← ${step.prevLabel}
                             </button>
                         ` : ''}
 
                         ${step.showNext ? `
-                            <button type="button" class="tour-btn tour-btn-next" data-action="click->tour#next">
+                            <button type="button" class="tour-btn tour-btn-next">
                                 ${isLastStep ? step.completeLabel : step.nextLabel} →
                             </button>
                         ` : ''}
@@ -463,6 +463,13 @@ export default class extends Controller {
 
         document.body.appendChild(this.popup)
 
+        // The popup lives on document.body, so that host overflow and stacking
+        // contexts cannot clip it - which also puts it outside every controller
+        // scope, where Stimulus will not bind a data-action. These buttons are
+        // wired directly for that reason; a data-action on them would be silently
+        // inert, which is what left the tour unable to advance at all.
+        this.bindPopupActions()
+
         // Position popup relative to target
         this.positionPopup(step, targetElement)
 
@@ -470,6 +477,24 @@ export default class extends Controller {
         requestAnimationFrame(() => {
             if (this.popup) this.popup.classList.add('onboarding-show')
         })
+    }
+
+    /**
+     * Wire the popup's own controls. See the note in createPopup().
+     */
+    bindPopupActions() {
+        const actions = {
+            '.tour-btn-next': () => this.next(),
+            '.tour-btn-prev': () => this.previous(),
+            '.tour-btn-skip': () => this.skip()
+        }
+
+        for (const [selector, handler] of Object.entries(actions)) {
+            this.popup.querySelector(selector)?.addEventListener('click', (event) => {
+                event.preventDefault()
+                handler()
+            })
+        }
     }
 
     /**

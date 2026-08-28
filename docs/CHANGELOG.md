@@ -18,6 +18,13 @@ it again.
 
 ### Fixed
 
+- **The tour's Next, Previous and Skip buttons work.** They carried
+  `data-action="click->tour#next"` and so on, but the popup is built onto
+  `document.body` - outside every controller scope, where Stimulus does not bind
+  a `data-action` at all. The buttons had never done anything; only the keyboard
+  shortcuts, which are bound to `document`, ever advanced a tour. They are now
+  wired directly when the popup is created.
+
 - **The tour popup no longer disappears when you press Next.** `removePopup()`
   scheduled a 300ms teardown that read `this.popup` when it fired, but
   `createPopup()` calls `removePopup()` and then assigns the replacement

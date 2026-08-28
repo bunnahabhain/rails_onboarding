@@ -95,6 +95,22 @@ class TourTest < ActionDispatch::IntegrationTest
       "the highlight must instead be repositioned as the viewport moves")
   end
 
+  # The popup is appended to document.body, which is outside every controller
+  # scope - so Stimulus silently never binds a data-action placed on it, and the
+  # tour could not be advanced at all.
+  test "popup controls are bound directly rather than by data-action" do
+    refute_match(/data-action="click->tour#/, code,
+      "a data-action on the popup is inert: it is built onto document.body, " \
+      "outside the controller's scope")
+    assert_match(/bindPopupActions\(\)/, code, "the buttons must be wired directly")
+
+    bind = code[/    bindPopupActions\(\) \{.*?\n    \}/m]
+    refute_nil bind, "bindPopupActions() should be defined"
+    %w[tour-btn-next tour-btn-prev tour-btn-skip].each do |button|
+      assert_match(/#{button}/, bind, "#{button} should be wired")
+    end
+  end
+
   test "tour CSS is themed by tokens, not hardcoded colours" do
     content = File.read(css_path)
 
