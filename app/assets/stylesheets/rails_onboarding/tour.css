@@ -39,43 +39,43 @@
 
 /* Border highlight style */
 .tour-spotlight-border {
-  border: 3px solid #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  border: 3px solid var(--onboarding-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--onboarding-primary) 20%, transparent);
   animation: onboarding-borderPulse 2s ease-in-out infinite;
 }
 
 @keyframes onboarding-borderPulse {
   0%, 100% {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    border-color: var(--onboarding-primary);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--onboarding-primary) 20%, transparent);
   }
   50% {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.3);
+    border-color: var(--onboarding-primary-hover);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--onboarding-primary-hover) 30%, transparent);
   }
 }
 
 /* Glow highlight style */
 .tour-spotlight-glow {
   box-shadow:
-    0 0 0 4px rgba(59, 130, 246, 0.3),
-    0 0 20px 8px rgba(59, 130, 246, 0.4),
-    inset 0 0 20px rgba(59, 130, 246, 0.2);
+    0 0 0 4px color-mix(in srgb, var(--onboarding-primary) 30%, transparent),
+    0 0 20px 8px color-mix(in srgb, var(--onboarding-primary) 40%, transparent),
+    inset 0 0 20px color-mix(in srgb, var(--onboarding-primary) 20%, transparent);
   animation: onboarding-glowPulse 2s ease-in-out infinite;
 }
 
 @keyframes onboarding-glowPulse {
   0%, 100% {
     box-shadow:
-      0 0 0 4px rgba(59, 130, 246, 0.3),
-      0 0 20px 8px rgba(59, 130, 246, 0.4),
-      inset 0 0 20px rgba(59, 130, 246, 0.2);
+      0 0 0 4px color-mix(in srgb, var(--onboarding-primary) 30%, transparent),
+      0 0 20px 8px color-mix(in srgb, var(--onboarding-primary) 40%, transparent),
+      inset 0 0 20px color-mix(in srgb, var(--onboarding-primary) 20%, transparent);
   }
   50% {
     box-shadow:
-      0 0 0 6px rgba(59, 130, 246, 0.4),
-      0 0 30px 12px rgba(59, 130, 246, 0.5),
-      inset 0 0 30px rgba(59, 130, 246, 0.3);
+      0 0 0 6px color-mix(in srgb, var(--onboarding-primary) 40%, transparent),
+      0 0 30px 12px color-mix(in srgb, var(--onboarding-primary) 50%, transparent),
+      inset 0 0 30px color-mix(in srgb, var(--onboarding-primary) 30%, transparent);
   }
 }
 
@@ -83,7 +83,9 @@
 .tour-popup {
   position: fixed;
   z-index: 10001;
-  background: white;
+  background: var(--onboarding-surface-elevated);
+  color: var(--onboarding-text);
+  border: 1px solid var(--onboarding-border);
   border-radius: 12px;
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
@@ -110,7 +112,7 @@
   margin: 0 0 1rem;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--onboarding-text);
   line-height: 1.4;
 }
 
@@ -119,7 +121,7 @@
   margin: 0 0 1.5rem;
   font-size: 0.9375rem;
   line-height: 1.6;
-  color: #4b5563;
+  color: var(--onboarding-text-muted);
 }
 
 .tour-popup-body p {
@@ -142,12 +144,12 @@
 
 .tour-popup-body strong {
   font-weight: 600;
-  color: #111827;
+  color: var(--onboarding-text);
 }
 
 .tour-popup-body code {
   padding: 0.125rem 0.375rem;
-  background: #f3f4f6;
+  background: var(--onboarding-surface);
   border-radius: 0.25rem;
   font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
   font-size: 0.875em;
@@ -157,14 +159,14 @@
 .tour-popup-progress {
   margin: 1.5rem 0 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--onboarding-border);
 }
 
 /* Progress Bar */
 .tour-progress-bar {
   width: 100%;
   height: 6px;
-  background: #e5e7eb;
+  background: var(--onboarding-border);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -172,7 +174,7 @@
 
 .tour-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  background: linear-gradient(90deg, var(--onboarding-primary-fill), var(--onboarding-primary-fill-hover));
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -180,7 +182,7 @@
 /* Progress Text */
 .tour-progress-text {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--onboarding-text-muted);
   text-align: center;
   font-weight: 500;
 }
@@ -217,7 +219,7 @@
 
 .tour-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--onboarding-focus-ring);
 }
 
 .tour-btn:active {
@@ -226,47 +228,47 @@
 
 /* Next Button - Primary */
 .tour-btn-next {
-  background: #3b82f6;
-  color: white;
+  background: var(--onboarding-primary-fill);
+  color: var(--onboarding-on-primary);
   padding: 0.625rem 1.25rem;
 }
 
 .tour-btn-next:hover {
-  background: #2563eb;
+  background: var(--onboarding-primary-fill-hover);
 }
 
 .tour-btn-next:active {
-  background: #1d4ed8;
+  background: var(--onboarding-primary-fill-hover);
 }
 
 /* Previous Button - Secondary */
 .tour-btn-prev {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--onboarding-surface);
+  color: var(--onboarding-text);
 }
 
 .tour-btn-prev:hover {
-  background: #e5e7eb;
+  background: var(--onboarding-border);
 }
 
 .tour-btn-prev:active {
-  background: #d1d5db;
+  background: var(--onboarding-border);
 }
 
 /* Skip Button - Ghost */
 .tour-btn-skip {
   background: transparent;
-  color: #6b7280;
+  color: var(--onboarding-text-muted);
   padding: 0.5rem 0.75rem;
 }
 
 .tour-btn-skip:hover {
-  color: #374151;
-  background: #f9fafb;
+  color: var(--onboarding-text);
+  background: var(--onboarding-surface);
 }
 
 .tour-btn-skip:active {
-  background: #f3f4f6;
+  background: var(--onboarding-border);
 }
 
 /* Mobile Responsive */
@@ -330,11 +332,11 @@
   }
 
   .tour-btn-next {
-    background: #1d4ed8;
+    background: var(--onboarding-primary-fill-hover);
   }
 
   .tour-btn-prev {
-    border: 2px solid #374151;
+    border: 2px solid var(--onboarding-border);
   }
 }
 
@@ -362,63 +364,6 @@
   }
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .tour-popup {
-    background: #1f2937;
-    box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.3),
-      0 10px 10px -5px rgba(0, 0, 0, 0.2);
-  }
-
-  .tour-popup-title {
-    color: #f9fafb;
-  }
-
-  .tour-popup-body {
-    color: #d1d5db;
-  }
-
-  .tour-popup-body strong {
-    color: #f3f4f6;
-  }
-
-  .tour-popup-body code {
-    background: #374151;
-    color: #e5e7eb;
-  }
-
-  .tour-popup-progress {
-    border-top-color: #374151;
-  }
-
-  .tour-progress-bar {
-    background: #374151;
-  }
-
-  .tour-progress-text {
-    color: #9ca3af;
-  }
-
-  .tour-btn-prev {
-    background: #374151;
-    color: #e5e7eb;
-  }
-
-  .tour-btn-prev:hover {
-    background: #4b5563;
-  }
-
-  .tour-btn-skip {
-    color: #9ca3af;
-  }
-
-  .tour-btn-skip:hover {
-    color: #d1d5db;
-    background: #374151;
-  }
-}
-
 /* Print Styles - Hide tour elements when printing */
 @media print {
   .tour-overlay,
@@ -434,13 +379,13 @@
 }
 
 .tour-btn:focus-visible {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--onboarding-focus-ring);
 }
 
 /* Utility classes for custom tour content */
 .tour-highlight {
-  background: #dbeafe;
-  color: #1e40af;
+  background: color-mix(in srgb, var(--onboarding-primary-fill) 18%, transparent);
+  color: var(--onboarding-text);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
   font-weight: 500;
