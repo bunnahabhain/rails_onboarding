@@ -190,6 +190,7 @@ export default class extends Controller {
         const targetElement = step.selector ? document.querySelector(step.selector) : null
 
         this.currentTargetElement = targetElement
+        this.applyScrim(step, targetElement)
 
         if (targetElement) {
             this.scrollToElement(targetElement, step)
@@ -272,7 +273,7 @@ export default class extends Controller {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, ${this.overlayOpacityValue});
+            background: transparent;
             z-index: 9998;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -300,6 +301,7 @@ export default class extends Controller {
         const overlay = this.overlay
         if (!overlay) return
 
+        document.documentElement.style.removeProperty('--onboarding-tour-scrim')
         this.overlay = null
         overlay.style.opacity = '0'
 
@@ -339,7 +341,6 @@ export default class extends Controller {
                     left: ${rect.left - padding}px;
                     width: ${rect.width + (padding * 2)}px;
                     height: ${rect.height + (padding * 2)}px;
-                    box-shadow: 0 0 0 9999px rgba(0, 0, 0, ${this.overlayOpacityValue});
                     border-radius: 8px;
                 `
                 break
@@ -382,6 +383,30 @@ export default class extends Controller {
         this.previousElementZIndex = element.style.zIndex
         element.style.position = 'relative'
         element.style.zIndex = '10000'
+    }
+
+    /**
+     * Decide which layer paints the scrim for this step, and at what strength.
+     *
+     * A 'spotlight' highlight is already a full-viewport scrim - its box-shadow has a
+     * 9999px spread and covers everything but the cutout - so painting the overlay on
+     * top of it darkens every pixel twice. At the default 0.7 that composites to ~0.92,
+     * which buries the surrounding page and leaves someone unfamiliar with the layout
+     * with no idea what the highlight is being singled out *from*. Every other style
+     * (border, glow, none) draws no scrim of its own, and nor does a step with no target
+     * element, so those still need the overlay.
+     */
+    applyScrim(step, targetElement) {
+        document.documentElement.style.setProperty(
+            '--onboarding-tour-scrim', this.overlayOpacityValue
+        )
+
+        if (!this.overlay) return
+
+        const spotlit = Boolean(targetElement) && step.highlightStyle === 'spotlight'
+        this.overlay.style.background = spotlit
+            ? 'transparent'
+            : `rgba(0, 0, 0, ${this.overlayOpacityValue})`
     }
 
     /**

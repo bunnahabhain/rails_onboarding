@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.9] - 2026-08-28
+
+The tour scrim is painted once, and `overlay_opacity` finally does something.
+
+Worth upgrading if you use `tour_controller` with the default `spotlight`
+highlight. **The tour will look considerably lighter after this** - that is the
+fix, not a regression. If you preferred the old weight, set
+`data-tour-overlay-opacity-value` higher; it now works.
+
+### Fixed
+
+- **The scrim was painted twice, and buried the page.** A `spotlight` highlight
+  is already a full-viewport scrim - its box-shadow has a 9999px spread and
+  covers everything but the cutout - and `.tour-overlay` was painted underneath
+  it as well. Two layers at the default 0.7 composite to ~0.92, so the
+  surrounding page was effectively black and a user unfamiliar with the layout
+  could not see what the highlight was being singled out *from*. The overlay now
+  stays transparent whenever a spotlight is drawn. It still paints for every
+  other style (`border`, `glow`, `none`) and for a step with no target element,
+  none of which draw a scrim of their own, and it is still what blocks clicks on
+  the rest of the page - so it is skipped as a paint, not removed.
+
+- **`overlay_opacity` had no effect on a spotlight.** The alpha was baked into
+  the `onboarding-spotlightPulse` keyframes, and a running animation overrides
+  the inline style the controller writes - so the value was silently discarded
+  for the one highlight style that is the default. The alpha now comes from a
+  `--onboarding-tour-scrim` custom property that the controller sets from
+  `overlay_opacity`, and `prefers-contrast: high` raises it as before.
+
+### Removed
+
+- **The spotlight pulse.** It animated the whole-page scrim between 0.70 and
+  0.75 every two seconds rather than animating the highlight, so the entire
+  background breathed while the popup was being read. Animating that property is
+  also what made the opacity uncontrollable.
+
 ## [0.8.8] - 2026-08-28
 
 The guided tour works, and follows your theme.
