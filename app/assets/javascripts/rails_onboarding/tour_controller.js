@@ -28,6 +28,12 @@ export default class extends Controller {
         scrollBehavior: { type: String, default: "smooth" }, // smooth, auto, none
         scrollOffset: { type: Number, default: 80 }, // px offset from top when scrolling
         persistProgress: { type: Boolean, default: true },
+        // Whether the highlighted element stays clickable. It is lifted above the
+        // overlay so that a tour can say "click here to continue", and that is the
+        // default. An informational tour wants the opposite: a link inside the
+        // spotlight is a trap, because following it navigates away and the tour is
+        // either lost or restarted from step one. Overridable per step.
+        allowInteraction: { type: Boolean, default: true },
         tourId: String
     }
 
@@ -80,6 +86,7 @@ export default class extends Controller {
             beforeHide: step.beforeHide,
             onComplete: step.onComplete,
             width: step.width || 400, // Popup width in px
+            allowInteraction: step.allowInteraction ?? this.allowInteractionValue,
             ...step
         }))
     }
@@ -260,12 +267,24 @@ export default class extends Controller {
     }
 
     /**
+     * Elements the controller injects into document.body. Turbo caches the whole body
+     * when you navigate away, so without this a Back lands you on a snapshot with a
+     * frozen overlay and popup baked in - which then sit underneath the live tour the
+     * launcher starts, as duplicated and inert DOM. The attribute is ignored by hosts
+     * that do not use Turbo.
+     */
+    excludeFromSnapshot(element) {
+        element.setAttribute('data-turbo-cache', 'false')
+        return element
+    }
+
+    /**
      * Create modal overlay
      */
     createOverlay() {
         if (this.overlay) return
 
-        this.overlay = document.createElement('div')
+        this.overlay = this.excludeFromSnapshot(document.createElement('div'))
         this.overlay.className = 'tour-overlay'
         this.overlay.style.cssText = `
             position: fixed;
@@ -322,7 +341,7 @@ export default class extends Controller {
 
         if (style === 'none') return
 
-        this.spotlight = document.createElement('div')
+        this.spotlight = this.excludeFromSnapshot(document.createElement('div'))
         this.spotlight.className = `tour-spotlight tour-spotlight-${style}`
 
         const baseStyles = `
@@ -381,8 +400,16 @@ export default class extends Controller {
         this.highlightedElement = element
         this.previousElementPosition = element.style.position
         this.previousElementZIndex = element.style.zIndex
+        this.previousElementPointerEvents = element.style.pointerEvents
         element.style.position = 'relative'
         element.style.zIndex = '10000'
+
+        // With interaction off, clicks fall through the highlighted element to the
+        // overlay beneath, which swallows them like the rest of the page. The element
+        // is still lifted above the overlay so it stays fully lit.
+        if (step.allowInteraction === false) {
+            element.style.pointerEvents = 'none'
+        }
     }
 
     /**
@@ -426,6 +453,7 @@ export default class extends Controller {
         if (this.highlightedElement) {
             this.highlightedElement.style.position = this.previousElementPosition || ''
             this.highlightedElement.style.zIndex = this.previousElementZIndex || ''
+            this.highlightedElement.style.pointerEvents = this.previousElementPointerEvents || ''
             this.highlightedElement = null
         }
     }
@@ -436,7 +464,7 @@ export default class extends Controller {
     createPopup(step, targetElement) {
         this.removePopup()
 
-        this.popup = document.createElement('div')
+        this.popup = this.excludeFromSnapshot(document.createElement('div'))
         this.popup.className = 'tour-popup'
 
         // Build popup HTML
