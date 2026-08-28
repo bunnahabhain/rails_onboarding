@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.10] - 2026-08-28
+
+Two ways a tour could be derailed by an ordinary click.
+
+**Nothing changes on upgrade.** Both fixes are opt-in or invisible: interaction
+with the highlighted element still defaults to on.
+
+### Added
+
+- **`allow_interaction`, to stop the highlighted element being clickable.** The
+  element is lifted above the overlay so that a tour can say "click here to
+  continue", and that remains the default. For an *informational* tour it is a
+  trap: a link inside the spotlight is fully clickable, and following it
+  navigates away, at which point the tour is either lost or restarted from step
+  one depending on how the host decides to auto-start it. Set
+  `data-tour-allow-interaction-value="false"` for the whole tour, or
+  `allowInteraction: false` on a single step. With it off, clicks fall through to
+  the overlay and are swallowed like the rest of the page, while the element
+  stays lifted and fully lit.
+
+### Fixed
+
+- **A Back no longer restores a frozen copy of the tour.** The overlay, spotlight
+  and popup are appended to `document.body`, so Turbo caches them along with the
+  page when you navigate away. Going back restored those inert copies underneath
+  the live tour the host had just started - two overlays and two popups in the
+  DOM, the dead one first. The live tour still worked, since it paints on top,
+  but the duplicates were real. All three elements now carry
+  `data-turbo-cache="false"`, which keeps them out of the snapshot and is ignored
+  by hosts that do not use Turbo.
+
 ## [0.8.9] - 2026-08-28
 
 The tour scrim is painted once, and `overlay_opacity` finally does something.

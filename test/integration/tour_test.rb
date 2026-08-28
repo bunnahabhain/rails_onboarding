@@ -143,6 +143,37 @@ class TourTest < ActionDispatch::IntegrationTest
       "than the highlight")
   end
 
+  # The highlighted element is lifted above the overlay so a tour can say "click here
+  # to continue". For an informational tour that is a trap: a link inside the spotlight
+  # navigates away, and the tour is lost or restarted from step one.
+  test "interaction with the highlighted element can be switched off" do
+    assert_match(/allowInteraction: \{ type: Boolean, default: true \}/, code,
+      "the default must stay true, so existing click-to-continue tours are unaffected")
+    assert_match(/step\.allowInteraction \?\? this\.allowInteractionValue/, code,
+      "a step should be able to override the controller-wide setting")
+
+    create_highlight = code[/    createHighlight\(element, step\) \{.*?\n    \}/m]
+    assert_match(/allowInteraction === false/, create_highlight)
+    assert_match(/pointerEvents = 'none'/, create_highlight,
+      "clicks should fall through to the overlay, which swallows them")
+
+    remove_highlight = code[/    removeHighlight\(\) \{.*?\n    \}/m]
+    assert_match(/pointerEvents = this\.previousElementPointerEvents/, remove_highlight,
+      "whatever pointer-events the host had set must be put back")
+  end
+
+  # The overlay, spotlight and popup live on document.body, so Turbo caches them with
+  # the page and a Back restores frozen copies under the live tour.
+  test "injected elements are kept out of the Turbo page cache" do
+    assert_match(/setAttribute\('data-turbo-cache', 'false'\)/, code)
+
+    %w[createOverlay createHighlight createPopup].each do |method|
+      body = code[/    #{method}\([^)]*\) \{.*?\n    \}/m]
+      assert_match(/excludeFromSnapshot\(document\.createElement/, body,
+        "#{method} appends to document.body, so its element must be excluded from the snapshot")
+    end
+  end
+
   test "tour CSS is themed by tokens, not hardcoded colours" do
     content = File.read(css_path)
 
