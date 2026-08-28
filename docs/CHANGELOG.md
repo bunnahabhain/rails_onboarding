@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-08-28
+
+The guided tour works, and follows your theme.
+
+Worth upgrading if you use `tour_controller`. **Nothing to change on upgrade** —
+but if you had worked around the popup's white background with `!important`, you
+can drop that now, and if you were avoiding the tour because Next blanked it, try
+it again.
+
+### Fixed
+
+- **The tour popup no longer disappears when you press Next.** `removePopup()`
+  scheduled a 300ms teardown that read `this.popup` when it fired, but
+  `createPopup()` calls `removePopup()` and then assigns the replacement
+  immediately — so the timeout removed the popup that had just replaced the old
+  one. Every Next and Previous blanked the tour a third of a second later. The
+  timeout now closes over the node it was asked to remove. `removeOverlay()` had
+  the same shape and is fixed the same way.
+
+- **The tour popup follows the `--onboarding-*` tokens, in dark mode and out.**
+  `stylePopup()` wrote `background: white` as an inline style, which beat both
+  `tour.css`'s own dark-mode rule and any host override — the popup was white on
+  a dark page no matter what the host configured. Only the per-step width is set
+  inline now; everything else lives in `.tour-popup`.
+
+- **`tour.css` is written in tokens rather than a hardcoded blue.** Buttons, the
+  progress bar, the spotlight border and glow, text, dividers and focus rings now
+  read `--onboarding-primary-fill`, `--onboarding-text`, `--onboarding-border` and
+  friends, so a host that redefines the tokens themes the tour along with the rest
+  of the engine. Its private `prefers-color-scheme: dark` block is gone —
+  `application.css` flips the tokens centrally, and the local block was fighting
+  both it and the host.
+
+- **Highlighting an element no longer clears unrelated `z-index` values.**
+  `removeHighlight()` swept the document for `[style*="z-index: 10000"]` and blanked
+  the inline z-index of everything it found, including host elements the tour had
+  never touched. It now restores just the element it changed, along with the
+  `position` it overwrote.
+
+- **A tour step below the fold is scrolled to properly.** `createOverlay()` set
+  `document.body.style.overflow = 'hidden'` before the first step ran, which made
+  `scrollToElement()`'s `window.scrollTo` a no-op — and because the spotlight and
+  popup are `position: fixed` and placed from `getBoundingClientRect()`, an
+  off-screen target was spotlit off-screen. The body lock is gone (the overlay is
+  fixed and covers the viewport regardless), and the highlight and popup are now
+  repositioned on scroll and resize so they stay glued to their element.
+
 ## [0.8.7] - 2026-08-23
 
 Minor: the milestones dashboard has a Home button back to your application.

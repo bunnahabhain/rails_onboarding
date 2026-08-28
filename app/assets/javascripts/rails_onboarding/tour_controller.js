@@ -39,6 +39,7 @@ export default class extends Controller {
 
         this.parseSteps()
         this.setupKeyboardHandlers()
+        this.setupViewportHandlers()
 
         // Auto-start if configured and not completed
         if (this.autoStartValue && !this.isTourCompleted()) {
@@ -188,6 +189,8 @@ export default class extends Controller {
         // Find target element
         const targetElement = step.selector ? document.querySelector(step.selector) : null
 
+        this.currentTargetElement = targetElement
+
         if (targetElement) {
             this.scrollToElement(targetElement, step)
             this.createHighlight(targetElement, step)
@@ -277,8 +280,12 @@ export default class extends Controller {
 
         document.body.appendChild(this.overlay)
 
-        // Prevent body scroll
-        document.body.style.overflow = 'hidden'
+        // Deliberately no `document.body.style.overflow = 'hidden'` here. The overlay is
+        // position:fixed and already covers the viewport, and locking the body made
+        // scrollToElement()'s window.scrollTo a no-op - so a target below the fold was
+        // spotlit off-screen, since the spotlight and popup are placed from
+        // getBoundingClientRect(). Scrolling stays live and repositionCurrentStep()
+        // keeps the highlight glued to its element instead.
 
         // Trigger fade in
         requestAnimationFrame(() => {
@@ -290,18 +297,14 @@ export default class extends Controller {
      * Remove modal overlay
      */
     removeOverlay() {
-        if (!this.overlay) return
+        const overlay = this.overlay
+        if (!overlay) return
 
-        this.overlay.style.opacity = '0'
+        this.overlay = null
+        overlay.style.opacity = '0'
 
         setTimeout(() => {
-            if (this.overlay && this.overlay.parentNode) {
-                this.overlay.parentNode.removeChild(this.overlay)
-            }
-            this.overlay = null
-
-            // Restore body scroll
-            document.body.style.overflow = ''
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay)
         }, 300)
     }
 
@@ -372,7 +375,11 @@ export default class extends Controller {
 
         document.body.appendChild(this.spotlight)
 
-        // Make highlighted element interactive
+        // Make highlighted element interactive, remembering what we overwrote so
+        // removeHighlight() can put it back without searching the document.
+        this.highlightedElement = element
+        this.previousElementPosition = element.style.position
+        this.previousElementZIndex = element.style.zIndex
         element.style.position = 'relative'
         element.style.zIndex = '10000'
     }
@@ -388,10 +395,14 @@ export default class extends Controller {
             this.spotlight = null
         }
 
-        // Reset z-index of previously highlighted elements
-        document.querySelectorAll('[style*="z-index: 10000"]').forEach(el => {
-            el.style.zIndex = ''
-        })
+        // Restore only the element we actually touched. This used to sweep the whole
+        // document for [style*="z-index: 10000"], which clears the inline z-index of
+        // unrelated host-app elements that happen to carry that value.
+        if (this.highlightedElement) {
+            this.highlightedElement.style.position = this.previousElementPosition || ''
+            this.highlightedElement.style.zIndex = this.previousElementZIndex || ''
+            this.highlightedElement = null
+        }
     }
 
     /**
@@ -457,8 +468,7 @@ export default class extends Controller {
 
         // Animate in
         requestAnimationFrame(() => {
-            this.popup.style.opacity = '1'
-            this.popup.style.transform = 'scale(1)'
+            if (this.popup) this.popup.classList.add('onboarding-show')
         })
     }
 
@@ -466,18 +476,11 @@ export default class extends Controller {
      * Style the popup element
      */
     stylePopup(step) {
-        this.popup.style.cssText = `
-            position: fixed;
-            z-index: 10001;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            max-width: ${step.width}px;
-            width: calc(100% - 2rem);
-            opacity: 0;
-            transform: scale(0.95);
-            transition: all 0.3s ease;
-        `
+        // Only the per-step width is set inline. Everything else - including the
+        // background - belongs to `.tour-popup` in tour.css, so that a host app
+        // redefining the --onboarding-* tokens (and the dark-mode block that flips
+        // them) actually reaches the popup. An inline background would win over both.
+        this.popup.style.maxWidth = `${step.width}px`
     }
 
     /**
@@ -569,17 +572,19 @@ export default class extends Controller {
      * Remove popup
      */
     removePopup() {
-        if (this.popup) {
-            this.popup.style.opacity = '0'
-            this.popup.style.transform = 'scale(0.95)'
+        const popup = this.popup
+        if (!popup) return
 
-            setTimeout(() => {
-                if (this.popup && this.popup.parentNode) {
-                    this.popup.parentNode.removeChild(this.popup)
-                }
-                this.popup = null
-            }, 300)
-        }
+        // Detach from the instance up front and let the timeout close over the local.
+        // createPopup() calls removePopup() and then assigns a new this.popup straight
+        // away, so a timeout reading the instance property would remove the popup that
+        // replaced this one - every Next and Previous would blank the tour after 300ms.
+        this.popup = null
+        popup.classList.remove('onboarding-show')
+
+        setTimeout(() => {
+            if (popup.parentNode) popup.parentNode.removeChild(popup)
+        }, 300)
     }
 
     /**
@@ -621,6 +626,38 @@ export default class extends Controller {
                 behavior: this.scrollBehaviorValue
             })
         }
+    }
+
+    /**
+     * Re-place the highlight and popup for the current step. The spotlight and popup
+     * are position:fixed and derived from getBoundingClientRect(), so they have to be
+     * recomputed whenever the viewport moves under them.
+     */
+    repositionCurrentStep() {
+        if (!this.isActive) return
+
+        const step = this.tourSteps[this.currentStepIndex]
+        if (!step) return
+
+        const element = this.currentTargetElement
+        if (element && element.isConnected) {
+            this.createHighlight(element, step)
+        }
+        this.positionPopup(step, element)
+    }
+
+    /**
+     * Setup viewport handlers that keep the current step aligned
+     */
+    setupViewportHandlers() {
+        this.viewportHandler = () => {
+            if (!this.isActive) return
+            if (this.viewportFrame) cancelAnimationFrame(this.viewportFrame)
+            this.viewportFrame = requestAnimationFrame(() => this.repositionCurrentStep())
+        }
+
+        window.addEventListener('scroll', this.viewportHandler, { passive: true })
+        window.addEventListener('resize', this.viewportHandler)
     }
 
     /**
@@ -759,5 +796,12 @@ export default class extends Controller {
         if (this.keyboardHandler) {
             document.removeEventListener('keydown', this.keyboardHandler)
         }
+
+        if (this.viewportHandler) {
+            window.removeEventListener('scroll', this.viewportHandler)
+            window.removeEventListener('resize', this.viewportHandler)
+        }
+
+        if (this.viewportFrame) cancelAnimationFrame(this.viewportFrame)
     }
 }
