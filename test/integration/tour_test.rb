@@ -111,6 +111,38 @@ class TourTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # The overlay and a spotlight's box-shadow are each a full-viewport scrim, so painting
+  # both darkened every pixel twice - ~0.92 at the default 0.7.
+  test "the scrim is painted once, not layered twice" do
+    apply = code[/    applyScrim\(step, targetElement\) \{.*?\n    \}/m]
+
+    refute_nil apply, "applyScrim() should be defined"
+    assert_match(/highlightStyle === 'spotlight'/, apply,
+      "applyScrim should branch on whether this step draws its own scrim")
+    assert_match(/'transparent'/, apply,
+      "the overlay must not paint while a spotlight is already scrimming the viewport")
+    assert_match(/rgba\(0, 0, 0, \$\{this\.overlayOpacityValue\}\)/, apply,
+      "every other highlight style still needs the overlay to paint")
+
+    create_highlight = code[/    createHighlight\(element, step\) \{.*?\n    \}/m]
+    refute_match(/box-shadow: 0 0 0 9999px/, create_highlight,
+      "the spotlight scrim belongs to tour.css via --onboarding-tour-scrim; an inline " \
+      "box-shadow here would duplicate it")
+  end
+
+  # An animation on box-shadow overrides the inline value, which is what made
+  # overlayOpacity do nothing for a spotlight.
+  test "overlayOpacity actually reaches the spotlight scrim" do
+    assert_match(/setProperty\(\s*'--onboarding-tour-scrim', this\.overlayOpacityValue/m, code,
+      "the controller must publish its opacity for tour.css to consume")
+
+    css = File.read(css_path)
+    assert_match(/box-shadow: 0 0 0 9999px rgba\(0, 0, 0, var\(--onboarding-tour-scrim/, css)
+    refute_match(/spotlightPulse/, css,
+      "animating the scrim overrides the inline value and pulses the whole page rather " \
+      "than the highlight")
+  end
+
   test "tour CSS is themed by tokens, not hardcoded colours" do
     content = File.read(css_path)
 

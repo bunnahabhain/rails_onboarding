@@ -22,19 +22,15 @@
   border-radius: 8px;
 }
 
-/* Spotlight style - Creates cutout effect */
+/* Spotlight style - Creates cutout effect.
+   The 9999px spread makes this box-shadow a full-viewport scrim in its own right, so
+   tour_controller stops painting .tour-overlay whenever a spotlight is drawn - the two
+   together composited to ~0.92 and buried the surrounding page.
+   The alpha comes from --onboarding-tour-scrim, which the controller sets on :root from
+   its overlayOpacity value. It is deliberately not animated: an animation on this
+   property overrides the inline style, which is what made overlayOpacity a dead knob. */
 .tour-spotlight-spotlight {
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
-  animation: onboarding-spotlightPulse 2s ease-in-out infinite;
-}
-
-@keyframes onboarding-spotlightPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
-  }
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, var(--onboarding-tour-scrim, 0.7));
 }
 
 /* Border highlight style */
@@ -327,6 +323,10 @@
     background: rgba(0, 0, 0, 0.85);
   }
 
+  .tour-spotlight-spotlight {
+    --onboarding-tour-scrim: 0.85;
+  }
+
   .tour-spotlight-border {
     border-width: 4px;
   }
@@ -348,10 +348,6 @@
   .tour-progress-fill,
   .tour-btn {
     transition: none;
-    animation: none;
-  }
-
-  .tour-spotlight-spotlight {
     animation: none;
   }
 
