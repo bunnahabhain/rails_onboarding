@@ -49,8 +49,31 @@ export default class extends Controller {
 
         // Auto-start if configured and not completed
         if (this.autoStartValue && !this.isTourCompleted()) {
-            setTimeout(() => this.start(), 1000)
+            this.autoStartTimer = setTimeout(() => this.autoStart(), 1000)
         }
+    }
+
+    /**
+     * Begin an auto-started tour, if the page it was configured on is still the
+     * one on screen.
+     *
+     * Turbo renders a cached snapshot as a preview while the fresh response is
+     * still in flight, and every controller on the page connects to that preview
+     * as well as to the render that replaces it a few milliseconds later.
+     * Starting on the preview builds the whole tour, tears it down again when the
+     * preview is discarded, and rebuilds it - which a member sees as the popup
+     * appearing, vanishing and appearing again. The real render starts it
+     * properly, so the preview should simply stand aside.
+     *
+     * The element check covers the same ground from the other side: a controller
+     * whose element has left the document must not build an overlay and a popup,
+     * because it no longer has the handlers that would take them down again.
+     */
+    autoStart() {
+        if (!this.element.isConnected) return
+        if (document.documentElement.hasAttribute('data-turbo-preview')) return
+
+        this.start()
     }
 
     /**
@@ -870,6 +893,8 @@ export default class extends Controller {
      */
     disconnect() {
         this.stop()
+
+        if (this.autoStartTimer) clearTimeout(this.autoStartTimer)
 
         if (this.keyboardHandler) {
             document.removeEventListener('keydown', this.keyboardHandler)

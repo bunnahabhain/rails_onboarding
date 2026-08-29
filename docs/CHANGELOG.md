@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.11] - 2026-08-29
+
+The tour, seen properly on a dark page.
+
+**Nothing changes on upgrade for a light theme.** The new spotlight edge is
+transparent by default, so a light page looks exactly as it did.
+
+### Added
+
+- **`--onboarding-tour-spotlight-ring` and `--onboarding-tour-spotlight-glow`,
+  an edge for the spotlight cutout.** The scrim alone separates the highlight
+  only where there is luminance to spare. On a light page there is: the surround
+  darkens visibly while the cutout keeps the page's own white. On a dark page
+  there is not - a black scrim over a near-black background lands on a slightly
+  nearer black, and the cutout ends up with no boundary anybody can see, so the
+  tour appears to point at the page while the page looks unchanged. Both tokens
+  default to `transparent`; `application.css` turns them on in its dark block,
+  drawing the ring in `--onboarding-primary`. A host that wants the ring in both
+  schemes, or in another colour, sets the tokens itself.
+
+### Fixed
+
+- **An auto-started tour no longer flashes on a Turbo page.** Turbo renders a
+  cached snapshot as a preview while the fresh response is still in flight, and
+  every controller on the page connects to that preview as well as to the render
+  that replaces it milliseconds later. The tour was therefore built on the
+  preview, torn down with it, and built again - which a member sees as the popup
+  appearing, vanishing and appearing again. `autoStart()` now stands aside for a
+  preview render and lets the real one start the tour.
+
+- **A tour can no longer be started by a controller that has left the page.**
+  The one-second auto-start timer was neither cancelled on `disconnect()` nor
+  guarded when it fired, so a navigation inside that window left an overlay and a
+  popup belonging to a dead controller - with no keyboard handler and no element,
+  nothing would ever take them down again.
+
 ## [0.8.10] - 2026-08-28
 
 Two ways a tour could be derailed by an ordinary click.
