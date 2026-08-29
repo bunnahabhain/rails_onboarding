@@ -28,9 +28,21 @@
    together composited to ~0.92 and buried the surrounding page.
    The alpha comes from --onboarding-tour-scrim, which the controller sets on :root from
    its overlayOpacity value. It is deliberately not animated: an animation on this
-   property overrides the inline style, which is what made overlayOpacity a dead knob. */
+   property overrides the inline style, which is what made overlayOpacity a dead knob.
+
+   The ring and glow are listed first because a box-shadow list paints in reverse: the
+   first shadow lands on top, so both sit over the scrim rather than under it. Both
+   default to transparent, which is a light page's answer - there the scrim alone
+   separates the cutout, since the surround visibly darkens while the cutout keeps the
+   page's own white. A dark page has no such headroom - a black scrim over a near-black
+   background lands on a slightly nearer black, a difference nobody can see - so the
+   cutout has to be given an edge rather than a luminance step to be seen by.
+   application.css turns these on in its dark block. */
 .tour-spotlight-spotlight {
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, var(--onboarding-tour-scrim, 0.7));
+  box-shadow:
+    0 0 0 3px var(--onboarding-tour-spotlight-ring, transparent),
+    0 0 24px 8px var(--onboarding-tour-spotlight-glow, transparent),
+    0 0 0 9999px rgba(0, 0, 0, var(--onboarding-tour-scrim, 0.7));
 }
 
 /* Border highlight style */

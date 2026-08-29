@@ -137,7 +137,7 @@ class TourTest < ActionDispatch::IntegrationTest
       "the controller must publish its opacity for tour.css to consume")
 
     css = File.read(css_path)
-    assert_match(/box-shadow: 0 0 0 9999px rgba\(0, 0, 0, var\(--onboarding-tour-scrim/, css)
+    assert_match(/0 0 0 9999px rgba\(0, 0, 0, var\(--onboarding-tour-scrim/, css)
     refute_match(/spotlightPulse/, css,
       "animating the scrim overrides the inline value and pulses the whole page rather " \
       "than the highlight")
@@ -193,13 +193,70 @@ class TourTest < ActionDispatch::IntegrationTest
       "fights both it and the host's overrides")
   end
 
+  # Turbo renders a cached snapshot as a preview before the fresh response lands, and
+  # every controller connects to both. Starting on the preview builds the tour, drops it
+  # with the preview and builds it again - seen as the popup flashing in, out and in.
+  test "an auto-started tour stands aside for a Turbo preview render" do
+    connect = code[/    connect\(\) \{.*?\n    \}/m]
+
+    refute_nil connect, "connect() should be defined"
+    assert_match(/this\.autoStartTimer = setTimeout\(\(\) => this\.autoStart\(\), 1000\)/, connect,
+      "connect should defer to autoStart, which decides whether this render is the real one")
+
+    auto_start = code[/    autoStart\(\) \{.*?\n    \}/m]
+    refute_nil auto_start, "autoStart() should be defined"
+    assert_match(/data-turbo-preview/, auto_start,
+      "a preview render must not start the tour - the render replacing it will")
+    assert_match(/this\.element\.isConnected/, auto_start,
+      "nor may a controller whose element has left the document: it no longer has the " \
+      "handlers that would take the overlay and popup down again")
+  end
+
+  test "the auto-start timer is cancelled on disconnect" do
+    disconnect = code[/    disconnect\(\) \{.*?\n    \}/m]
+
+    refute_nil disconnect, "disconnect() should be defined"
+    assert_match(/clearTimeout\(this\.autoStartTimer\)/, disconnect)
+  end
+
+  # A black scrim over a page that is already near-black moves the surround by a few
+  # points of luminance, so the cutout has no visible boundary at all.
+  test "the spotlight cutout can be given an edge for dark themes" do
+    css = File.read(css_path)
+    spotlight = css[/\.tour-spotlight-spotlight \{.*?\n\}/m]
+
+    refute_nil spotlight, ".tour-spotlight-spotlight should be defined"
+    assert_match(/var\(--onboarding-tour-spotlight-ring, transparent\)/, spotlight)
+    assert_match(/var\(--onboarding-tour-spotlight-glow, transparent\)/, spotlight)
+
+    ring = spotlight.index("--onboarding-tour-spotlight-ring")
+    scrim = spotlight.index("--onboarding-tour-scrim")
+    assert ring < scrim,
+      "a box-shadow list paints in reverse, so the ring has to be listed before the " \
+      "scrim to land on top of it rather than under it"
+  end
+
+  test "the spotlight edge is off by default and on in dark mode" do
+    css = File.read(application_css_path)
+    dark = css[/@media \(prefers-color-scheme: dark\) \{.*\z/m]
+
+    refute_nil dark, "application.css should still carry the central dark block"
+    assert_match(/--onboarding-tour-spotlight-ring: transparent/, css.sub(dark, ""),
+      "the default must be transparent, so a light theme is untouched")
+    assert_match(/--onboarding-tour-spotlight-ring: var\(--onboarding-primary\)/, dark,
+      "dark mode has no luminance step to spare, so it draws the edge instead")
+    assert_match(/--onboarding-tour-spotlight-glow: color-mix/, dark)
+  end
+
   private
 
-  # Comments are stripped so an assertion cannot be satisfied - or defeated - by
-  # prose. Several of these comments deliberately quote the construct they warn
-  # against, which would otherwise match.
+  # Comments - both block and line - are stripped so an assertion cannot be
+  # satisfied, or defeated, by prose. Several of them deliberately quote the very
+  # construct they warn against, which would otherwise match.
   def code
-    @code ||= File.read(controller_path).gsub(%r{^\s*//.*$}, "")
+    @code ||= File.read(controller_path)
+                  .gsub(%r{/\*.*?\*/}m, "")
+                  .gsub(%r{^\s*//.*$}, "")
   end
 
   def controller_path
@@ -208,5 +265,9 @@ class TourTest < ActionDispatch::IntegrationTest
 
   def css_path
     Rails.root.join("..", "..", "app", "assets", "stylesheets", "rails_onboarding", "tour.css")
+  end
+
+  def application_css_path
+    Rails.root.join("..", "..", "app", "assets", "stylesheets", "rails_onboarding", "application.css")
   end
 end

@@ -71,6 +71,13 @@
   --onboarding-border: #e5e7eb;
   --onboarding-border-focus: var(--onboarding-primary);
 
+  /* The edge of a tour spotlight's cutout. Transparent here because a light page
+     needs none: the scrim darkens the surround and the cutout keeps the page's
+     own white, which is a step anyone can see. The dark block at the foot of
+     this file turns them on, where that step does not exist. */
+  --onboarding-tour-spotlight-ring: transparent;
+  --onboarding-tour-spotlight-glow: transparent;
+
   /* Spacing */
   --onboarding-space-xs: 0.25rem;
   --onboarding-space-sm: 0.5rem;
@@ -1143,6 +1150,15 @@
     --onboarding-text-muted: #d1d5db;
     --onboarding-text-light: #9ca3af;
     --onboarding-border: #374151;
+
+    /* Draw the spotlight's edge instead of relying on one. A black scrim over a
+       page that is already near-black moves the surround by a few points of
+       luminance, so the cutout has no visible boundary and the highlight reads
+       as nothing in particular - the tour points at the page and the page looks
+       the same. The brand colour is the foreground role here, hence
+       --onboarding-primary rather than the fill. */
+    --onboarding-tour-spotlight-ring: var(--onboarding-primary);
+    --onboarding-tour-spotlight-glow: color-mix(in srgb, var(--onboarding-primary) 35%, transparent);
   }
 
   .step-debug {
