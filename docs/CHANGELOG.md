@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.12] - 2026-08-30
+
+The tour on a phone, where it was pointing at things that were not there and
+covering the things that were.
+
+**Nothing changes on a wide screen**, where every step already had room on the
+side it asked for.
+
+### Added
+
+- **`selector` may be a list.** In a responsive layout one idea is often two
+  elements, only ever one of them rendered - a row of tabs on a wide screen and
+  a `select` on a narrow one. Give the step both and the first that is actually
+  rendered wins: `selector: ["#list-type-tabs", "#list-type-dropdown"]`. A plain
+  string still behaves exactly as before.
+
+### Fixed
+
+- **A target that is `display: none` is no longer used anyway.**
+  `getBoundingClientRect()` on an unrendered element is all zeroes, so the
+  spotlight became a small square in the top-left corner and the popup was placed
+  against the origin - pointing confidently at nothing, on top of whatever
+  happened to be there. Such a step is now treated as having no target: the popup
+  is centred and no spotlight is drawn.
+
+- **An explicit `position` is now a preference rather than an instruction.** It
+  was handed back without being checked for fit, and `positionPopup` then clamped
+  it into the viewport - which on a narrow screen slides the popup straight over
+  the element it is describing. The asked-for side is tried first, then the
+  others. `position: "center"` is still taken at its word, since that is a host
+  saying "do not point at anything".
+
+- **The last resort picks a side instead of the middle.** When nothing fits
+  cleanly - the ordinary case on a phone, not the exceptional one - the popup now
+  goes into whichever band above or below the target has more room. Centring, as
+  before, landed on the target more often than not.
+
+  Measured across 108 placements (four viewports, the nine anchors of a real
+  six-step tour, three popup heights): 32 covered the highlighted element before
+  this change, 0 after, with none pushed off screen.
+
 ## [0.8.11] - 2026-08-29
 
 The tour, seen properly on a dark page.

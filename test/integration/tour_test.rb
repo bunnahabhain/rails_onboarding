@@ -248,6 +248,64 @@ class TourTest < ActionDispatch::IntegrationTest
     assert_match(/--onboarding-tour-spotlight-glow: color-mix/, dark)
   end
 
+  # Three of six steps on this app's tour pointed at elements that are display:none
+  # on a phone. getBoundingClientRect() on one of those is all zeroes, so the
+  # spotlight became a small square in the top-left corner and the popup was placed
+  # against the origin - over whatever happened to be there.
+  test "a target with no layout box is treated as absent" do
+    resolve = code[/    resolveTarget\(step\) \{.*?\n    \}/m]
+
+    refute_nil resolve, "resolveTarget() should be defined"
+    assert_match(/this\.hasLayoutBox\(element\)/, resolve,
+      "an element that is not rendered must not be used as a target")
+
+    has_box = code[/    hasLayoutBox\(element\) \{.*?\n    \}/m]
+    assert_match(/getClientRects\(\)\.length/, has_box,
+      "getBoundingClientRect is all zeroes for display:none, so it cannot answer this")
+
+    show_step = code[/    showStep\(index\) \{.*?\n    \}/m]
+    assert_match(/this\.resolveTarget\(step\)/, show_step)
+    refute_match(/document\.querySelector\(step\.selector\)/, show_step,
+      "showStep should go through resolveTarget, not straight to the DOM")
+  end
+
+  # The same idea is often two elements in a responsive layout - a row of tabs on a
+  # wide screen, a select on a narrow one - and only one of them is ever rendered.
+  test "a step may offer several selectors and take the one that is rendered" do
+    resolve = code[/    resolveTarget\(step\) \{.*?\n    \}/m]
+
+    assert_match(/Array\.isArray\(step\.selector\)/, resolve,
+      "selector should accept a list as well as a string")
+    assert_match(/for \(const selector of selectors\)/, resolve,
+      "the candidates are tried in order, first rendered one wins")
+  end
+
+  # An explicit position used to be handed back unchecked, and positionPopup then
+  # clamped it into the viewport - straight over the element being described.
+  test "an explicit position is a preference, not an instruction" do
+    calc = code[/    calculateBestPosition\(step, targetRect, popupRect, margin\) \{.*?\n    \}/m]
+
+    refute_nil calc, "calculateBestPosition() should be defined"
+    refute_match(/return positions\[step\.position\] \|\| positions\.bottom/, calc,
+      "returning the asked-for side unchecked is the bug")
+    assert_match(/isPositionValid/, calc, "every candidate side must be checked for fit")
+    assert_match(/step\.position === 'center'/, calc,
+      "center is a host saying 'do not point at anything', and is taken at its word")
+    assert_match(/positionBesideTarget/, calc, "the last resort must not be center")
+  end
+
+  # Centring when nothing fits lands on the target more often than not, which on a
+  # small viewport is the ordinary case rather than the exceptional one.
+  test "the last-resort placement picks a side rather than the middle" do
+    beside = code[/    positionBesideTarget\(targetRect, popupRect, margin\) \{.*?\n    \}/m]
+
+    refute_nil beside, "positionBesideTarget() should be defined"
+    assert_match(/roomAbove/, beside)
+    assert_match(/roomBelow/, beside)
+    assert_match(/roomBelow >= roomAbove/, beside,
+      "whichever band has more room takes the popup")
+  end
+
   private
 
   # Comments - both block and line - are stripped so an assertion cannot be
