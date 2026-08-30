@@ -216,8 +216,7 @@ export default class extends Controller {
             this.executeCallback(step.beforeShow, step)
         }
 
-        // Find target element
-        const targetElement = step.selector ? document.querySelector(step.selector) : null
+        const targetElement = this.resolveTarget(step)
 
         this.currentTargetElement = targetElement
         this.applyScrim(step, targetElement)
@@ -242,6 +241,37 @@ export default class extends Controller {
         })
 
         this.dispatch('step-shown', { detail: { step, index } })
+    }
+
+    /**
+     * Find the element a step should point at.
+     *
+     * `selector` may be a list, which is how a step survives a responsive layout:
+     * the same idea is often two elements, one of them display:none at the current
+     * breakpoint - a row of tabs on a wide screen and a select on a narrow one. The
+     * first candidate that is actually rendered wins.
+     *
+     * An element with no layout box is treated as absent rather than used anyway.
+     * getBoundingClientRect() on a display:none element is all zeroes, so the
+     * spotlight became a small square in the top-left corner and the popup was
+     * placed against the origin - pointing confidently at nothing, on top of
+     * whatever happened to be there.
+     */
+    resolveTarget(step) {
+        const selectors = Array.isArray(step.selector) ? step.selector : [step.selector]
+
+        for (const selector of selectors) {
+            if (!selector) continue
+
+            const element = document.querySelector(selector)
+            if (element && this.hasLayoutBox(element)) return element
+        }
+
+        return null
+    }
+
+    hasLayoutBox(element) {
+        return element.getClientRects().length > 0
     }
 
     /**
@@ -592,26 +622,26 @@ export default class extends Controller {
 
         const popupRect = this.popup.getBoundingClientRect()
         const margin = 20
-        let top, left
+        const targetRect = targetElement ? targetElement.getBoundingClientRect() : null
 
-        if (targetElement) {
-            const targetRect = targetElement.getBoundingClientRect()
-            const position = this.calculateBestPosition(step, targetRect, popupRect, margin)
+        const coords = targetRect
+            ? this.calculateBestPosition(step, targetRect, popupRect, margin)
+            : {
+                top: (window.innerHeight - popupRect.height) / 2,
+                left: (window.innerWidth - popupRect.width) / 2
+            }
 
-            top = position.top
-            left = position.left
-        } else {
-            // Center on screen if no target
-            top = (window.innerHeight - popupRect.height) / 2
-            left = (window.innerWidth - popupRect.width) / 2
-        }
+        // The clamp keeps the popup reachable, which matters more than anything else -
+        // its own buttons are the only way forward. calculateBestPosition is what keeps
+        // it off the highlight; this is the last word on staying on screen.
+        this.popup.style.top =
+            `${this.clamp(coords.top, margin, window.innerHeight - popupRect.height - margin)}px`
+        this.popup.style.left =
+            `${this.clamp(coords.left, margin, window.innerWidth - popupRect.width - margin)}px`
+    }
 
-        // Ensure popup stays in viewport
-        top = Math.max(margin, Math.min(top, window.innerHeight - popupRect.height - margin))
-        left = Math.max(margin, Math.min(left, window.innerWidth - popupRect.width - margin))
-
-        this.popup.style.top = `${top}px`
-        this.popup.style.left = `${left}px`
+    clamp(value, min, max) {
+        return Math.max(min, Math.min(value, max))
     }
 
     /**
@@ -641,22 +671,40 @@ export default class extends Controller {
             }
         }
 
-        // If position is auto, find best fit
-        if (step.position === 'auto') {
-            const preferences = ['bottom', 'top', 'right', 'left']
+        // 'center' is a host saying "do not point at anything", so it is taken at its
+        // word. Every other position is a *preference*: it used to be handed back
+        // without being checked, and positionPopup then clamped it into the viewport -
+        // which on a phone slides the popup straight over the element it is describing.
+        // A tour that hides what it is explaining is worse than one placed on the wrong
+        // side, so the asked-for side is tried first and the others are tried after it.
+        if (step.position === 'center') return positions.center
 
-            for (const pos of preferences) {
-                const coords = positions[pos]
-                if (this.isPositionValid(coords, popupRect, margin)) {
-                    return coords
-                }
-            }
+        const fallbacks = ['bottom', 'top', 'right', 'left']
+        const order = positions[step.position] && step.position !== 'auto'
+            ? [step.position, ...fallbacks.filter((pos) => pos !== step.position)]
+            : fallbacks
 
-            // Fallback to center
-            return positions.center
+        for (const pos of order) {
+            if (this.isPositionValid(positions[pos], popupRect, margin)) return positions[pos]
         }
 
-        return positions[step.position] || positions.bottom
+        return this.positionBesideTarget(targetRect, popupRect, margin)
+    }
+
+    /**
+     * Nothing fits cleanly on any side, which on a small viewport is the ordinary
+     * case rather than the exceptional one. Put the popup in whichever band - above
+     * the target or below it - has more room. Centring instead, which is what this
+     * used to do, lands on the target more often than not.
+     */
+    positionBesideTarget(targetRect, popupRect, margin) {
+        const roomAbove = targetRect.top - margin
+        const roomBelow = window.innerHeight - targetRect.bottom - margin
+        const left = targetRect.left + (targetRect.width - popupRect.width) / 2
+
+        return roomBelow >= roomAbove
+            ? { top: targetRect.bottom + margin, left }
+            : { top: targetRect.top - popupRect.height - margin, left }
     }
 
     /**
