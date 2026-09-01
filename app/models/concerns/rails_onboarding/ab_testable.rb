@@ -26,7 +26,14 @@ module RailsOnboarding
     included do
       # Store A/B test assignments as JSON
       # Expected column: ab_test_assignments (jsonb or text)
-      serialize :ab_test_assignments, coder: JSON unless column_names.include?("ab_test_assignments") && columns_hash["ab_test_assignments"].type == :jsonb
+      # column_names and columns_hash both query the database, and this runs
+      # when the host model is loaded -- possibly before the table exists.
+      # See RailsOnboarding::SchemaGuard.
+      if RailsOnboarding::SchemaGuard.columns_queryable?(self)
+        unless column_names.include?("ab_test_assignments") && columns_hash["ab_test_assignments"].type == :jsonb
+          serialize :ab_test_assignments, coder: JSON
+        end
+      end
 
       # Callbacks
       after_initialize :assign_ab_test_variants, if: :new_record?

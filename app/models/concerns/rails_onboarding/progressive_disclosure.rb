@@ -36,7 +36,14 @@ module RailsOnboarding
     included do
       # Store revealed features as JSON
       # Expected column: revealed_features (jsonb or text)
-      serialize :revealed_features, coder: JSON unless column_names.include?("revealed_features") && columns_hash["revealed_features"].type == :jsonb
+      # column_names and columns_hash both query the database, and this runs
+      # when the host model is loaded -- possibly before the table exists.
+      # See RailsOnboarding::SchemaGuard.
+      if RailsOnboarding::SchemaGuard.columns_queryable?(self)
+        unless column_names.include?("revealed_features") && columns_hash["revealed_features"].type == :jsonb
+          serialize :revealed_features, coder: JSON
+        end
+      end
 
       # Callback to check and reveal features
       after_save :check_progressive_features, if: :saved_change_to_onboarding_current_step?
