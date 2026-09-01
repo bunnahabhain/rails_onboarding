@@ -730,8 +730,18 @@ module RailsOnboarding
       { onboarding_replay_started_at: nil, onboarding_replay_steps: [] }
     end
 
+    # column_names queries the database like the rest, so it takes the same
+    # guard -- but purely for symmetry: this one cannot actually be reached
+    # with the table missing. It is an instance method, and ActiveRecord cannot
+    # instantiate a model whose table is absent (`new` raises while building
+    # attribute types), so the guard can never fire. Kept so every column query
+    # in this file reads the same way, and it costs nothing: table_exists?
+    # reads the schema cache.
     def onboarding_column?(name)
-      self.class.respond_to?(:column_names) && self.class.column_names.include?(name)
+      return false unless self.class.respond_to?(:column_names)
+      return false unless RailsOnboarding::SchemaGuard.columns_queryable?(self.class)
+
+      self.class.column_names.include?(name)
     end
 
     def persist_and_track!(attributes = nil)

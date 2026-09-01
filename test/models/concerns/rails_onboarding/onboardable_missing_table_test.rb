@@ -74,6 +74,18 @@ module RailsOnboarding
       end
     end
 
+    # There is deliberately no "onboarding_column? with a missing table" test:
+    # it cannot be written. ActiveRecord cannot instantiate a model whose table
+    # is absent -- `klass.new` raises inside _has_attribute? while building the
+    # attribute types -- so the method is unreachable in that state and its
+    # guard can never fire. It is kept for symmetry with the class-level
+    # callers, and this test only pins that guarding it did not change what it
+    # answers when the table is there.
+    test "onboarding_column? still answers for a real column" do
+      assert User.new.send(:onboarding_column?, "onboarding_completed")
+      refute User.new.send(:onboarding_column?, "no_such_column_here")
+    end
+
     test "onboarding_replay_supported? is false when the table is absent" do
       klass = missing_table_model
       klass.include(RailsOnboarding::Onboardable)
