@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.13] - 2026-09-01
+
+A host app could not boot against an empty database.
+
+### Fixed
+
+- **`Onboardable` no longer queries columns before the table exists.** The
+  `included do` block calls `columns_hash` to decide whether to configure JSON
+  serialization, and that runs the moment the host model is loaded - which can
+  be long before the table is there. A host that references its user model from
+  an initializer hits it immediately: the common OmniAuth `:identity` setup
+  passes `model: User`, so the model loads during boot and the process dies with
+  `Table 'users' doesn't exist`. That is circular and unrecoverable, because
+  loading the schema requires booting the app and booting the app requires the
+  schema. It broke `db:prepare` on a genuinely new database, a restore into an
+  empty schema, and CI against a fresh database service.
+
+  `onboarding_replay_supported?` is guarded the same way, since `column_names`
+  queries too.
+
+  The guard only ever declines when the table is *positively known* to be
+  absent. This concern is deliberately includable into plain classes that are
+  not ActiveRecord models - the existing `respond_to?(:has_many)` and
+  `respond_to?(:validate)` guards exist for exactly that - and such a class
+  answers `columns_hash` while having no `table_exists?`. Anything that cannot
+  be asked is treated as queryable and left to the callers' own guards, so those
+  hosts behave exactly as before.
+
+
 ## [0.8.12] - 2026-08-30
 
 The tour on a phone, where it was pointing at things that were not there and
