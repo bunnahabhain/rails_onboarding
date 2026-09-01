@@ -7,43 +7,10 @@ module RailsOnboarding
     MAX_MILESTONES_ACHIEVED = 500
     MAX_JSON_SIZE_BYTES = 65_535 # ~64KB for TEXT columns
 
-    # Whether the host model's table can be inspected right now.
-    #
-    # `columns_hash` and `column_names` both query the database, and the
-    # `included do` block below runs the moment the host model is loaded --
-    # which can be long before that table exists. A host that references its
-    # user model from an initializer hits this immediately: the common OmniAuth
-    # `:identity` setup passes `model: User`, so the model loads during boot,
-    # the include queries `columns_hash`, and against an empty database the
-    # whole process dies with "Table 'users' doesn't exist".
-    #
-    # That is circular and unrecoverable: loading the schema requires booting
-    # the app, and booting the app requires the schema. It stops `db:prepare`
-    # bootstrapping a genuinely new database, a restore into an empty schema,
-    # and CI against a fresh database service.
-    #
-    # A missing table, a missing database and an absent connection all mean the
-    # same thing here -- the column types cannot be known yet -- so degrade
-    # instead of raising. Nothing is lost: a process that boots against an empty
-    # database is bootstrapping it, not serving from it, and the next process
-    # configures everything normally once the schema is in place.
-    #
-    # Only ever answers false when the table is positively known to be absent.
-    # This concern is deliberately includable into plain classes that are not
-    # ActiveRecord models -- hence the `respond_to?(:has_many)` and
-    # `respond_to?(:validate)` guards below -- and such a class has no
-    # `table_exists?` while still answering `columns_hash`. Saying "not
-    # available" for those would silently stop configuring them, so anything
-    # that cannot be asked is treated as queryable and left to the callers'
-    # own guards, exactly as before this check existed.
+    # Whether the host model's columns can be read yet. See
+    # RailsOnboarding::SchemaGuard, which three concerns share.
     def self.columns_queryable?(model)
-      return true unless model.respond_to?(:table_exists?)
-
-      model.table_exists?
-    rescue ActiveRecord::NoDatabaseError,
-           ActiveRecord::ConnectionNotEstablished,
-           ActiveRecord::StatementInvalid
-      false
+      SchemaGuard.columns_queryable?(model)
     end
 
     included do
@@ -62,8 +29,8 @@ module RailsOnboarding
 
       # Fix for Rails 8: Use the new serialize syntax.
       # Guarded because columns_hash queries the database -- see
-      # Onboardable.columns_queryable? above.
-      if RailsOnboarding::Onboardable.columns_queryable?(self)
+      # RailsOnboarding::SchemaGuard.
+      if RailsOnboarding::SchemaGuard.columns_queryable?(self)
         if columns_hash["feature_tooltips_shown"]&.type == :text
           serialize :feature_tooltips_shown, coder: JSON
         end
@@ -99,7 +66,7 @@ module RailsOnboarding
       # than raising on a column that isn't there.
       def onboarding_replay_supported?
         return false unless respond_to?(:column_names)
-        return false unless RailsOnboarding::Onboardable.columns_queryable?(self)
+        return false unless RailsOnboarding::SchemaGuard.columns_queryable?(self)
 
         column_names.include?("onboarding_replay_started_at") &&
           column_names.include?("onboarding_replay_steps")

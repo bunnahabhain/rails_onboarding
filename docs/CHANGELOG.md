@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.14] - 2026-09-01
+
+Completes the 0.8.13 fix, which only covered one of the three concerns that
+needed it.
+
+### Fixed
+
+- **`ProgressiveDisclosure` and `AbTestable` no longer query columns before the
+  table exists either.** 0.8.13 guarded `Onboardable` alone, but all three
+  inspect columns in their `included do` block to decide whether to configure
+  JSON serialization. A host that includes more than one of them - including it
+  alongside a guarded `Onboardable` - still could not boot against an empty
+  database: the failure simply moved from one concern to the next.
+
+  The guard is now shared as `RailsOnboarding::SchemaGuard.columns_queryable?`
+  rather than living on `Onboardable`, so there is one place to reason about it.
+  `Onboardable.columns_queryable?` remains and delegates to it.
+
+  As in 0.8.13, the guard only declines when the table is *positively known* to
+  be absent, so plain classes that are not ActiveRecord models keep behaving
+  exactly as before.
+
+
 ## [0.8.13] - 2026-09-01
 
 A host app could not boot against an empty database.

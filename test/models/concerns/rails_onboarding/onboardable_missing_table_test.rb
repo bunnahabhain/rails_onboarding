@@ -18,11 +18,11 @@ module RailsOnboarding
     end
 
     test "columns_queryable? is false when the table does not exist" do
-      refute RailsOnboarding::Onboardable.columns_queryable?(missing_table_model)
+      refute RailsOnboarding::SchemaGuard.columns_queryable?(missing_table_model)
     end
 
     test "columns_queryable? is true for a model whose table exists" do
-      assert RailsOnboarding::Onboardable.columns_queryable?(User)
+      assert RailsOnboarding::SchemaGuard.columns_queryable?(User)
     end
 
     # The concern is includable into plain classes that are not ActiveRecord
@@ -33,7 +33,7 @@ module RailsOnboarding
         def self.columns_hash = {}
       end
 
-      assert RailsOnboarding::Onboardable.columns_queryable?(double)
+      assert RailsOnboarding::SchemaGuard.columns_queryable?(double)
     end
 
     test "including the concern does not raise when the table is absent" do
@@ -41,6 +41,36 @@ module RailsOnboarding
 
       assert_nothing_raised do
         klass.include(RailsOnboarding::Onboardable)
+      end
+    end
+
+    # Onboardable was not the only concern doing this. ProgressiveDisclosure and
+    # AbTestable inspect columns at include time too, and a host that includes
+    # them alongside Onboardable still could not boot. Guarding only the first
+    # one found fixed nothing for such a host.
+    test "every concern that inspects columns can be included without the table" do
+      [
+        RailsOnboarding::Onboardable,
+        RailsOnboarding::ProgressiveDisclosure,
+        RailsOnboarding::AbTestable
+      ].each do |concern|
+        klass = missing_table_model
+
+        # assert_nothing_raised takes no message here, so name the concern by
+        # letting the raise propagate with its own backtrace.
+        assert_nothing_raised do
+          klass.include(concern)
+        end
+      end
+    end
+
+    test "the concerns can all be included together without the table" do
+      klass = missing_table_model
+
+      assert_nothing_raised do
+        klass.include(RailsOnboarding::Onboardable)
+        klass.include(RailsOnboarding::ProgressiveDisclosure)
+        klass.include(RailsOnboarding::AbTestable)
       end
     end
 
