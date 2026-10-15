@@ -10,5 +10,6 @@ Rails.application.routes.draw do
   if Rails.env.test?
     get  "/test_auth/login", to: "test_auth#login"
     get  "/test_auth/logout", to: "test_auth#logout"
+    get  "/test_auth/flash", to: "test_auth#flash_to_onboarding"
   end
 end

@@ -1,25 +1,26 @@
+<%# The flash, on every page of the engine layout, and the target the onboarding controller's
+    Turbo Stream errors replace (#flash-messages). Each message comes from a local when one is
+    given - those streams pass the message they want shown - and from the flash otherwise.
+
+    Each message is an open <dialog> closed by a form with method="dialog", which the browser
+    handles itself: no JavaScript, so nothing for a strict Content Security Policy to refuse. The
+    close buttons were onclick= attributes, which such a policy blocks without a word. Turbo
+    leaves method="dialog" forms alone. %>
+<% messages = {
+     notice: local_assigns.fetch(:notice) { flash[:notice] },
+     alert: local_assigns.fetch(:alert) { flash[:alert] },
+     error: local_assigns.fetch(:error) { flash[:error] }
+   } %>
+<% icons = { notice: "✓", alert: "⚠", error: "✕" } %>
 <div id="flash-messages" class="flash-container">
-  <% if defined?(notice) && notice %>
-    <div class="onboarding-flash flash-notice" role="alert">
-      <span class="flash-icon">✓</span>
-      <span class="flash-message"><%= notice %></span>
-      <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
-    </div>
-  <% end %>
-
-  <% if defined?(alert) && alert %>
-    <div class="onboarding-flash flash-alert" role="alert">
-      <span class="flash-icon">⚠</span>
-      <span class="flash-message"><%= alert %></span>
-      <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
-    </div>
-  <% end %>
-
-  <% if defined?(error) && error %>
-    <div class="onboarding-flash flash-error" role="alert">
-      <span class="flash-icon">✕</span>
-      <span class="flash-message"><%= error %></span>
-      <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
-    </div>
+  <% messages.each do |type, message| %>
+    <% next if message.blank? %>
+    <dialog open class="onboarding-flash flash-<%= type %>">
+      <span class="flash-icon" aria-hidden="true"><%= icons[type] %></span>
+      <span class="flash-message" role="alert"><%= message %></span>
+      <form method="dialog">
+        <button class="flash-close" aria-label="Dismiss">×</button>
+      </form>
+    </dialog>
   <% end %>
 </div>
