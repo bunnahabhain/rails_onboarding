@@ -51,6 +51,11 @@
 </head>
 <body>
 
+<%# Without this, a message on the way to onboarding was lost: a host's redirect_to with an alert,
+    the engine's own redirect_to onboarding_path, alert:, and the Turbo Stream errors, which replace
+    #flash-messages and found nothing to replace. Fixed-position, so it sits over the page. %>
+<%= render "rails_onboarding/shared/flash" %>
+
 <%# .onboarding-container/.onboarding-content provide the page-level
     min-height/centering/responsive padding that the stylesheets (see
     application.css and mobile.css) already define for every onboarding

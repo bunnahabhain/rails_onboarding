@@ -8,6 +8,9 @@
   max-width: 500px;
   width: 100%;
   pointer-events: none;
+  /* Outside .onboarding-container, which is where the engine sets its font, so it would otherwise
+     take the browser's serif default. */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .onboarding-flash {
@@ -29,25 +32,46 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Flash types */
+/* Each message is an open <dialog> (see shared/_flash), so it closes without JavaScript. Undo
+   what the browser gives a dialog - centred, absolutely placed, bordered all round - leaving the
+   coloured left border from the type rules below. */
+dialog.onboarding-flash {
+  inset: auto;
+  margin: 0 0 12px;
+  width: auto;
+  max-width: none;
+  max-height: none;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+/* The close form is only there for method="dialog"; its button is the flex item. */
+.onboarding-flash form {
+  display: contents;
+}
+
+/* Flash types. Each pair is at least 4.5:1 (WCAG AA): white on the 500-weight greens, ambers and
+   reds these used was 2-4:1, unreadable on amber in particular. Amber keeps its colour and takes
+   dark text instead. */
 .flash-notice,
 .flash-success {
-  background-color: #10b981;
+  background-color: #047857;
   color: white;
-  border-left: 4px solid #059669;
+  border-left: 4px solid #065f46;
 }
 
 .flash-alert,
 .flash-warning {
   background-color: #f59e0b;
-  color: white;
-  border-left: 4px solid #d97706;
+  color: #451a03;
+  border-left: 4px solid #b45309;
 }
 
 .flash-error {
-  background-color: #ef4444;
+  background-color: #b91c1c;
   color: white;
-  border-left: 4px solid #dc2626;
+  border-left: 4px solid #7f1d1d;
 }
 
 .flash-info {
@@ -152,6 +176,9 @@
     right: 10px;
     left: 10px;
     max-width: none;
+    /* Not 100%: with both left and right set, a width overrides right, and the message ran 10px
+       off the screen. */
+    width: auto;
   }
 
   .onboarding-flash {

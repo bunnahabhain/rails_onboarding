@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.15] - 2026-10-15
+
+### Fixed
+
+- **The engine layout renders the flash.** Nothing in it did, so every message
+  on the way to onboarding was lost: a host redirecting there with a notice or
+  an alert, the engine's own `redirect_to onboarding_path, alert:`, and the
+  Turbo Stream errors, which replace `#flash-messages` and found nothing to
+  replace. `shared/_flash` is now rendered by the layout, reading the flash
+  unless a local is passed, as the Turbo Stream errors still do.
+- **Flash messages close without JavaScript.** Each is an open `<dialog>`
+  closed by a `method="dialog"` form. The close buttons were `onclick=`
+  attributes, which a strict Content Security Policy refuses silently.
+- **Flash messages are readable.** White text on the 500-weight green, amber
+  and red was 2-4:1; every pair is now at least 4.5:1 (WCAG AA), amber by
+  taking dark text. The container takes the engine's font rather than the
+  browser's serif default, and on a phone no longer runs 10px off the screen.
+
+### Changed
+
+- `Onboardable#onboarding_column?` reads the column guard like the rest of the
+  file. It cannot fire - a model whose table is absent cannot be instantiated -
+  so this is for consistency, not a fix.
+
 ## [0.8.14] - 2026-09-01
 
 Completes the 0.8.13 fix, which only covered one of the three concerns that
