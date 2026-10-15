@@ -3,7 +3,7 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in rails_onboarding.gemspec.
 gemspec
 
-gem "rails", "~> 8.1.1"
+gem "rails", "~> 8.1.4"
 
 gem "puma"
 
