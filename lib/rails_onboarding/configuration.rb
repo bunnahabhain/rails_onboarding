@@ -59,6 +59,12 @@ module RailsOnboarding
       # app/assets/stylesheets/rails_onboarding_custom.css; set this to
       # "rails_onboarding_custom" to actually load it. nil = load nothing.
       @custom_css_path = nil
+
+      # Asset name of a host script to load after the engine's own on onboarding
+      # pages - typically the host's "application" bundle, which is what brings
+      # Turbo and Stimulus. Required for a Hotwire Native app, which refuses any
+      # page without Turbo. nil = load nothing.
+      @custom_js_path = nil
       @redirect_after_completion = :root_path
       @redirect_after_skip = :root_path
       @welcome_heading = "We're excited to have you here!"
