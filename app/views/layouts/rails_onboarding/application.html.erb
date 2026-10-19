@@ -48,6 +48,15 @@
   <% end %>
 
   <%= javascript_include_tag "rails_onboarding/application", "data-turbo-track": "reload", defer: true %>
+
+  <%# Host-supplied script, loaded after the engine's. Nothing else on these pages
+      loads the host's JavaScript, so without it a host whose pages need Turbo or
+      Stimulus loses both here - and a Hotwire Native app, which requires Turbo on
+      every page it shows, refuses the page outright with "Turbo is not present".
+      Deferred like the engine's, so the two run in this order. %>
+  <% if RailsOnboarding.configuration.custom_js_path.present? %>
+    <%= javascript_include_tag RailsOnboarding.configuration.custom_js_path, "data-turbo-track": "reload", defer: true %>
+  <% end %>
 </head>
 <body>
 

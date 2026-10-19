@@ -21,6 +21,12 @@ RailsOnboarding.configure do |config|
   # --onboarding-* tokens in that file rather than overriding rules.
   # config.custom_css_path = "rails_onboarding_custom"
 
+  # Asset name of a script loaded after the engine's own on onboarding pages.
+  # Nothing else loads your JavaScript there, so name your application bundle
+  # if those pages need Turbo or Stimulus - a Hotwire Native app always does,
+  # and shows "Turbo is not present" instead of the page without it.
+  # config.custom_js_path = "application"
+
   # Feature toggles
   config.enable_tooltips = true
   config.enable_milestones = true

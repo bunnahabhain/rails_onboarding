@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.16] - 2026-10-18
+
+### Fixed
+
+- **`custom_js_path` is read.** It was declared from the start and never used,
+  so the engine layout loaded no host JavaScript at all. A host whose pages
+  need Turbo or Stimulus lost both on the engine's pages, and a Hotwire Native
+  app refused them outright with "Turbo is not present" - the welcome step, any
+  other step the engine renders, and Milestones. The layout now loads the named
+  script after the engine's own, deferred like it. Set it to the host's bundle,
+  usually `"application"`.
+
 ## [0.8.15] - 2026-10-15
 
 ### Fixed
